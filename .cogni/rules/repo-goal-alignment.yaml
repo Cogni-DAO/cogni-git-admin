@@ -5,7 +5,8 @@ workflow_id: goal-evaluations
 
 # Edit this! Update it with a clear description of the repo's goal.
 evaluations:
-  - repo-goal: This PR directly advances [DESCRIBE YOUR REPO'S CORE MISSION].
+  - cogni-admin-goal: This PR directly advances the development of building a mature Github Admin bot, for setting up and controlling github repos from a remote onchain DAO activity.
+  - admin-only: This PR accrues to Admin app functionality, and does not introduce bot functionality that does not require admin permissions. 
   # - clear-sub-goals: This PR only uses open source tools and does not introduce new paid dependencies.
 
 
@@ -18,7 +19,7 @@ x_capabilities:
 success_criteria:
   neutral_on_missing_metrics: true
   require:
-    - metric: repo-goal
+    - metric: cogni-admin-goal
       gte: 0.8
-    # - metric: clear-sub-goal
-    #   gte: 0.8
+    - metric: admin-only
+      gte: 0.8
