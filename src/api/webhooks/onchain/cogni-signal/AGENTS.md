@@ -10,25 +10,30 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Provider-agnostic processing
 
 ## Current Implementation
-- **MVP**: Hardcoded to Alchemy payload format in `src/index.ts`
-- **Future Target, not a rush**: Provider adapter pattern with `detectProvider() → adapter.parse()`
+- Uses provider adapter pattern: `detectProvider() → getAdapter() → verifySignature() → parse()`
+- `detectProvider()` hardcoded to return "alchemy" (MVP scope)
+- Registry returns Alchemy adapter with separate verify and parse methods
+- Processes multiple txHashes per webhook, validates chain/DAO, logs valid events
 
 ## Architecture
 ```
-route.ts → detectProvider() → adapter.parse() → { txHashes: string[] } → RPC verify
+route.ts → detectProvider() → getAdapter() → adapter.verifySignature() → adapter.parse() → RPC verify
 ```
 
 ## Data Flow
-1. Receive webhook payload from any provider
-2. `detectProvider()` inspects headers/body to identify provider
-3. Provider adapter parses payload → `{ txHashes, provider, deliveryId?, receivedAt }`
-4. Route processes normalized txHashes with RPC service
-5. Return 204 if no adapter matches, 200 if processed
+1. `detectProvider()` returns "alchemy" (hardcoded for MVP)
+2. `getAdapter("alchemy")` returns alchemyAdapter from registry
+3. `adapter.verifySignature()` validates HMAC → 401 if fails
+4. `adapter.parse()` extracts txHashes from `body.event.data.block.logs[].transaction.hash`
+5. Return 204 if txHashes.length === 0
+6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events
+7. Validate chainId and DAO address, log valid events
+8. Return 200 if validEventsFound > 0, else 204
 
 ## Provider Status
-- **Alchemy**: Currently hardcoded, needs adapter
-- **QuickNode**: Future - different JSON shape
-- **Helius**: Future - Solana support
+- **Alchemy**: Uses `alchemyAdapter` with `verifySignature()` and `parse()` methods
+- **QuickNode**: Not implemented
+- **Helius**: Not implemented
 
 ## Guidelines
 - Never hardcode to one payload format

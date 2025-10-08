@@ -10,10 +10,11 @@ Parse blockchain webhook payloads from different providers into normalized forma
 - Normalization to common `{ txHashes: string[] }` format
 
 ## Current Implementation
-- **alchemy.ts**: MVP - parses `body.event.data.block.logs[].transaction.hash`
-- **detect.ts**: MVP - recognizes Alchemy headers, 204 for others
-- **quicknode.ts**: Future - different payload structure
-- **helius.ts**: Future - Solana webhook support
+- **alchemy.ts**: Exports `alchemyAdapter` with `verifySignature()` (HMAC) and `parse()` methods
+- **detect.ts**: Returns "alchemy" hardcoded (MVP scope)
+- **registry.ts**: Single hardcoded entry mapping "alchemy" to `alchemyAdapter`
+- **quicknode.ts**: Not implemented
+- **helius.ts**: Not implemented
 
 ## Provider Differences
 - **Alchemy**: Nested in `event.data.block.logs[]`

@@ -11,6 +11,7 @@ Normalize different webhook provider payloads into consistent format for downstr
 ## Architecture
 ```typescript
 interface WebhookAdapter {
+  verifySignature(headers: Record<string, string>, rawReq: any): boolean
   parse(body: any, headers: Record<string, string>): {
     txHashes: string[]
     provider: string
@@ -21,8 +22,9 @@ interface WebhookAdapter {
 ```
 
 ## Current Implementation
-- **MVP**: Only Alchemy adapter planned
-- **detect.ts**: Recognizes Alchemy, returns 204 for others
+- **detect.ts**: Returns "alchemy" hardcoded (MVP scope)
+- **registry.ts**: Single-entry registry that returns `alchemyAdapter` for "alchemy"
+- **alchemy.ts**: Exports `alchemyAdapter` with `verifySignature()` and `parse()` methods
 
 ## Structure
 - `onchain/` - Blockchain webhook providers
