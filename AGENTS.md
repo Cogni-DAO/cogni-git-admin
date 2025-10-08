@@ -67,6 +67,11 @@ npm run dev    # Start with nodemon
 npm run build  # Compile TypeScript
 ```
 
+## Technical Debt
+- **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
+  - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
+  - **Impact**: Eliminates dual module system complexity, enables modern build process
+
 ## Next Refactoring Steps
 1. Move existing logic to new directory structure
 2. Extract provider adapter for Alchemy

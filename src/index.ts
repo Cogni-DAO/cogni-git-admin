@@ -1,7 +1,7 @@
 import { Application } from 'probot'
 import { createApiRoutes } from './routes'
 
-export = (app: Application) => {
+export default (app: Application) => {
   // Your code here
   app.log('Yay, the app was loaded!')
 

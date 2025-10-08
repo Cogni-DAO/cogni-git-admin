@@ -14,9 +14,10 @@
     "probot-app"
   ],
   "scripts": {
-    "build": "tsc",
+    "prebuild": "rm -rf lib",
+    "build": "tsc -p tsconfig.runtime.json && cp shim/* lib/",
     "dev": "nodemon --exec \"npm start\"",
-    "start": "probot run ./lib/index.js",
+    "start": "npm run build && probot run ./runtime.cjs",
     "lint": "eslint \"{src,test}/**/*.{ts,tsx,js}\"",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
