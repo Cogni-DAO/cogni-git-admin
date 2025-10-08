@@ -1,4 +1,4 @@
-import { createPublicClient, http, Address } from 'viem';
+import { createPublicClient, http, Address, Log } from 'viem';
 import { sepolia } from 'viem/chains';
 import { tryParseCogniLog } from '../core/signal/parser';
 
@@ -13,7 +13,7 @@ export async function fetchCogniFromTx(txHash: `0x${string}`, contract: Address)
   for (const log of rcpt.logs) {
     if (log.address.toLowerCase() !== contract.toLowerCase()) continue;
     
-    const parsed = tryParseCogniLog(log as any);
+    const parsed = tryParseCogniLog(log as Log);
     if (parsed) return { parsed, txHash, logIndex: Number(log.logIndex) };
   }
   

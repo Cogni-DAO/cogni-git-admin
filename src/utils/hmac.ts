@@ -1,16 +1,20 @@
-import express from 'express';
+import express, { Request } from 'express';
 import crypto from 'crypto';
+
+export interface RequestWithRawBody extends Request {
+  rawBody: Buffer;
+}
 
 export function rawJson() {
   return express.json({ 
     limit: '1mb', 
-    verify: (req: any, _res, buf) => { 
-      req.rawBody = buf; 
+    verify: (req: Request, _res, buf) => { 
+      (req as RequestWithRawBody).rawBody = buf; 
     } 
   });
 }
 
-export function verifyAlchemyHmac(req: any) {
+export function verifyAlchemyHmac(req: RequestWithRawBody) {
   const key = process.env.ALCHEMY_SIGNING_KEY; 
   if (!key) return true;
   

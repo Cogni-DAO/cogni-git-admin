@@ -1,4 +1,6 @@
 import { mergePR } from '../../services/github';
+import { Octokit } from 'octokit';
+import { Application } from 'probot';
 
 export interface CogniActionParsed {
   dao: string;
@@ -12,7 +14,7 @@ export interface CogniActionParsed {
   executor: string;
 }
 
-export async function executeAction(parsed: CogniActionParsed, octokit: any, logger: any) {
+export async function executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']) {
   // TODO: Add database lookup to validate DAO has permission for this repo
   // TODO: Add rate limiting per DAO/executor
   // TODO: Add audit logging to permanent storage

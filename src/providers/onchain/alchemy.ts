@@ -1,4 +1,4 @@
-import { verifyAlchemyHmac } from '../../utils/hmac';
+import { verifyAlchemyHmac, RequestWithRawBody } from '../../utils/hmac';
 
 export interface WebhookParseResult {
   txHashes: string[];
@@ -7,12 +7,26 @@ export interface WebhookParseResult {
   receivedAt: number;
 }
 
+interface AlchemyWebhookBody {
+  event?: {
+    data?: {
+      block?: {
+        logs?: Array<{
+          transaction?: {
+            hash?: string;
+          };
+        }>;
+      };
+    };
+  };
+}
+
 export const alchemyAdapter = {
-  verifySignature(headers: Record<string, string>, rawReq: any): boolean {
+  verifySignature(headers: Record<string, string>, rawReq: RequestWithRawBody): boolean {
     return verifyAlchemyHmac(rawReq);
   },
 
-  parse(body: any, headers: Record<string, string>): WebhookParseResult {
+  parse(body: AlchemyWebhookBody, headers: Record<string, string>): WebhookParseResult {
     const logs = body?.event?.data?.block?.logs || [];
     const txHashes: string[] = [];
     

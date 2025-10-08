@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
+import { Application } from 'probot';
+import { RequestWithRawBody, rawJson } from './utils/hmac';
 import { healthCheck } from './api/health/route';
 import { handleCogniSignal } from './api/webhooks/onchain/cogni-signal/route';
-import { rawJson } from './utils/hmac';
 
-export function createApiRoutes(logger: any, app: any): Router {
+export function createApiRoutes(logger: Application['log'], app: Application): Router {
   const router = Router();
   
   // Health check endpoint
@@ -11,7 +12,7 @@ export function createApiRoutes(logger: any, app: any): Router {
   
   // CogniSignal webhook endpoint
   router.use(rawJson());
-  router.post('/v1/webhooks/onchain/cogni-signal', (req: Request, res: Response) => handleCogniSignal(req, res, logger, app));
+  router.post('/v1/webhooks/onchain/cogni-signal', (req: Request, res: Response) => handleCogniSignal(req as RequestWithRawBody, res, logger, app));
   
   return router;
 }

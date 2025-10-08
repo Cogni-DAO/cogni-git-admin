@@ -1,11 +1,13 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { Application } from 'probot';
+import { RequestWithRawBody } from '../../../../utils/hmac';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
 import { executeAction } from '../../../../core/actions/executor';
 import { getInstallationId } from '../../../../core/auth/github';
 
-export async function handleCogniSignal(req: Request, res: Response, logger: any, app: any) {
+export async function handleCogniSignal(req: RequestWithRawBody, res: Response, logger: Application['log'], app: Application) {
   try {
     const provider = detectProvider(req.headers as Record<string, string>, req.body);
     if (!provider) return res.status(204).end();
