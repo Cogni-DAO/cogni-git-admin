@@ -13,6 +13,9 @@ npm run build
 
 # Run the bot
 npm start
+
+# temp: manually configure smee proxy for onchain webhooks
+smee -u https://smee.io/54cJZVNX6lNnJ4xj --path /api/v1/webhooks/onchain/cogni-signal
 ```
 
 ## Contributing
