@@ -1,6 +1,6 @@
 import { Application } from 'probot'
-import { rawJson, verifyAlchemyHmac } from './mw'
-import { fetchCogniFromTx } from './rpc'
+import { rawJson, verifyAlchemyHmac } from './utils/hmac'
+import { fetchCogniFromTx } from './services/rpc'
 
 export = (app: Application) => {
   // Your code here

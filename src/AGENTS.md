@@ -1,34 +1,33 @@
 # Source Code Structure
 
-## Files Overview
+## Current Status: Files Moved to Clean Architecture
 
-### `index.ts` - Main Application Entry Point
+### `index.ts` - Main Application Entry Point  
 - **Purpose**: Probot application with dual webhook handlers
-- **GitHub**: Standard Probot events (issues.opened, installation.created)
-- **Alchemy**: Custom route `/alchemy/cogni` for blockchain webhooks
-- **Dependencies**: Uses middleware from `mw.ts` and RPC client from `rpc.ts`
+- **Dependencies**: Now imports from `utils/hmac` and `services/rpc`
+- **Status**: Updated imports, functionality unchanged
 
-### `cogni.ts` - CogniAction Event Parser
-- **Purpose**: Ethereum event parsing utilities
+### `core/signal/parser.ts` - CogniAction Event Parser (moved from `cogni.ts`)
+- **Purpose**: Pure domain logic for CogniAction event parsing
 - **Key Exports**:
-  - `abi`: ParseAbi for CogniAction event signature
+  - `abi`: ParseAbi for CogniAction event signature  
   - `COGNI_TOPIC0`: Event topic hash constant
   - `tryParseCogniLog()`: Decodes event log data into structured object
-- **Event Structure**: `(dao, chainId, repo, action, target, pr, commit, extra, executor)`
+- **Layer**: Core domain logic (no external dependencies)
 
-### `rpc.ts` - Blockchain RPC Client
-- **Purpose**: Viem-based Ethereum client for Sepolia
+### `services/rpc.ts` - Blockchain RPC Client (moved from `rpc.ts`)
+- **Purpose**: External RPC service integration with Viem
 - **Key Exports**:
   - `client`: PublicClient configured for Sepolia testnet
   - `fetchCogniFromTx()`: Fetches transaction receipt and parses CogniAction events
-- **Flow**: txHash → getTransactionReceipt → filter logs by contract address → parse events
+- **Layer**: Services layer (external system integration)
 
-### `mw.ts` - Express Middleware
-- **Purpose**: HTTP request processing utilities
+### `utils/hmac.ts` - HMAC Utilities (moved from `mw.ts`)
+- **Purpose**: Stateless helper functions for webhook processing
 - **Key Exports**:
   - `rawJson()`: Express middleware for JSON parsing with raw body access
-  - `verifyAlchemyHmac()`: HMAC signature verification for Alchemy webhooks
-- **Security**: Optional HMAC verification using `ALCHEMY_SIGNING_KEY`
+  - `verifyAlchemyHmac()`: HMAC signature verification
+- **Layer**: Utilities (stateless helpers)
 
 ## Data Flow
 ```

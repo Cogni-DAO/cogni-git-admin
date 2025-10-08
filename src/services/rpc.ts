@@ -1,6 +1,6 @@
 import { createPublicClient, http, Address } from 'viem';
 import { sepolia } from 'viem/chains';
-import { tryParseCogniLog } from './cogni';
+import { tryParseCogniLog } from '../core/signal/parser';
 
 export const client = createPublicClient({ 
   chain: sepolia, 
