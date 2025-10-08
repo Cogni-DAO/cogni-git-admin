@@ -1,8 +1,7 @@
 import { Application } from 'probot'
 // Requiring our app implementation
 import myProbotApp from '../src'
-
-const issuesOpenedPayload = require('./fixtures/issues.opened.json')
+import issuesOpenedPayload from './fixtures/issues.opened.json' with { type: 'json' }
 
 test('that we can run tests', () => {
   // your real tests go here
@@ -11,7 +10,7 @@ test('that we can run tests', () => {
 
 describe('My Probot app', () => {
   let app: Application
-  let github: any
+  let github: { issues: { createComment: jest.MockedFunction<() => Promise<object>> } }
 
   beforeEach(() => {
     app = new Application()
