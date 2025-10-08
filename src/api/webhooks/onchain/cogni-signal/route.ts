@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
+import { executeAction } from '../../../../core/actions/executor';
+import { getInstallationId } from '../../../../core/auth/github';
 
-export async function handleCogniSignal(req: Request, res: Response, logger: any) {
+export async function handleCogniSignal(req: Request, res: Response, logger: any, app: any) {
   try {
     const provider = detectProvider(req.headers as Record<string, string>, req.body);
     if (!provider) return res.status(204).end();
@@ -28,6 +30,27 @@ export async function handleCogniSignal(req: Request, res: Response, logger: any
       
       validEventsFound++;
       logger.info({ kind: 'CogniAction', txHash: out.txHash, logIndex: out.logIndex, ...out.parsed, chainId: out.parsed.chainId.toString() });
+      
+      // Get GitHub App installation ID for this DAO+repo
+      const installationId = getInstallationId(out.parsed.dao, out.parsed.repo);
+      
+      // Get authenticated GitHub client from Probot app
+      const github = await app.auth(installationId);
+      
+      // Execute the action
+      const actionResult = await executeAction({
+        dao: out.parsed.dao,
+        chainId: out.parsed.chainId,
+        repo: out.parsed.repo,
+        action: out.parsed.action,
+        target: out.parsed.target,
+        pr: out.parsed.pr,
+        commit: out.parsed.commit,
+        extra: out.parsed.extra,
+        executor: out.parsed.executor
+      }, github, logger);
+      
+      logger.info({ kind: 'ActionResult', txHash: out.txHash, ...actionResult });
     }
     
     return validEventsFound > 0 ? res.status(200).send('ok') : res.status(204).end();

@@ -3,7 +3,7 @@ import { healthCheck } from './api/health/route';
 import { handleCogniSignal } from './api/webhooks/onchain/cogni-signal/route';
 import { rawJson } from './utils/hmac';
 
-export function createApiRoutes(logger: any): Router {
+export function createApiRoutes(logger: any, app: any): Router {
   const router = Router();
   
   // Health check endpoint
@@ -11,7 +11,7 @@ export function createApiRoutes(logger: any): Router {
   
   // CogniSignal webhook endpoint
   router.use(rawJson());
-  router.post('/v1/webhooks/onchain/cogni-signal', (req, res) => handleCogniSignal(req, res, logger));
+  router.post('/v1/webhooks/onchain/cogni-signal', (req, res) => handleCogniSignal(req, res, logger, app));
   
   return router;
 }

@@ -9,12 +9,13 @@ Contract ABI definitions and type-safe interfaces for blockchain interactions.
 - Contract address constants
 
 ## Current Implementation
-- **Empty**: ABI constants exist inline in `src/cogni.ts`
-- **Planned**: Extracted ABI files and type definitions
+- **CogniAction ABI**: Defined in `core/signal/parser.ts` using Viem's parseAbi
+- **Contract Constants**: Topic hash and addresses managed in parser module
+- **No separate ABI files**: Using inline definitions for MVP
 
 ## Structure
-- `abi/` - JSON ABI files for contracts
-  - `CogniSignal.json` - CogniAction event ABI
+- `abi/` - JSON ABI files for contracts (empty, reserved for future)
+- **Current approach**: ABI definitions in respective domain modules
 
 ## Guidelines
 - Keep ABI files in sync with deployed contracts

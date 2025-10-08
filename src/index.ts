@@ -12,7 +12,7 @@ export = (app: Application) => {
 
   // Mount API routes
   const router = app.route()
-  router.use('/api', createApiRoutes(app.log))
+  router.use('/api', createApiRoutes(app.log, app))
 
   // For more information on building apps:
   // https://probot.github.io/docs/
