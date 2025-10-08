@@ -1,7 +1,8 @@
 import { Application } from 'probot'
+import { GitHubAPI } from 'probot/lib/github'
 // Requiring our app implementation
 import myProbotApp from '../src'
-import issuesOpenedPayload from './fixtures/issues.opened.json' with { type: 'json' }
+import issuesOpenedPayload from './fixtures/issues.opened.json'
 
 test('that we can run tests', () => {
   // your real tests go here
@@ -10,7 +11,7 @@ test('that we can run tests', () => {
 
 describe('My Probot app', () => {
   let app: Application
-  let github: { issues: { createComment: jest.MockedFunction<() => Promise<object>> } }
+  let github: GitHubAPI
 
   beforeEach(() => {
     app = new Application()
@@ -21,7 +22,7 @@ describe('My Probot app', () => {
       issues: {
         createComment: jest.fn().mockReturnValue(Promise.resolve({}))
       }
-    }
+    } as unknown as GitHubAPI
     // Passes the mocked out GitHub API into out app instance
     app.auth = () => Promise.resolve(github)
   })

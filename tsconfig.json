@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "lib": ["es2015", "es2017"],
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "target": "es5",
     "noImplicitReturns": true,
@@ -15,7 +15,8 @@
     "skipLibCheck": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "declaration": true
+    "declaration": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*"
