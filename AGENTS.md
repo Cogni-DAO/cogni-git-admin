@@ -1,21 +1,52 @@
 # Cogni Git Admin
 
 ## Overview
-Blockchain-to-GitHub bridge that receives Alchemy webhooks for CogniAction events and processes them into GitHub operations. Built as a Probot TypeScript application running dual webhook handlers.
+Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webhooks into GitHub operations. Built as a versioned API with provider adapters and clean architecture separation.
 
 ## Architecture
-- **Probot**: Handles GitHub webhooks (installation, issues, etc.)
-- **Alchemy Webhook**: Custom Express endpoint at `/alchemy/cogni` for blockchain events
-- **Viem**: Ethereum client for Sepolia testnet RPC calls
-- **Event Processing**: Parses CogniAction events from transaction logs
+- **Versioned API**: `/api/v1/*` endpoints for webhooks and health checks
+- **Provider Adapters**: Normalize different webhook providers (currently Alchemy hardcoded)
+- **Clean Layers**: API → Core domain logic → Services (RPC, GitHub)
+- **Probot Integration**: GitHub webhook handling via standard Probot patterns
 
-## Workflow
-1. Alchemy webhook → `/alchemy/cogni` with transaction data
-2. Extract txHash from `body.event.data.block.logs[].transaction.hash`
-3. RPC call via Viem to fetch full transaction receipt
-4. Parse logs for CogniAction events from COGNI_SIGNAL_CONTRACT
-5. Validate chainId and DAO address
-6. Log structured payload for GitHub action processing
+## Current Endpoints
+- `POST /api/v1/webhooks/onchain/cogni-signal` - CogniSignal events from any provider
+- `POST /api/v1/webhooks/github` - GitHub repository webhooks (Probot)
+- `GET /api/v1/health` - Application health check
+
+## Code Structure (Scaffolding - Many Empty)
+```
+src/
+├─ index.ts                      # Boot Probot, mount API routes
+├─ routes.ts                     # Central route registration
+├─ api/                          # HTTP layer (thin handlers)
+│  ├─ health/                    # Health check endpoints
+│  └─ webhooks/
+│     ├─ github/                 # GitHub webhook routes
+│     └─ onchain/cogni-signal/   # CogniSignal webhook routes
+├─ providers/onchain/            # Webhook provider adapters
+│  ├─ alchemy.ts                 # Alchemy payload parser (MVP)
+│  ├─ detect.ts                  # Provider detection
+│  └─ (future: quicknode.ts)     # Other providers
+├─ core/signal/                  # Pure domain logic
+│  ├─ parser.ts                  # CogniAction ABI decoding
+│  └─ schema.ts                  # Zod validation schemas
+├─ services/                     # External system integrations
+│  ├─ rpc.ts                     # Blockchain RPC client
+│  ├─ github.ts                  # GitHub API client
+│  └─ logging.ts                 # Structured logging
+├─ utils/                        # Stateless helpers
+│  ├─ env.ts                     # Environment validation
+│  ├─ hmac.ts                    # Signature verification
+│  └─ idempotency.ts             # Deduplication logic
+└─ contracts/abi/                # Contract ABIs
+   └─ CogniSignal.json           # Event definitions
+```
+
+## Current Implementation Status
+- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy)
+- **Scaffolding**: Directory structure and AGENTS.md documentation
+- **Empty**: Most new directories, provider adapters, health checks
 
 ## Environment Variables
 ```bash
@@ -26,17 +57,8 @@ COGNI_SIGNAL_CONTRACT=0x<contract_address>
 COGNI_ALLOWED_DAO=0x<dao_address>
 COGNI_ALLOWED_REPO=owner/repo
 
-# Optional
+# Optional (provider-specific)
 ALCHEMY_SIGNING_KEY=<hmac_key>
-```
-
-## Current State
-MVP complete: Successfully receives webhooks, parses CogniAction events, validates chain/DAO, logs structured data. Ready for GitHub action integration.
-
-## Example CogniAction Log
-```
-kind=CogniAction, dao=0xa38..., chainId=11155111, repo=Cogni-DAO/cogni-git-review, 
-action=PR_APPROVE, target=pull_request, pr=112, executor=0xa38...
 ```
 
 ## Development
@@ -45,7 +67,8 @@ npm run dev    # Start with nodemon
 npm run build  # Compile TypeScript
 ```
 
-## Next Steps
-- Map actions (PR_APPROVE, PR_MERGE, etc.) to GitHub Octokit operations
-- Add idempotency tracking
-- Implement Zod schema validation
+## Next Refactoring Steps
+1. Move existing logic to new directory structure
+2. Extract provider adapter for Alchemy
+3. Implement central routing with version prefix
+4. Add health check endpoint
