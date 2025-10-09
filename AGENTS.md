@@ -113,7 +113,7 @@ npm run capture                   # Run both Smee clients concurrently
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
 
-- **E2E Test MVP Status**: Current E2E test (`e2e/webhook-e2e.test.ts`) provides only basic smoke testing
+- **E2E Test MVP Status**: Current E2E test (`e2e/e2e-runner.ts`) provides only basic smoke testing
   - **Limitations**: HTTP 200 validation only, no GitHub API verification, no error scenarios
   - **Required**: Production-ready E2E testing with comprehensive validation
 
