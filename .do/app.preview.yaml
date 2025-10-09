@@ -15,7 +15,7 @@ ingress:
 name: cogni-git-admin-preview
 region: atl
 services:
-- build_command: npm ci
+- build_command: npm ci && npm run build
   environment_slug: node-js
   envs:
   - key: NODE_ENV

@@ -21,7 +21,7 @@
     "smee-capture-chain-events": "npx dotenv -- sh -c 'smee -u $ALCHEMY_PROXY_URL --path /capture --port 4001'",
     "smee-capture-git-events": "npx dotenv -- sh -c 'smee -u $WEBHOOK_PROXY_URL --path /capture --port 4001'",
     "capture": "concurrently \"npm run smee-capture-chain-events\" \"npm run smee-capture-git-events\"",
-    "start": "npm run build && probot run ./runtime.cjs",
+    "start": "probot run ./runtime.cjs",
     "lint": "eslint \"{src,test}/**/*.{ts,tsx,js}\"",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
