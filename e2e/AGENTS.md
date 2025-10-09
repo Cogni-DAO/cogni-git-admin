@@ -59,7 +59,7 @@ Validate DAO-controlled GitHub automation across three systems:
 
 ```
 e2e/
-├── e2e-runner.ts        # TypeScript CLI-based E2E test runner
+├── e2e-runner.ts        # TypeScript CLI-based E2E test runner (generates test-artifacts/e2e-summary.json)
 └── helpers/
     └── fixture-replay.ts # Webhook fixture replay utilities
 ```
