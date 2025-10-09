@@ -1,0 +1,30 @@
+name: Deploy (Preview)
+
+on:
+ push:
+   branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+     - name: Checkout repository
+       uses: actions/checkout@v4
+     - name: Deploy the app
+       uses: digitalocean/app_action/deploy@v2
+       with:
+         token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
+         app_spec_location: .do/app.preview.yaml
+       env:
+         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+         WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+         ALCHEMY_SIGNING_KEY: ${{ secrets.ALCHEMY_SIGNING_KEY }}
+         EVM_RPC_URL: ${{ secrets.EVM_RPC_URL }}
+         APP_ID: ${{ vars.APP_ID }}
+         COGNI_SIGNAL_CONTRACT: ${{ vars.COGNI_SIGNAL_CONTRACT }}
+         COGNI_ALLOWED_DAO: ${{ vars.COGNI_ALLOWED_DAO }}
+         COGNI_CHAIN_ID: ${{ vars.COGNI_CHAIN_ID }}

@@ -59,7 +59,9 @@ Validate DAO-controlled GitHub automation across three systems:
 
 ```
 e2e/
-└── webhook-e2e.test.ts  # Single MVP smoke test (HTTP response validation only)
+├── e2e-runner.ts        # TypeScript CLI-based E2E test runner
+└── helpers/
+    └── fixture-replay.ts # Webhook fixture replay utilities
 ```
 
 ### Test Execution
@@ -71,7 +73,7 @@ export E2E_APP_DEPLOYMENT_URL=https://your-deployment.com
 export TEST_REPO_GITHUB_PAT=ghp_your_token
 
 # Run E2E test
-npm run test:e2e
+npm run e2e
 ```
 
 ## Success Criteria (Not Yet Met)
