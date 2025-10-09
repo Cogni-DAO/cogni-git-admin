@@ -51,6 +51,9 @@ test/
 │  ├─ alchemy/                   # Alchemy webhook fixtures
 │  └─ github/                    # GitHub webhook fixtures  
 └─ helpers/fixture-replay.ts     # Replay fixtures for testing
+
+e2e/
+└─ webhook-e2e.test.ts           # MVP smoke test for webhook processing
 ```
 
 ## Current Implementation Status
@@ -70,6 +73,10 @@ COGNI_ALLOWED_REPO=owner/repo
 # Optional (provider-specific)
 ALCHEMY_SIGNING_KEY=<hmac_key>
 
+# E2E Testing
+E2E_APP_DEPLOYMENT_URL=<deployment_url>  # Target deployment for E2E tests
+TEST_REPO_GITHUB_PAT=<github_token>      # Optional: verify GitHub API effects
+
 # Webhook Capture (development)
 CAPTURE_PORT=4001                      # Capture server port
 FIXTURE_CAPTURE_DIR=./fixtures         # Fixture storage directory
@@ -79,8 +86,9 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 
 ## Development
 ```bash
-npm run dev    # Start with nodemon
-npm run build  # Compile TypeScript
+npm run dev        # Start with nodemon
+npm run build      # Compile TypeScript
+npm run test:e2e   # Run E2E tests against deployment (requires E2E_APP_DEPLOYMENT_URL)
 
 # Webhook Fixture Capture
 npm run dev:capture              # Start capture server on port 4001
@@ -100,6 +108,14 @@ npm run capture                   # Run both Smee clients concurrently
 - **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
+
+- **E2E Test MVP Status**: Current E2E test (`e2e/webhook-e2e.test.ts`) provides only basic smoke testing
+  - **Limitations**: HTTP 200 validation only, no GitHub API verification, no error scenarios
+  - **Required**: Production-ready E2E testing with comprehensive validation
+
+- **Smee Client Environment Variables**: Known issue with environment variable parsing in Smee proxy commands
+  - **Impact**: Environment variables not correctly passed to capture server
+  - **Workaround**: Hardcode values or use alternative proxy methods
 
 ## Next Refactoring Steps
 1. Move existing logic to new directory structure
