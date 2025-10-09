@@ -1,6 +1,7 @@
 import { Application } from 'probot'
+import { createApiRoutes } from './routes'
 
-export = (app: Application) => {
+export default (app: Application) => {
   // Your code here
   app.log('Yay, the app was loaded!')
 
@@ -8,6 +9,10 @@ export = (app: Application) => {
     const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
     context.github.issues.createComment(issueComment)
   })
+
+  // Mount API routes
+  const router = app.route()
+  router.use('/api', createApiRoutes(app.log, app))
 
   // For more information on building apps:
   // https://probot.github.io/docs/
