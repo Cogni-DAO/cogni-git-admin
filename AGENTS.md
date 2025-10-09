@@ -41,6 +41,16 @@ src/
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/abi/                # Contract ABIs
    └─ CogniSignal.json           # Event definitions
+
+tools/dev/webhook-capture/       # Webhook fixture capture system
+├─ capture-server.ts             # HTTP server for capturing webhooks
+└─ lib/fixture-writer.ts         # Fixture persistence logic
+
+test/
+├─ fixtures/                     # Captured webhook fixtures
+│  ├─ alchemy/                   # Alchemy webhook fixtures
+│  └─ github/                    # GitHub webhook fixtures  
+└─ helpers/fixture-replay.ts     # Replay fixtures for testing
 ```
 
 ## Current Implementation Status
@@ -59,13 +69,32 @@ COGNI_ALLOWED_REPO=owner/repo
 
 # Optional (provider-specific)
 ALCHEMY_SIGNING_KEY=<hmac_key>
+
+# Webhook Capture (development)
+CAPTURE_PORT=4001                      # Capture server port
+FIXTURE_CAPTURE_DIR=./fixtures         # Fixture storage directory
+ALCHEMY_PROXY_URL=<smee_url>          # Smee proxy for Alchemy webhooks
+WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 ```
 
 ## Development
 ```bash
 npm run dev    # Start with nodemon
 npm run build  # Compile TypeScript
+
+# Webhook Fixture Capture
+npm run dev:capture              # Start capture server on port 4001
+npm run smee-capture-chain-events # Route Alchemy webhooks to capture
+npm run smee-capture-git-events   # Route GitHub webhooks to capture
+npm run capture                   # Run both Smee clients concurrently
 ```
+
+### Webhook Testing Workflow
+1. Start capture server: `npm run dev:capture`
+2. Route webhooks through Smee to capture: `npm run capture`  
+3. Trigger webhooks (GitHub actions, blockchain events)
+4. Fixtures saved to `fixtures/<provider>/<event>/`
+5. Use `test/helpers/fixture-replay.ts` to replay in tests
 
 ## Technical Debt
 - **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
