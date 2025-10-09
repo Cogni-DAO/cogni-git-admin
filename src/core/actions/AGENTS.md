@@ -36,7 +36,7 @@ executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['
 - **Bypass Requirement**: Merges PRs **overriding failed required status checks** and **bypassing branch protection rules**
 - **GitHub Permissions**: `pull_requests: write` + `contents: write` + **bypass actor status** for protected branches
 - **Current Limitation**: App must be configured as bypass actor in repository rulesets/branch protection settings
-- **Justification**: DAO governance decisions must supersede automated CI failures and branch policies when explicitly voted upon onchain
+- **Justification**: Merges a PR when explicitly authorized by a DAO decision. Requires repository ruleset configuration that lists the Cogni Admin app as a bypass actor for selected branches. At runtime the app uses pull_requests:write and contents:write; no global admin token is used. This action is high risk and is gated by on-chain authorization, branch scoping, and audit logging.
 - **Risk Level**: High - bypasses repository safety controls designed to prevent broken deployments
 - **Use Case**: Critical fixes approved by DAO that cannot wait for CI fixes or emergency deployments overriding protection policies
 - **Next Implementation Step**: Admin action to configure this app as bypass actor for protected branches in target repositories
