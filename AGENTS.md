@@ -3,6 +3,10 @@
 ## Overview
 Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webhooks into GitHub operations. Built as a versioned API with provider adapters and clean architecture separation.
 
+## Deployment
+- Build phase compilation prevents runtime OOM during GitHub app startup
+- Reliable webhook processing for DAO-driven repository operations
+
 ## Architecture
 - **Versioned API**: `/api/v1/*` endpoints for webhooks and health checks
 - **Provider Adapters**: Normalize different webhook providers (currently Alchemy hardcoded)
