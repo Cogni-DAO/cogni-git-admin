@@ -33,13 +33,15 @@ executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['
 **Administrative Actions Requiring Elevated Permissions:**
 
 ### 1. `PR_APPROVE` → `mergePR()`
-- **Admin Requirement**: Merges PRs **overriding failed required status checks** and **bypassing branch protection rules**
-- **GitHub Permissions**: `administration: write` + `pull_requests: write` + `contents: write`
+- **Bypass Requirement**: Merges PRs **overriding failed required status checks** and **bypassing branch protection rules**
+- **GitHub Permissions**: `pull_requests: write` + `contents: write` + **bypass actor status** for protected branches
+- **Current Limitation**: App must be configured as bypass actor in repository rulesets/branch protection settings
 - **Justification**: DAO governance decisions must supersede automated CI failures and branch policies when explicitly voted upon onchain
-- **Risk Level**: High - bypasses repository safety controls
-- **Use Case**: Critical fixes approved by DAO that cannot wait for CI fixes or need to override protection policies for urgent deployment
+- **Risk Level**: High - bypasses repository safety controls designed to prevent broken deployments
+- **Use Case**: Critical fixes approved by DAO that cannot wait for CI fixes or emergency deployments overriding protection policies
+- **Next Implementation Step**: Admin action to configure this app as bypass actor for protected branches in target repositories
 
-Future actions will follow similar patterns requiring administrative permissions to override repository policies based on DAO consensus.
+Note: Bypass capability can be granted to specific apps/users without full admin permissions through GitHub's branch protection rules and repository rulesets.
 
 ## Guidelines
 - Validate DAO permissions before execution (TODO)
