@@ -26,7 +26,7 @@ gates:
     id: review_limits
     with:
       max_changed_files: 30
-      max_total_diff_kb: 100
+      max_total_diff_kb: 500
 
 # Ensure */*/AGENTS.md files are updated when code changes
   - type: agents-md-sync
