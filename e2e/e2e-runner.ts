@@ -4,7 +4,9 @@
  * Tests captured webhook fixtures against deployed app.
  */
 import { execSync } from 'child_process';
-import { replayFixture } from './helpers/fixture-replay.js';
+import { mkdirSync, writeFileSync } from 'fs';
+import { join } from 'path';
+import { replayFixture } from './helpers/fixture-replay.ts';
 
 interface E2EOptions {
   deploymentUrl: string;
@@ -179,6 +181,10 @@ async function main() {
   try {
     const options = parseE2EOptionsFromEnv();
     const result = await runE2ETest(options);
+    
+    // Create test artifacts directory and write summary
+    mkdirSync('test-artifacts', { recursive: true });
+    writeFileSync(join('test-artifacts', 'e2e-summary.json'), JSON.stringify(result.summary, null, 2));
     
     if (result.success) {
       console.log('✅ E2E test passed!');
