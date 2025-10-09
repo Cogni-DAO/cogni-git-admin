@@ -29,13 +29,13 @@ type Recorded = {
 import { replayFixture } from './helpers/fixture-replay.js';
 
 const statusCode = await replayFixture(
-  'fixtures/alchemy/CogniSignal/webhook.json',
+  'test/fixtures/alchemy/CogniSignal/webhook.json',
   'https://deployment.com/api/v1/webhooks/onchain/cogni-signal'
 );
 ```
 
 ## Integration Points
-- **Fixture Source**: Reads fixtures from `fixtures/` directory created by `tools/dev/webhook-capture/`
+- **Fixture Source**: Reads fixtures from `test/fixtures/` directory created by `tools/dev/webhook-capture/`
 - **E2E Runner**: Used by `e2e/e2e-runner.ts` to test webhook processing
 - **Target Deployments**: Sends requests to deployed applications specified via `E2E_APP_DEPLOYMENT_URL`
 

@@ -64,7 +64,7 @@ async function runE2ETest(options: Partial<E2EOptions> = {}): Promise<E2EResult>
 
   // Test data from captured fixture
   const targetPR = 121;
-  const fixturePath = 'fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json';
+  const fixturePath = 'test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json';
 
   try {
     console.log(`[E2E] Testing webhook processing against: ${deploymentUrl}`);

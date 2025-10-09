@@ -47,7 +47,7 @@ tools/dev/webhook-capture/       # Webhook fixture capture system
 └─ lib/fixture-writer.ts         # Fixture persistence logic
 
 test/
-├─ fixtures/                     # Captured webhook fixtures
+├─ test/fixtures/                # Captured webhook fixtures
 │  ├─ alchemy/                   # Alchemy webhook fixtures
 │  └─ github/                    # GitHub webhook fixtures  
 └─ helpers/fixture-replay.ts     # Replay fixtures for testing
@@ -101,8 +101,8 @@ npm run capture                   # Run both Smee clients concurrently
 1. Start capture server: `npm run dev:capture`
 2. Route webhooks through Smee to capture: `npm run capture`  
 3. Trigger webhooks (GitHub actions, blockchain events)
-4. Fixtures saved to `fixtures/<provider>/<event>/`
-5. Use `test/helpers/fixture-replay.ts` to replay in tests
+4. Fixtures saved to `test/fixtures/<provider>/<event>/`
+5. Use `e2e/helpers/fixture-replay.ts` to replay in tests
 
 ## Technical Debt
 - **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 

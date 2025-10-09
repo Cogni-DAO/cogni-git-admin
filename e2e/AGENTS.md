@@ -19,7 +19,7 @@ Validate DAO-controlled GitHub automation across three systems:
 ## Current Implementation (MVP Smoke Test)
 
 ### What Exists
-- **Single test case**: Replays `fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json`
+- **Single test case**: Replays `test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json`
 - **Target**: PR #121 in `derekg1729/test-repo` with PR_APPROVE action
 - **Validation**: HTTP 200 response only (minimal validation)
 - **Optional GitHub verification**: Attempts PR state check if `TEST_REPO_GITHUB_PAT` provided
