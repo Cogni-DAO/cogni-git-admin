@@ -11,6 +11,8 @@ export function createApiRoutes(logger: Application['log'], app: Application): R
   router.get('/v1/health', healthCheck);
   
   // CogniSignal webhook endpoint
+  // TODO: Add rate limiting - this route performs expensive operations (RPC calls, GitHub API)
+  // without rate limiting protection. See work item for cogni-apps rate limiting implementation.
   router.use(rawJson());
   router.post('/v1/webhooks/onchain/cogni-signal', (req: Request, res: Response) => handleCogniSignal(req as RequestWithRawBody, res, logger, app));
   
