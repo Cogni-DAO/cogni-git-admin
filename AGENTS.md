@@ -13,6 +13,9 @@ Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webho
 - **Clean Layers**: API → Core domain logic → Services (RPC, GitHub)
 - **Probot Integration**: GitHub webhook handling via standard Probot patterns
 
+## Project Management
+- **Cogni MCP Epic**: All work items must accrue up to this parent Epic for cogni-git-admin: 0b132be5-4692-4266-9e30-10acf9e1f1ca
+
 ## Current Endpoints
 - `POST /api/v1/webhooks/onchain/cogni-signal` - CogniSignal events from any provider
 - `POST /api/v1/webhooks/github` - GitHub repository webhooks (Probot)
@@ -61,7 +64,7 @@ e2e/
 ```
 
 ## Current Implementation Status
-- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy)
+- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy), E2E test connectivity to DigitalOcean deployment
 - **Scaffolding**: Directory structure and AGENTS.md documentation
 - **Empty**: Most new directories, provider adapters, health checks
 
@@ -113,9 +116,14 @@ npm run capture                   # Run both Smee clients concurrently
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
 
-- **E2E Test MVP Status**: Current E2E test (`e2e/e2e-runner.ts`) provides only basic smoke testing
-  - **Limitations**: HTTP 200 validation only, no GitHub API verification, no error scenarios
+- **E2E Test MVP Status**: Current E2E test (`e2e/e2e-runner.ts`) provides basic smoke testing with resolved connectivity issues
+  - **Limitations**: HTTP 2xx validation only, optional GitHub API verification, no error scenarios
+  - **Resolved**: SSL/TLS handshake issues fixed via header cleaning in fixture replay
   - **Required**: Production-ready E2E testing with comprehensive validation
+
+- **GitHub App Installation IDs**: Hardcoded mapping between environments (dev: 89056469, production: 89353955)
+  - **Impact**: Temporary solution requiring code changes for new installations
+  - **Required**: Database-backed installation mapping
 
 - **Smee Client Environment Variables**: Known issue with environment variable parsing in Smee proxy commands
   - **Impact**: Environment variables not correctly passed to capture server

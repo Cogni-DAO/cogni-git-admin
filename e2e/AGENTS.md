@@ -1,6 +1,6 @@
 # E2E Testing
 
-**⚠️ MVP SMOKE TEST STATUS**: Basic HTTP response validation only. Production-ready testing requires significant enhancement.
+**✅ CONNECTIVITY RESOLVED**: E2E tests successfully connect to DigitalOcean deployment with proper SSL/TLS handling. Basic HTTP response validation working.
 
 ## Purpose
 
@@ -16,17 +16,19 @@ Validate DAO-controlled GitHub automation across three systems:
 
 **Full cross-repo orchestration** lives in repo `cogni-e2e` (version-matrix, live chain/RPC, ephemeral GitHub repos).
 
-## Current Implementation (MVP Smoke Test)
+## Current Implementation
 
 ### What Exists
 - **Single test case**: Replays `test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json`
 - **Target**: PR #121 in `derekg1729/test-repo` with PR_APPROVE action
-- **Validation**: HTTP 200 response only (minimal validation)
+- **Validation**: HTTP 2xx response validation (accepts range 200-299)
 - **Optional GitHub verification**: Attempts PR state check if `TEST_REPO_GITHUB_PAT` provided
+- **SSL/TLS Fix**: Header cleaning prevents proxy artifacts from poisoning SNI/ALPN negotiation
+- **Authentication**: Environment-aware installation ID selection (dev vs production)
 
-### Critical Limitations
+### Current Limitations
 **Response validation**:
-- ❌ Only accepts HTTP 200 (should allow 2xx range for flexibility)
+- ✅ Accepts HTTP 2xx range for flexibility
 - ❌ No response body capture for debugging failures
 - ❌ No error scenario testing
 
@@ -76,18 +78,19 @@ export TEST_REPO_GITHUB_PAT=ghp_your_token
 npm run e2e
 ```
 
-## Success Criteria (Not Yet Met)
-- ⚠️ Webhook processing returns correct status codes (currently only accepts 200)
+## Success Criteria
+- ✅ Webhook processing returns correct status codes (accepts 2xx range)
+- ✅ E2E connectivity to DigitalOcean deployment working
 - ⚠️ GitHub API confirms PR merge completion (optional, non-blocking)
 - ❌ Error handling validated for common failure modes (not implemented)
 - ✅ Tests run in <30 seconds in CI (meets timing requirement)
 
 ## Required Enhancements for Production
-1. **Expand response validation**: Accept all 2xx status codes
-2. **Capture response bodies**: Enable debugging of failures
-3. **Add error scenarios**: Test invalid DAOs, malformed payloads, network failures
-4. **Enforce GitHub verification**: Make PR state validation mandatory
-5. **Implement idempotency testing**: Verify duplicate webhook handling
-6. **Add retry logic**: Handle eventual consistency in GitHub API
-7. **Parameterize test data**: Support multiple repos and PR numbers
-8. **Replay signature headers**: Include HMAC validation from original webhooks
+1. **Capture response bodies**: Enable debugging of failures
+2. **Add error scenarios**: Test invalid DAOs, malformed payloads, network failures
+3. **Enforce GitHub verification**: Make PR state validation mandatory
+4. **Implement idempotency testing**: Verify duplicate webhook handling
+5. **Add retry logic**: Handle eventual consistency in GitHub API
+6. **Parameterize test data**: Support multiple repos and PR numbers
+7. **Replay signature headers**: Include HMAC validation from original webhooks
+8. **Remove hardcoded installation IDs**: Replace with database-backed mapping

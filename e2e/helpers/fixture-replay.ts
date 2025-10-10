@@ -1,5 +1,6 @@
 import fs from 'fs';
 import http from 'http';
+import https from 'https';
 import { once } from 'events';
 import { URL } from 'url';
 
@@ -18,18 +19,37 @@ export async function replayFixture(fixturePath: string, targetUrl: string) {
   
   console.log(`[replay] Sending ${rec.method} to ${targetUrl} with ${body.length} bytes`);
   
-  const opts: http.RequestOptions = {
+  // Clean headers: remove proxy artifacts that poison SNI/ALPN negotiation
+  const cleanHeaders: Record<string, string | number> = {
+    'content-type': (rec.headers['content-type'] as string) || 'application/json',
+    'content-length': body.length,
+    'user-agent': 'cogni-e2e/1.0'
+  };
+  
+  // Preserve auth headers if present (but not proxy cookies/keys)
+  const authHeaders = ['authorization', 'x-hub-signature-256', 'x-alchemy-signature'];
+  authHeaders.forEach(header => {
+    if (rec.headers[header]) {
+      cleanHeaders[header] = rec.headers[header] as string;
+    }
+  });
+  
+  const opts: https.RequestOptions = {
     protocol: url.protocol,
     hostname: url.hostname,
-    port: url.port,
+    port: url.port || (url.protocol === 'https:' ? 443 : 80),
     path: url.pathname + (url.search || ''),
     method: rec.method || 'POST',
-    headers: { ...rec.headers, 'content-length': body.length },
-    timeout: 10000 // 10 second timeout
+    headers: cleanHeaders,
+    timeout: 10000,
+    servername: url.hostname, // explicit SNI
+    family: 4, // force IPv4 to avoid v6 path quirks  
+    minVersion: 'TLSv1.2'
   };
   
   const res = await new Promise<http.IncomingMessage>((resolve, reject) => {
-    const req = http.request(opts, (response) => {
+    const client = url.protocol === 'https:' ? https : http;
+    const req = client.request(opts, (response) => {
       console.log(`[replay] Response: ${response.statusCode}`);
       resolve(response);
     });
