@@ -34,6 +34,44 @@ Here are a few things you can do that will increase the likelihood of your pull 
 
 Work in Progress pull requests are also welcome to get feedback early on, or if there is something blocked you.
 
+## GitHub App Private Key Management
+
+When setting up a GitHub App for this project, you'll need to securely store the generated private key. Instead of manually copying the key contents into environment variables, use the GitHub CLI to properly manage secrets:
+
+### For Environment-Specific Deployment (Recommended)
+
+After downloading your `app.private-key.pem` file from GitHub, add the base64 encoded version to your env:
+
+Locally:
+
+```bash
+# Convert to base64, add quotes, add to .env var PRIVATE_KEY
+sh -lc 'printf "PRIVATE_KEY=%s\n" "$(base64 < </path/to/key.pem> | tr -d "\n")"' >> .env
+```
+
+Preview (Github Environment)
+
+```bash
+# Note: the quotes are essential for .do appspec parsing via github actions
+echo "\"$(base64 -i /path/to/key.pem)\"" | gh secret set PRIVATE_KEY --env Preview
+```
+
+### Verify Secret Was Set
+
+```bash
+# List environment secrets to verify
+gh api repos/OWNER/REPO/environments/Preview/secrets
+
+# List repository secrets to verify
+gh secret list
+```
+
+### Security Note
+
+- **Always delete the `.pem` file** after setting the secret: `rm app.private-key.pem`
+- GitHub secrets are encrypted and cannot be viewed once set
+- Environment-specific secrets provide better security isolation than repository-level secrets
+
 ## Resources
 
 - [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)

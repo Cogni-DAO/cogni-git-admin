@@ -13,6 +13,9 @@ Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webho
 - **Clean Layers**: API → Core domain logic → Services (RPC, GitHub)
 - **Probot Integration**: GitHub webhook handling via standard Probot patterns
 
+## Project Management
+- **Cogni MCP Epic**: All work items must accrue up to this parent Epic for cogni-git-admin: 0b132be5-4692-4266-9e30-10acf9e1f1ca
+
 ## Current Endpoints
 - `POST /api/v1/webhooks/onchain/cogni-signal` - CogniSignal events from any provider
 - `POST /api/v1/webhooks/github` - GitHub repository webhooks (Probot)
