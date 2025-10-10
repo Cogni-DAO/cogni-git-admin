@@ -11,7 +11,7 @@ ingress:
       authority:
         exact: ""
       path:
-        prefix: /cogni-git-admin-preview
+        prefix: /
 name: cogni-git-admin-preview
 region: atl
 services:
