@@ -24,6 +24,7 @@ Validate DAO-controlled GitHub automation across three systems:
 - **Validation**: HTTP 2xx response validation (accepts range 200-299)
 - **Optional GitHub verification**: Attempts PR state check if `TEST_REPO_GITHUB_PAT` provided
 - **SSL/TLS Fix**: Header cleaning prevents proxy artifacts from poisoning SNI/ALPN negotiation
+- **URL Construction**: Simple URL construction, joining base url with hardcoded api path
 - **Authentication**: Environment-aware installation ID selection (dev vs production)
 
 ### Current Limitations
