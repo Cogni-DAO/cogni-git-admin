@@ -5,7 +5,15 @@ export function getInstallationId(dao: string, repo: string): number {
   
   // MVP: Hardcoded mapping
   if (dao.toLowerCase() === '0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5' && repo === 'derekg1729/test-repo') {
-    return 89056469;
+
+    // Still SUPER temporary glue code for testing purposes
+    if (process.env.NODE_ENV === 'production') {
+      // Preview app's installation ID on test-repo
+      return 89353955;
+    } else {
+      // Dev app's installation ID on test-repo
+      return 89056469;
+    }
   }
   throw new Error(`No GitHub App installation found for DAO ${dao} and repo ${repo}`);
 }
