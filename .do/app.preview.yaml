@@ -8,8 +8,6 @@ ingress:
   - component:
       name: cogni-git-admin-preview
     match:
-      authority:
-        exact: ""
       path:
         prefix: /
 name: cogni-git-admin-preview
@@ -55,9 +53,11 @@ services:
   github:
     branch: main
     repo: Cogni-DAO/cogni-git-admin
+  health_check:
+    http_path: /api/v1/health
+    port: 3000
   http_port: 3000
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: cogni-git-admin-preview
   run_command: npm start
-  source_dir: /
