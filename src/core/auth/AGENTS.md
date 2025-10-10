@@ -10,7 +10,10 @@ Maps DAOs and repositories to GitHub App installation IDs for authenticated API 
 
 ## Current Implementation
 - **github.ts**: Provides `getInstallationId(dao, repo)` for installation lookup
-- MVP hardcoded mapping: DAO `0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5` → `derekg1729/test-repo` → installation ID `89056469`
+- Environment-aware hardcoded mapping for DAO `0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5` → `derekg1729/test-repo`:
+  - Development environment: installation ID `89056469`
+  - Production environment: installation ID `89353955`
+- Determines environment via `NODE_ENV` environment variable
 - Throws error for unmapped DAO/repo combinations
 
 ## Interface
@@ -34,3 +37,9 @@ getInstallationId(dao: string, repo: string): number
 - Validate DAO permissions for repository access (TODO)
 - Support multiple installations per DAO (TODO)
 - Maintain installation ID cache for performance
+
+## Technical Debt
+- Installation IDs hardcoded for both dev and production GitHub Apps
+- Environment detection relies on NODE_ENV variable
+- Requires code changes to add new DAO/repository mappings
+- Solution: Implement database-backed installation registry

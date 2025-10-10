@@ -21,9 +21,9 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 
 ## GitHub Service Details
 - **Authentication**: Uses Probot app's `app.auth(installationId)` 
-- **Installation Mapping**: `core/auth/github.ts` maps DAO+repo to installation ID
+- **Installation Mapping**: `core/auth/github.ts` maps DAO+repo to installation ID (environment-aware)
 - **API Format**: `await octokit.request({ method: "PUT", url: "/repos/...", ... })`
-- **Current Issue**: GitHub App needs pull request write permissions (403 error)
+- **Permissions**: GitHub App configured with pull request write permissions
 
 ## Guidelines
 - Handle external system failures gracefully
