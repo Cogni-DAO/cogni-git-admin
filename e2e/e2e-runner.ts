@@ -45,7 +45,7 @@ function parseE2EOptionsFromEnv(overrides: Partial<E2EOptions> = {}): E2EOptions
 
   return {
     deploymentUrl: env('E2E_APP_DEPLOYMENT_URL'),
-    ghToken: env('TEST_REPO_GITHUB_PAT', null),
+    ghToken: env('E2E_TEST_REPO_GITHUB_PAT', null),
     testRepo: env('TEST_REPO', 'derekg1729/test-repo'),
     timeoutSec: parseInt(env('TIMEOUT_SEC', '30'), 10),
     ...overrides

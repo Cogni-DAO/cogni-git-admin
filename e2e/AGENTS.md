@@ -1,97 +1,52 @@
 # E2E Testing
 
-**✅ CONNECTIVITY RESOLVED**: E2E tests successfully connect to DigitalOcean deployment with proper SSL/TLS handling. Basic HTTP response validation working.
-
 ## Purpose
+Validate DAO-controlled GitHub automation: DAO vote → webhook → PR merge.
 
-Validate DAO-controlled GitHub automation across three systems:
+## Current Implementation Status
 
-- **cogni-gov-contracts** (Foundry)
-- **cogni-git-review** (Probot reviewer)  
-- **cogni-admin** (DAO → GitHub executor)
+### ✅ What Works
+1. **Fixture-based test** (`e2e-runner.ts`): Replays captured webhook → HTTP 200
+2. **Live blockchain test** (`dao-merge.spec.ts`): Creates PR, connects to Sepolia
+3. **Integrated runner**: `npm run e2e` runs both tests sequentially
 
-## Ownership Model
+### 🐛 Known Issue (WIP)
+**DAO Wallet Mismatch**: The test wallet is not the actual DAO address configured in the deployed contract.
 
-**This folder**: minimal E2E for cogni-admin using recorded webhook fixtures (fast, hermetic).
+- **Contract expects**: `0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5` (DAO)  
+- **Test wallet is**: `0xB0FcB5Ae33DFB4829f663458798E5e3843B21839` (member)
+- **Result**: Contract reverts with `NOT_DAO`
 
-**Full cross-repo orchestration** lives in repo `cogni-e2e` (version-matrix, live chain/RPC, ephemeral GitHub repos).
+**Next Step**: Implement full DAO proposal → vote → execution flow instead of direct `signal()` call.
 
-## Current Implementation
-
-### What Exists
-- **Single test case**: Replays `test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json`
-- **Target**: PR #121 in `derekg1729/test-repo` with PR_APPROVE action
-- **Validation**: HTTP 2xx response validation (accepts range 200-299)
-- **Optional GitHub verification**: Attempts PR state check if `TEST_REPO_GITHUB_PAT` provided
-- **SSL/TLS Fix**: Header cleaning prevents proxy artifacts from poisoning SNI/ALPN negotiation
-- **URL Construction**: Simple URL construction, joining base url with hardcoded api path
-- **Authentication**: Environment-aware installation ID selection (dev vs production)
-
-### Current Limitations
-**Response validation**:
-- ✅ Accepts HTTP 2xx range for flexibility
-- ❌ No response body capture for debugging failures
-- ❌ No error scenario testing
-
-**GitHub verification**:
-- ❌ Optional and non-blocking (test passes regardless of GitHub state)
-- ❌ No idempotency testing for repeated webhook delivery
-- ❌ No retry logic for eventual consistency
-
-**Test robustness**:
-- ❌ Single fixture only (no coverage of edge cases)
-- ❌ No signature header replay from original webhook
-- ❌ No validation of deployment availability before testing
-- ❌ Hard-coded test data (repo, PR number)
-
-## Test Scope
-
-### Fixture-Based Golden Path Tests (Planned)
-- **Input**: Captured Alchemy webhook payloads from manual testing
-- **Process**: POST to `/api/v1/webhooks/onchain/cogni-signal` endpoint
-- **Output**: Verify GitHub PR merge execution and proper response codes
-- **Speed**: Fast, no external dependencies beyond test-repo GitHub API
-
-### What We Don't Test Here
-- Smart contract deployment/execution (→ cogni-gov-contracts)
-- PR review bot integration (→ cogni-git-review) 
-- Multi-repository orchestration (→ cogni-e2e)
-- Live blockchain interaction (→ cogni-e2e)
-
-## Implementation
-
+## Architecture
 ```
 e2e/
-├── e2e-runner.ts        # TypeScript CLI-based E2E test runner (generates test-artifacts/e2e-summary.json)
-└── helpers/
-    └── fixture-replay.ts # Webhook fixture replay utilities
+├── dao-merge.spec.ts           # Live blockchain E2E (has auth bug)
+├── e2e-runner.ts              # Fixture replay (working)
+├── helpers/fixture-replay.ts   # HTTP utilities
+└── AGENTS_E2E_MVP.md          # Detailed workflow spec
 ```
 
-### Test Execution
+## Test Execution
 ```bash
-# Required environment variable
-export E2E_APP_DEPLOYMENT_URL=https://your-deployment.com
-
-# Optional: verify GitHub API effects
-export TEST_REPO_GITHUB_PAT=ghp_your_token
-
-# Run E2E test
+# Run both tests
 npm run e2e
+
+# Required environment (.env)
+E2E_APP_DEPLOYMENT_URL=http://localhost:3000  # or deployed URL
+E2E_TEST_REPO_GITHUB_PAT=ghp_...             # GitHub token
 ```
 
-## Success Criteria
-- ✅ Webhook processing returns correct status codes (accepts 2xx range)
-- ✅ E2E connectivity to DigitalOcean deployment working
-- ⚠️ GitHub API confirms PR merge completion (optional, non-blocking)
-- ❌ Error handling validated for common failure modes (not implemented)
-- ✅ Tests run in <30 seconds in CI (meets timing requirement)
+## Success Progress
+- ✅ Fixture test: Working (HTTP 200, webhook replay)
+- ✅ Integration: Both tests run together  
+- ✅ Blockchain: Connects to Sepolia, creates PRs
+- 🚧 **Auth Issue**: Need DAO proposal flow, not direct signal()
+- 📋 **TODO**: Implement proposal → vote → execute pattern
 
-## Required Enhancements for Production
-1. **Capture response bodies**: Enable debugging of failures
-2. **Add error scenarios**: Test invalid DAOs, malformed payloads, network failures
-3. **Enforce GitHub verification**: Make PR state validation mandatory
-4. **Implement idempotency testing**: Verify duplicate webhook handling
-5. **Add retry logic**: Handle eventual consistency in GitHub API
-6. **Parameterize test data**: Support multiple repos and PR numbers
-7. **Replay signature headers**: Include HMAC validation from original webhooks
-8. **Remove hardcoded installation IDs**: Replace with database-backed mapping
+## Future Enhancements
+- Fix DAO authorization (implement proposal flow)
+- Add error scenarios and edge cases
+- Playwright Test integration for proper test suite organization, execution, reporting
+- Multi-environment support (local/preview/prod)

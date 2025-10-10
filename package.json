@@ -26,7 +26,7 @@
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
-    "e2e": "tsx -r dotenv/config e2e/e2e-runner.ts"
+    "e2e": "tsx -r dotenv/config e2e/e2e-runner.ts && tsx -r dotenv/config --experimental-vm-modules node_modules/.bin/jest e2e/dao-merge.spec.ts"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
@@ -43,6 +43,7 @@
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
+    "@viem/anvil": "^0.0.10",
     "concurrently": "^8.2.2",
     "dotenv-cli": "^10.0.0",
     "eslint": "^9.37.0",

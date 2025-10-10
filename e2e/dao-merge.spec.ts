@@ -1,0 +1,245 @@
+/**
+ * Complete E2E Test: DAO Vote → PR Merge
+ * 
+ * Tests the full workflow:
+ * 1. Create test PR via GitHub API
+ * 2. Execute DAO vote on Sepolia (CogniSignal.signal())
+ * 3. Wait for Alchemy webhook → cogni-git-admin
+ * 4. Verify PR gets merged by cogni-git-admin
+ */
+import { createPublicClient, createWalletClient, http, parseAbi, getContract } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { sepolia } from 'viem/chains';
+import { execSync } from 'child_process';
+import { mkdtempSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
+
+// Contract ABI from CogniSignal.sol
+const cogniSignalAbi = parseAbi([
+  'function signal(string calldata repo, string calldata action, string calldata target, uint256 pr, bytes32 commit, bytes calldata extra) external',
+  'event CogniAction(address indexed dao, uint256 indexed chainId, string repo, string action, string target, uint256 pr, bytes32 commit, bytes extra, address indexed executor)'
+]);
+
+// Test configuration from environment variables
+const TEST_CONFIG = {
+  // Blockchain Configuration
+  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
+  DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
+  RPC_URL: process.env.E2E_SEPOLIA_RPC_URL!,
+  PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
+  
+  // GitHub Configuration
+  TEST_REPO: process.env.E2E_TEST_REPO!,
+  GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
+  
+  // App Configuration
+  E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
+  
+  // Timeouts
+  WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),
+  POLL_INTERVAL_MS: parseInt(process.env.E2E_POLL_INTERVAL_MS || '5000'),
+};
+
+function sh(cmd: string, opts: any = {}) {
+  return execSync(cmd, { 
+    stdio: ['ignore', 'pipe', 'pipe'], 
+    encoding: 'utf8', 
+    ...opts 
+  }).trim();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+describe('Complete E2E: DAO Vote → PR Merge', () => {
+  let publicClient: any;
+  let walletClient: any;
+  let contract: any;
+  
+  beforeAll(async () => {
+    // Validate required environment variables
+    const requiredEnvVars = [
+      'E2E_COGNISIGNAL_CONTRACT',
+      'E2E_DAO_ADDRESS', 
+      'E2E_SEPOLIA_RPC_URL',
+      'E2E_TEST_WALLET_PRIVATE_KEY',
+      'E2E_TEST_REPO',
+      'E2E_TEST_REPO_GITHUB_PAT',
+      'E2E_APP_DEPLOYMENT_URL'
+    ];
+    
+    const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
+    if (missing.length > 0) {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
+    
+    // E2E_APP_URL can be localhost for development or deployed URL for CI/production
+    
+    // Setup blockchain clients
+    publicClient = createPublicClient({
+      chain: sepolia,
+      transport: http(TEST_CONFIG.RPC_URL),
+    });
+
+    const account = privateKeyToAccount(TEST_CONFIG.PRIVATE_KEY as `0x${string}`);
+    
+    walletClient = createWalletClient({
+      chain: sepolia,
+      transport: http(TEST_CONFIG.RPC_URL),
+      account,
+    });
+
+    // Setup contract interface
+    contract = getContract({
+      address: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
+      abi: cogniSignalAbi,
+      client: walletClient,
+    });
+
+    console.log(`✅ E2E Setup Complete`);
+    console.log(`- Contract: ${TEST_CONFIG.COGNISIGNAL_CONTRACT}`);
+    console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
+    console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
+    console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
+  });
+
+  test('should complete DAO vote → PR merge workflow', async () => {
+    const timestamp = Date.now();
+    const branch = `e2e-test-${timestamp}`;
+    const tempDir = mkdtempSync(join(tmpdir(), 'cogni-e2e-'));
+    let prNumber: string | null = null;
+
+    try {
+      // === PHASE 1: Create Test PR ===
+      console.log('📝 Creating test PR...');
+      
+      const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
+      
+      // Clone repo and create test change
+      sh(`gh repo clone ${TEST_CONFIG.TEST_REPO} ${tempDir}`, { env: envWithToken });
+      sh(`git -C ${tempDir} switch -c ${branch}`);
+      
+      const testContent = `E2E test change ${new Date().toISOString()}`;
+      sh(`echo '${testContent}' > ${tempDir}/.e2e-test.txt`);
+      sh(`git -C ${tempDir} add .e2e-test.txt`);
+      sh(`git -C ${tempDir} -c user.name='cogni-e2e-bot' -c user.email='e2e@cogni.test' commit -m 'e2e: test PR for DAO vote'`);
+      sh(`git -C ${tempDir} push origin ${branch}`);
+
+      // Create PR
+      const prUrl = sh(`gh pr create -R ${TEST_CONFIG.TEST_REPO} --title "E2E Test PR ${timestamp}" --body "Auto-created for E2E testing - will be merged by DAO vote" --base main --head ${branch}`, { env: envWithToken });
+      prNumber = prUrl.split('/').pop()!;
+      
+      console.log(`✅ Created PR #${prNumber}: ${prUrl}`);
+
+      // === PHASE 2: Execute DAO Vote on Sepolia ===
+      console.log('🗳️  Executing DAO vote on Sepolia...');
+      
+      // Check wallet balance
+      const balance = await publicClient.getBalance({ 
+        address: walletClient.account.address 
+      });
+      console.log(`Wallet balance: ${balance.toString()} wei`);
+      
+      if (balance === BigInt(0)) {
+        throw new Error('Test wallet has no Sepolia ETH for gas');
+      }
+
+      // Execute signal() function
+      const txHash = await contract.write.signal([
+        TEST_CONFIG.TEST_REPO,    // repo
+        'PR_APPROVE',             // action  
+        'pull_request',           // target
+        BigInt(prNumber),         // pr number
+        '0x' + '0'.repeat(64),    // commit (placeholder)
+        '0x'                      // extra data
+      ]);
+
+      console.log(`📤 DAO vote transaction: ${txHash}`);
+
+      // Wait for confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      console.log(`✅ Transaction confirmed in block ${receipt.blockNumber}`);
+      
+      // Verify event was emitted
+      const cogniActionLog = receipt.logs.find((log: any) => 
+        log.address.toLowerCase() === TEST_CONFIG.COGNISIGNAL_CONTRACT.toLowerCase()
+      );
+      
+      if (!cogniActionLog) {
+        throw new Error('CogniAction event not found in transaction logs');
+      }
+      
+      console.log('✅ CogniAction event emitted');
+
+      // === PHASE 3: Wait for Webhook Processing & PR Merge ===
+      console.log('⏳ Waiting for Alchemy webhook → cogni-git-admin → PR merge...');
+      
+      let merged = false;
+      const startTime = Date.now();
+      
+      while (!merged && (Date.now() - startTime) < TEST_CONFIG.WEBHOOK_TIMEOUT_MS) {
+        // Check PR status
+        const prStatusJson = sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/pulls/${prNumber}`, { env: envWithToken });
+        const prStatus = JSON.parse(prStatusJson);
+        
+        console.log(`PR #${prNumber} state: ${prStatus.state}, merged: ${prStatus.merged}`);
+        
+        if (prStatus.merged) {
+          merged = true;
+          console.log(`🎉 SUCCESS: PR #${prNumber} merged by cogni-git-admin!`);
+          
+          // Get merge commit info for validation
+          console.log(`Merge commit: ${prStatus.merge_commit_sha}`);
+          console.log(`Merged by: ${prStatus.merged_by?.login || 'unknown'}`);
+          break;
+        }
+        
+        await sleep(TEST_CONFIG.POLL_INTERVAL_MS);
+      }
+
+      // === PHASE 4: Validation ===
+      if (!merged) {
+        // Get logs for debugging
+        try {
+          const logs = sh(`curl -s ${TEST_CONFIG.E2E_APP_URL}/api/v1/health`);
+          console.log('App health check:', logs);
+        } catch (e) {
+          console.log('Could not fetch app logs');
+        }
+        
+        throw new Error(`TIMEOUT: PR #${prNumber} was not merged within ${TEST_CONFIG.WEBHOOK_TIMEOUT_MS/1000}s`);
+      }
+
+      // Success! 🎉
+      expect(merged).toBe(true);
+      
+    } finally {
+      // === CLEANUP ===
+      if (prNumber && TEST_CONFIG.GITHUB_TOKEN) {
+        try {
+          console.log('🧹 Cleaning up test branch...');
+          const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
+          
+          // Since PR was merged, just delete the branch
+          sh(`git push origin --delete ${branch}`, { 
+            cwd: tempDir, 
+            env: envWithToken 
+          });
+          console.log(`✅ Deleted branch ${branch}`);
+        } catch (cleanupErr) {
+          console.warn('⚠️  Branch cleanup failed:', cleanupErr);
+        }
+      }
+      
+      // Always cleanup temp directory
+      try {
+        execSync(`rm -rf "${tempDir}"`, { stdio: 'ignore' });
+        console.log('✅ Cleaned up temp directory');
+      } catch (cleanupErr) {
+        console.warn('⚠️  Temp directory cleanup failed:', cleanupErr);
+      }
+    }
+  }, 300_000); // 5 minute timeout
+});
