@@ -89,9 +89,10 @@ async function runE2ETest(options: Partial<E2EOptions> = {}): Promise<E2EResult>
 
     // Send the captured Alchemy fixture to running app
     const startTime = Date.now();
+    const webhookUrl = new URL('/api/v1/webhooks/onchain/cogni-signal', deploymentUrl).toString();
     const statusCode = await replayFixture(
       fixturePath,
-      `${deploymentUrl}/api/v1/webhooks/onchain/cogni-signal`
+      webhookUrl
     );
     const duration = Date.now() - startTime;
 
