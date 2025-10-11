@@ -116,10 +116,11 @@ npm run capture                   # Run both Smee clients concurrently
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
 
-- **E2E Test MVP Status**: Current E2E test (`e2e/e2e-runner.ts`) provides basic smoke testing with resolved connectivity issues
-  - **Limitations**: HTTP 2xx validation only, optional GitHub API verification, no error scenarios
-  - **Resolved**: SSL/TLS handshake issues fixed via header cleaning in fixture replay
-  - **Required**: Production-ready E2E testing with comprehensive validation
+- **E2E Test Webhook Processing Issue**: E2E tests successfully execute blockchain proposals but webhook processing fails silently
+  - **Working**: Admin plugin authorization, proposal execution, CogniAction event emission
+  - **Failing**: Webhook processing returns HTTP 204 despite valid blockchain events
+  - **Required**: Debug logging to identify validation/processing failure point
+  - **Example**: Transaction `0xb52f78c4...` emits valid event but webhook handler returns 204
 
 - **GitHub App Installation IDs**: Hardcoded mapping between environments (dev: 89056469, production: 89353955)
   - **Impact**: Temporary solution requiring code changes for new installations

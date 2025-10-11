@@ -7,7 +7,7 @@
  * 3. Wait for Alchemy webhook → cogni-git-admin
  * 4. Verify PR gets merged by cogni-git-admin
  */
-import { createPublicClient, createWalletClient, http, parseAbi, getContract } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
@@ -21,10 +21,18 @@ const cogniSignalAbi = parseAbi([
   'event CogniAction(address indexed dao, uint256 indexed chainId, string repo, string action, string target, uint256 pr, bytes32 commit, bytes extra, address indexed executor)'
 ]);
 
+// Admin Plugin ABI from Aragon (matching successful transaction)
+const adminPluginAbi = parseAbi([
+  'function createProposal(bytes metadata, (address to, uint256 value, bytes data)[] actions, uint64 startDate, uint64 endDate, bytes data) returns (uint256)',
+  'event ProposalCreated(uint256 indexed proposalId)',
+  'event Executed(uint256 indexed proposalId)'
+]);
+
 // Test configuration from environment variables
 const TEST_CONFIG = {
   // Blockchain Configuration
   COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
+  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
   DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
   RPC_URL: process.env.E2E_SEPOLIA_RPC_URL!,
   PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
@@ -56,12 +64,13 @@ function sleep(ms: number): Promise<void> {
 describe('Complete E2E: DAO Vote → PR Merge', () => {
   let publicClient: any;
   let walletClient: any;
-  let contract: any;
+  let adminPlugin: any;
   
   beforeAll(async () => {
     // Validate required environment variables
     const requiredEnvVars = [
       'E2E_COGNISIGNAL_CONTRACT',
+      'E2E_ADMIN_PLUGIN_CONTRACT',
       'E2E_DAO_ADDRESS', 
       'E2E_SEPOLIA_RPC_URL',
       'E2E_TEST_WALLET_PRIVATE_KEY',
@@ -91,10 +100,10 @@ describe('Complete E2E: DAO Vote → PR Merge', () => {
       account,
     });
 
-    // Setup contract interface
-    contract = getContract({
-      address: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
-      abi: cogniSignalAbi,
+    // Setup admin plugin contract interface
+    adminPlugin = getContract({
+      address: TEST_CONFIG.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      abi: adminPluginAbi,
       client: walletClient,
     });
 
@@ -146,32 +155,48 @@ describe('Complete E2E: DAO Vote → PR Merge', () => {
         throw new Error('Test wallet has no Sepolia ETH for gas');
       }
 
-      // Execute signal() function
-      const txHash = await contract.write.signal([
-        TEST_CONFIG.TEST_REPO,    // repo
-        'PR_APPROVE',             // action  
-        'pull_request',           // target
-        BigInt(prNumber),         // pr number
-        '0x' + '0'.repeat(64),    // commit (placeholder)
-        '0x'                      // extra data
+      // Create proposal to execute signal() function
+      const actions = [{
+        to: TEST_CONFIG.COGNISIGNAL_CONTRACT,
+        value: BigInt(0),
+        data: encodeFunctionData({
+          abi: cogniSignalAbi,
+          functionName: 'signal',
+          args: [
+            TEST_CONFIG.TEST_REPO,    // repo
+            'PR_APPROVE',             // action  
+            'pull_request',           // target
+            BigInt(prNumber),         // pr number
+            ('0x' + '0'.repeat(64)) as `0x${string}`,    // commit (placeholder)
+            '0x'                      // extra data
+          ]
+        })
+      }];
+
+      const txHash = await adminPlugin.write.createProposal([
+        '0x',                    // metadata (empty)
+        actions,                 // encoded signal() call
+        BigInt(0),               // startDate (immediate)
+        BigInt(0),               // endDate (immediate execution)
+        '0x'                     // data (empty, matching successful tx)
       ]);
 
-      console.log(`📤 DAO vote transaction: ${txHash}`);
+      console.log(`📤 Admin proposal transaction: ${txHash}`);
 
       // Wait for confirmation
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       console.log(`✅ Transaction confirmed in block ${receipt.blockNumber}`);
       
-      // Verify event was emitted
+      // Verify CogniAction event was emitted (from the executed proposal)
       const cogniActionLog = receipt.logs.find((log: any) => 
         log.address.toLowerCase() === TEST_CONFIG.COGNISIGNAL_CONTRACT.toLowerCase()
       );
       
       if (!cogniActionLog) {
-        throw new Error('CogniAction event not found in transaction logs');
+        throw new Error('CogniAction event not found in transaction logs - proposal may not have executed');
       }
       
-      console.log('✅ CogniAction event emitted');
+      console.log('✅ CogniAction event emitted via proposal execution');
 
       // === PHASE 3: Wait for Webhook Processing & PR Merge ===
       console.log('⏳ Waiting for Alchemy webhook → cogni-git-admin → PR merge...');

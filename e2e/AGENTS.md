@@ -6,18 +6,20 @@ Validate DAO-controlled GitHub automation: DAO vote → webhook → PR merge.
 ## Current Implementation Status
 
 ### ✅ What Works
-1. **Fixture-based test** (`e2e-runner.ts`): Replays captured webhook → HTTP 200
-2. **Live blockchain test** (`dao-merge.spec.ts`): Creates PR, connects to Sepolia
-3. **Integrated runner**: `npm run e2e` runs both tests sequentially
+1. **Fixture-based test** (`e2e-runner.ts`): Replays captured webhook → HTTP 204
+2. **Live blockchain test** (`dao-merge.spec.ts`): Creates PR, connects to Sepolia, executes admin proposals
+3. **Admin plugin flow**: `createProposal()` with correct ABI signature working
+4. **CogniAction events**: Successfully emitted from executed proposals (e.g., tx `0xb52f78c466dd48faa363a2ed90c799af69e841485e14c24f2bf1ed2fd8fe3dfb`)
+5. **Webhook delivery**: App receives webhooks and returns HTTP 204
 
-### 🐛 Known Issue (WIP)
-**DAO Wallet Mismatch**: The test wallet is not the actual DAO address configured in the deployed contract.
+### 🐛 Current Issue
+**Silent Webhook Processing Failure**: Webhooks are delivered but fail during processing.
 
-- **Contract expects**: `0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5` (DAO)  
-- **Test wallet is**: `0xB0FcB5Ae33DFB4829f663458798E5e3843B21839` (member)
-- **Result**: Contract reverts with `NOT_DAO`
+- **Symptom**: HTTP 204 response indicates no valid events found
+- **Root cause**: Processing pipeline fails silently after webhook receipt
+- **Impact**: GitHub operations (PR merge/approve) not triggered despite valid blockchain events
 
-**Next Step**: Implement full DAO proposal → vote → execution flow instead of direct `signal()` call.
+**Next Step**: Add debug logging to identify where webhook validation/processing fails.
 
 ## Architecture
 ```
@@ -39,14 +41,18 @@ E2E_TEST_REPO_GITHUB_PAT=ghp_...             # GitHub token
 ```
 
 ## Success Progress
-- ✅ Fixture test: Working (HTTP 200, webhook replay)
+- ✅ Fixture test: Working (HTTP 204, webhook replay)
 - ✅ Integration: Both tests run together  
 - ✅ Blockchain: Connects to Sepolia, creates PRs
-- 🚧 **Auth Issue**: Need DAO proposal flow, not direct signal()
-- 📋 **TODO**: Implement proposal → vote → execute pattern
+- ✅ **Auth Issue Resolved**: Admin plugin `createProposal()` flow implemented
+- ✅ **Blockchain Events**: CogniAction events emitting correctly
+- 🚧 **Webhook Processing**: Silent failure - events not triggering GitHub actions
+- 📋 **TODO**: Debug webhook processing pipeline to identify validation failure
 
 ## Future Enhancements
-- Fix DAO authorization (implement proposal flow)
+- ✅ ~~Fix DAO authorization~~ (completed - admin plugin flow working)
+- Debug and fix webhook processing pipeline
+- Add comprehensive logging for webhook validation steps
 - Add error scenarios and edge cases
 - Playwright Test integration for proper test suite organization, execution, reporting
 - Multi-environment support (local/preview/prod)
