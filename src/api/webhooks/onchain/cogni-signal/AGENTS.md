@@ -16,10 +16,18 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Processes multiple txHashes per webhook, validates chain/DAO, logs valid events
 - Executes GitHub actions via `executeAction()` for valid events
 
+## HTTP Response Codes
+- **200 OK**: Valid events processed successfully
+- **204 No Content**: No relevant transactions or CogniAction events found (normal for irrelevant webhooks)
+- **400 Bad Request**: Unknown webhook provider detected
+- **401 Unauthorized**: Signature verification failed
+- **422 Unprocessable Entity**: Valid webhook but validation failures (wrong DAO/chain ID)
+- **500 Internal Server Error**: Fatal processing error
+
 ## Known Issues
-- **Silent Processing Failure**: Valid CogniAction events from blockchain result in HTTP 204 response
-- **Suspected Causes**: Provider detection, signature verification, or environment variable mismatches
-- **Debug Required**: Need comprehensive logging to identify failure point in processing pipeline
+- ~~**Silent Processing Failure**: Valid CogniAction events from blockchain result in HTTP 204 response~~ **RESOLVED**
+  - **Fixed**: Added proper error codes for validation failures (422) and unknown providers (400)
+  - **Added**: Detailed error messages in response body for 422 responses
 
 ## Architecture
 ```
@@ -27,17 +35,20 @@ route.ts → detectProvider() → getAdapter() → adapter.verifySignature() →
 ```
 
 ## Data Flow
-1. `detectProvider()` returns "alchemy" (hardcoded for MVP)
+1. `detectProvider()` returns "alchemy" (hardcoded for MVP) → 400 if unknown provider
 2. `getAdapter("alchemy")` returns alchemyAdapter from registry
 3. `adapter.verifySignature()` validates HMAC → 401 if fails
 4. `adapter.parse()` extracts txHashes from `body.event.data.block.logs[].transaction.hash`
 5. Return 204 if txHashes.length === 0
 6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events
-7. Validate chainId and DAO address, log valid events
+7. Validate chainId and DAO address → collect validation errors if mismatches
 8. Execute GitHub action via `executeAction()` for each valid event
-9. Return 200 if validEventsFound > 0, else 204
+9. Response logic:
+   - **200**: validEventsFound > 0 (success)
+   - **422**: validationErrors.length > 0 (validation failures with details)
+   - **204**: No relevant events found (normal case)
 
-**Current Issue**: Valid blockchain events (e.g., tx `0xb52f78c4...`) reach step 5 but fail validation, returning 204
+**Improvement**: Validation failures now return 422 with detailed error messages instead of generic 204
 
 ## Provider Status
 - **Alchemy**: Uses `alchemyAdapter` with `verifySignature()` and `parse()` methods
@@ -48,4 +59,7 @@ route.ts → detectProvider() → getAdapter() → adapter.verifySignature() →
 - Never hardcode to one payload format
 - Adapters only parse and verify HMAC for their provider
 - Keep adapters stateless and unit testable
-- Return 204 for unknown providers
+- Use proper HTTP response codes:
+  - 400 for unknown providers
+  - 422 for validation failures (with detailed error messages)
+  - 204 only for successfully processed webhooks with no relevant content
