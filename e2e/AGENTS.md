@@ -25,11 +25,35 @@ e2e/
 # Run Playwright E2E suite (both fixture and blockchain tests)
 npm run e2e
 
-# Required environment (.env)
-E2E_APP_DEPLOYMENT_URL=http://localhost:3000  # Target deployment
-E2E_TEST_REPO_GITHUB_PAT=ghp_...             # GitHub token for verification
-E2E_SEPOLIA_RPC_URL=https://...              # Sepolia RPC for blockchain tests
-E2E_TEST_WALLET_PRIVATE_KEY=0x...            # Test wallet for transactions
+# Environment Variables
+
+## Required Variables
+```bash
+# Application Configuration
+E2E_APP_DEPLOYMENT_URL=http://localhost:3000  # Target deployment URL
+
+# GitHub Configuration  
+E2E_TEST_REPO=owner/repo                      # Test repository (e.g., derekg1729/test-repo)
+E2E_TEST_REPO_GITHUB_PAT=github_pat_...       # GitHub PAT for API operations
+
+# Blockchain Configuration (for blockchain integration tests)
+E2E_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoint
+E2E_TEST_WALLET_PRIVATE_KEY=0x...                                    # Test wallet private key
+E2E_COGNISIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
+E2E_ADMIN_PLUGIN_CONTRACT=0x...                                      # Aragon Admin Plugin address
+E2E_DAO_ADDRESS=0x...                                                # DAO address
+```
+
+## Optional Variables
+```bash
+# Test Timing Configuration (with defaults)
+E2E_WEBHOOK_TIMEOUT_MS=120000    # Webhook processing timeout (default: 2 minutes)
+E2E_POLL_INTERVAL_MS=5000        # PR status polling interval (default: 5 seconds)
+
+# Legacy fixture test support
+TEST_REPO=derekg1729/test-repo   # Default test repo for fixture tests
+TIMEOUT_SEC=30                   # Fixture test timeout (default: 30 seconds)
+```
 ```
 
 ## Playwright Configuration
