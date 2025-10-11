@@ -46,9 +46,10 @@ src/
 │  ├─ env.ts                     # Environment validation
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
-└─ contracts/abi/                # Contract ABIs
-   ├─ CogniSignal.json           # CogniSignal contract ABI (signal function + CogniAction event)
-   └─ AdminPlugin.json           # Aragon Admin Plugin ABI (createProposal function)
+└─ contracts/                    # Smart contract interfaces
+   └─ abi/                       # Contract ABI JSON files
+      ├─ CogniSignal.json        # CogniSignal contract ABI (signal function + CogniAction event)
+      └─ AdminPlugin.json        # Aragon Admin Plugin ABI (createProposal function)
 
 tools/dev/webhook-capture/       # Webhook fixture capture system
 ├─ capture-server.ts             # HTTP server for capturing webhooks
@@ -68,11 +69,12 @@ e2e/
 └─ AGENTS_E2E_MVP.md            # E2E workflow specification
 ```
 
-## Current Implementation Status
-- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy), E2E test connectivity to DigitalOcean deployment, Playwright E2E test suite with fixture replay and blockchain integration tests
-- **Resolved**: HTTP response codes (400/422 for errors, 204 for success), E2E test runner integration (unified Playwright suite)
-- **Scaffolding**: Directory structure and AGENTS.md documentation
-- **Empty**: Most new directories, provider adapters, health checks
+## Current Implementation
+- **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events, executes GitHub operations
+- **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
+- **E2E Testing**: Playwright-based test suite with fixture replay and live blockchain integration tests
+- **Contract Integration**: ABI definitions for CogniSignal and AdminPlugin contracts stored in src/contracts/abi/
+- **GitHub Integration**: Probot-based GitHub App with webhook handling and PR merge capabilities
 
 ## Environment Variables
 ```bash
@@ -101,8 +103,8 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 ```bash
 npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
-npm test           # Run Jest unit tests only
-npm run e2e        # Run Playwright E2E tests (requires E2E_APP_DEPLOYMENT_URL)
+npm test           # Run Jest unit tests
+npm run e2e        # Run Playwright E2E tests (uses dotenv for environment variables)
 
 # Webhook Fixture Capture
 npm run dev:capture              # Start capture server on port 4001

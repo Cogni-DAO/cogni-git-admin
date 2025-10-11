@@ -16,7 +16,7 @@ e2e/
 │   ├── fixture-replay.ts            # HTTP replay utilities
 │   ├── global-setup.ts              # Playwright global setup
 │   └── playwright-setup.ts          # Test configuration helpers
-├── e2e-runner.ts                     # Legacy runner (deprecated)
+├── playwright.config.ts              # Playwright test configuration
 └── AGENTS_E2E_MVP.md                # Detailed workflow specification
 ```
 
@@ -51,11 +51,11 @@ E2E_TEST_WALLET_PRIVATE_KEY=0x...            # Test wallet for transactions
 - ✅ CogniAction event emission
 - ✅ Webhook delivery verification
 
-## Resolved Issues
-- ✅ **HTTP Response Codes**: Proper 400/422 error codes implemented
-- ✅ **E2E Test Runner**: Migrated to Playwright for unified execution
-- ✅ **DAO Authorization**: Admin plugin flow with correct ABI
-- ✅ **Test Counting**: Playwright properly reports all test files
+## Test Features
+- **HTTP Response Validation**: Tests verify correct 200/204/400/422 response codes
+- **Unified Test Runner**: Playwright provides consistent test execution and reporting
+- **DAO Authorization**: Tests complete DAO vote workflow via admin plugin
+- **Comprehensive Coverage**: Both fixture replay and live blockchain scenarios
 
 ## Future Enhancements
 - Multi-environment configuration profiles

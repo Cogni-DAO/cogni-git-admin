@@ -24,10 +24,11 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - **422 Unprocessable Entity**: Valid webhook but validation failures (wrong DAO/chain ID)
 - **500 Internal Server Error**: Fatal processing error
 
-## Known Issues
-- ~~**Silent Processing Failure**: Valid CogniAction events from blockchain result in HTTP 204 response~~ **RESOLVED**
-  - **Fixed**: Added proper error codes for validation failures (422) and unknown providers (400)
-  - **Added**: Detailed error messages in response body for 422 responses
+## Implementation Details
+- Provider detection currently returns "alchemy" for MVP implementation
+- Signature verification uses HMAC validation for Alchemy webhooks
+- Validation errors return detailed messages in response body for debugging
+- Each valid CogniAction event triggers GitHub action execution
 
 ## Architecture
 ```
