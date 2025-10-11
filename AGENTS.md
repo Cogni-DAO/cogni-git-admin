@@ -89,8 +89,12 @@ COGNI_ALLOWED_REPO=owner/repo
 ALCHEMY_SIGNING_KEY=<hmac_key>
 
 # E2E Testing
-E2E_APP_DEPLOYMENT_URL=<deployment_url>  # Target deployment for E2E tests
-E2E_TEST_REPO_GITHUB_PAT=<github_token>      # Optional: verify GitHub API effects
+# See e2e/AGENTS.md for complete environment variable reference
+E2E_APP_DEPLOYMENT_URL=<deployment_url>       # Target deployment for E2E tests
+E2E_TEST_REPO_GITHUB_PAT=<github_token>       # GitHub PAT for API operations
+E2E_SEPOLIA_RPC_URL=<rpc_endpoint>            # Sepolia RPC for blockchain tests
+E2E_TEST_WALLET_PRIVATE_KEY=<private_key>     # Test wallet for transactions
+E2E_TEST_REPO=<owner/repo>                    # Target test repository
 
 # Webhook Capture (development)
 CAPTURE_PORT=4001                      # Capture server port
