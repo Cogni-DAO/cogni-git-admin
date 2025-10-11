@@ -26,7 +26,9 @@
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
-    "e2e": "npx dotenv -- npx playwright test"
+    "e2e": "npx dotenv -- npx playwright test",
+    "validate-e2e-setup": "npx dotenv -- tsx tools/dev/chain-setup/validate-setup.ts",
+    "deploy-test-dao": "npx dotenv -- tsx tools/dev/chain-setup/deploy-test-contracts.ts"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
