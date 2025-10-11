@@ -5,3 +5,4 @@ npm-debug.log
 coverage
 lib
 test-artifacts
+e2e/artifacts

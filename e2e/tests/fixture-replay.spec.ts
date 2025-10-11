@@ -1,12 +1,12 @@
-#!/usr/bin/env tsx
 /**
- * E2E runner for cogni-git-admin webhook processing.
+ * Playwright E2E test for cogni-git-admin webhook processing.
  * Tests captured webhook fixtures against deployed app.
  */
+import { test, expect } from '@playwright/test';
 import { execSync } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { replayFixture } from './helpers/fixture-replay.ts';
+import { replayFixture } from '../helpers/fixture-replay.ts';
 
 interface E2EOptions {
   deploymentUrl: string;
@@ -45,7 +45,7 @@ function parseE2EOptionsFromEnv(overrides: Partial<E2EOptions> = {}): E2EOptions
 
   return {
     deploymentUrl: env('E2E_APP_DEPLOYMENT_URL'),
-    ghToken: env('TEST_REPO_GITHUB_PAT', null),
+    ghToken: env('E2E_TEST_REPO_GITHUB_PAT', null),
     testRepo: env('TEST_REPO', 'derekg1729/test-repo'),
     timeoutSec: parseInt(env('TIMEOUT_SEC', '30'), 10),
     ...overrides
@@ -178,29 +178,24 @@ async function runE2ETest(options: Partial<E2EOptions> = {}): Promise<E2EResult>
   }
 }
 
-async function main() {
-  try {
+test.describe('Saved Webhook Redelivery E2E Tests', () => {
+  test('should process captured Alchemy webhook fixture successfully', async () => {
     const options = parseE2EOptionsFromEnv();
     const result = await runE2ETest(options);
     
     // Create test artifacts directory and write summary
     mkdirSync('test-artifacts', { recursive: true });
-    writeFileSync(join('test-artifacts', 'e2e-summary.json'), JSON.stringify(result.summary, null, 2));
+    writeFileSync(join('test-artifacts', 'saved-webhook-redelivery-summary.json'), JSON.stringify(result.summary, null, 2));
     
-    if (result.success) {
-      console.log('✅ E2E test passed!');
-      console.log('Summary:', JSON.stringify(result.summary, null, 2));
-      process.exit(0);
-    } else {
+    // Convert original success/failure logic to Playwright assertions
+    expect(result.success).toBe(true);
+    if (!result.success) {
       console.error('❌ E2E test failed!');
       console.error('Error:', result.error);
       console.error('Summary:', JSON.stringify(result.summary, null, 2));
-      process.exit(1);
+    } else {
+      console.log('✅ E2E test passed!');
+      console.log('Summary:', JSON.stringify(result.summary, null, 2));
     }
-  } catch (error) {
-    console.error('❌ E2E runner crashed:', (error as Error).message);
-    process.exit(2);
-  }
-}
-
-main();
+  });
+});

@@ -1,97 +1,64 @@
 # E2E Testing
 
-**✅ CONNECTIVITY RESOLVED**: E2E tests successfully connect to DigitalOcean deployment with proper SSL/TLS handling. Basic HTTP response validation working.
-
 ## Purpose
-
-Validate DAO-controlled GitHub automation across three systems:
-
-- **cogni-gov-contracts** (Foundry)
-- **cogni-git-review** (Probot reviewer)  
-- **cogni-admin** (DAO → GitHub executor)
-
-## Ownership Model
-
-**This folder**: minimal E2E for cogni-admin using recorded webhook fixtures (fast, hermetic).
-
-**Full cross-repo orchestration** lives in repo `cogni-e2e` (version-matrix, live chain/RPC, ephemeral GitHub repos).
-
-## Current Implementation
-
-### What Exists
-- **Single test case**: Replays `test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json`
-- **Target**: PR #121 in `derekg1729/test-repo` with PR_APPROVE action
-- **Validation**: HTTP 2xx response validation (accepts range 200-299)
-- **Optional GitHub verification**: Attempts PR state check if `TEST_REPO_GITHUB_PAT` provided
-- **SSL/TLS Fix**: Header cleaning prevents proxy artifacts from poisoning SNI/ALPN negotiation
-- **URL Construction**: Simple URL construction, joining base url with hardcoded api path
-- **Authentication**: Environment-aware installation ID selection (dev vs production)
-
-### Current Limitations
-**Response validation**:
-- ✅ Accepts HTTP 2xx range for flexibility
-- ❌ No response body capture for debugging failures
-- ❌ No error scenario testing
-
-**GitHub verification**:
-- ❌ Optional and non-blocking (test passes regardless of GitHub state)
-- ❌ No idempotency testing for repeated webhook delivery
-- ❌ No retry logic for eventual consistency
-
-**Test robustness**:
-- ❌ Single fixture only (no coverage of edge cases)
-- ❌ No signature header replay from original webhook
-- ❌ No validation of deployment availability before testing
-- ❌ Hard-coded test data (repo, PR number)
-
-## Test Scope
-
-### Fixture-Based Golden Path Tests (Planned)
-- **Input**: Captured Alchemy webhook payloads from manual testing
-- **Process**: POST to `/api/v1/webhooks/onchain/cogni-signal` endpoint
-- **Output**: Verify GitHub PR merge execution and proper response codes
-- **Speed**: Fast, no external dependencies beyond test-repo GitHub API
-
-### What We Don't Test Here
-- Smart contract deployment/execution (→ cogni-gov-contracts)
-- PR review bot integration (→ cogni-git-review) 
-- Multi-repository orchestration (→ cogni-e2e)
-- Live blockchain interaction (→ cogni-e2e)
+Validate DAO-controlled GitHub automation: DAO vote → webhook → PR merge.
 
 ## Implementation
+Playwright-based E2E test suite providing unified test execution and reporting for both fixture replay and live blockchain integration tests.
 
+## Architecture
 ```
 e2e/
-├── e2e-runner.ts        # TypeScript CLI-based E2E test runner (generates test-artifacts/e2e-summary.json)
-└── helpers/
-    └── fixture-replay.ts # Webhook fixture replay utilities
+├── tests/
+│   ├── fixture-replay.spec.ts       # Webhook fixture replay tests
+│   └── blockchain-integration.spec.ts # Live blockchain E2E tests
+├── helpers/
+│   ├── fixture-replay.ts            # HTTP replay utilities
+│   ├── global-setup.ts              # Playwright global setup
+│   └── playwright-setup.ts          # Test configuration helpers
+├── playwright.config.ts              # Playwright test configuration
+└── AGENTS_E2E_MVP.md                # Detailed workflow specification
 ```
 
-### Test Execution
+## Test Execution
 ```bash
-# Required environment variable
-export E2E_APP_DEPLOYMENT_URL=https://your-deployment.com
-
-# Optional: verify GitHub API effects
-export TEST_REPO_GITHUB_PAT=ghp_your_token
-
-# Run E2E test
+# Run Playwright E2E suite (both fixture and blockchain tests)
 npm run e2e
+
+# Required environment (.env)
+E2E_APP_DEPLOYMENT_URL=http://localhost:3000  # Target deployment
+E2E_TEST_REPO_GITHUB_PAT=ghp_...             # GitHub token for verification
+E2E_SEPOLIA_RPC_URL=https://...              # Sepolia RPC for blockchain tests
+E2E_TEST_WALLET_PRIVATE_KEY=0x...            # Test wallet for transactions
 ```
 
-## Success Criteria
-- ✅ Webhook processing returns correct status codes (accepts 2xx range)
-- ✅ E2E connectivity to DigitalOcean deployment working
-- ⚠️ GitHub API confirms PR merge completion (optional, non-blocking)
-- ❌ Error handling validated for common failure modes (not implemented)
-- ✅ Tests run in <30 seconds in CI (meets timing requirement)
+## Playwright Configuration
+- **Test Runner**: Unified Playwright test execution
+- **Projects**: Separate configurations for fixture-replay (30s timeout) and blockchain-integration (5m timeout)
+- **Reporting**: HTML reports, JSON results, console output
+- **Artifacts**: Test videos on failure, traces on retry
+- **Parallelization**: Sequential execution to avoid GitHub API rate limits
 
-## Required Enhancements for Production
-1. **Capture response bodies**: Enable debugging of failures
-2. **Add error scenarios**: Test invalid DAOs, malformed payloads, network failures
-3. **Enforce GitHub verification**: Make PR state validation mandatory
-4. **Implement idempotency testing**: Verify duplicate webhook handling
-5. **Add retry logic**: Handle eventual consistency in GitHub API
-6. **Parameterize test data**: Support multiple repos and PR numbers
-7. **Replay signature headers**: Include HMAC validation from original webhooks
-8. **Remove hardcoded installation IDs**: Replace with database-backed mapping
+## Test Coverage
+### Fixture Replay Tests
+- ✅ Captured Alchemy webhook processing
+- ✅ HTTP response validation
+- ✅ GitHub PR state verification (when token provided)
+
+### Blockchain Integration Tests  
+- ✅ Complete DAO vote workflow via admin plugin
+- ✅ PR creation and cleanup
+- ✅ CogniAction event emission
+- ✅ Webhook delivery verification
+
+## Test Features
+- **HTTP Response Validation**: Tests verify correct 200/204/400/422 response codes
+- **Unified Test Runner**: Playwright provides consistent test execution and reporting
+- **DAO Authorization**: Tests complete DAO vote workflow via admin plugin
+- **Comprehensive Coverage**: Both fixture replay and live blockchain scenarios
+
+## Future Enhancements
+- Multi-environment configuration profiles
+- Additional error scenario coverage
+- Performance benchmarking
+- Cross-provider webhook testing

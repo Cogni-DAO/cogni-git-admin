@@ -46,8 +46,10 @@ src/
 │  ├─ env.ts                     # Environment validation
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
-└─ contracts/abi/                # Contract ABIs
-   └─ CogniSignal.json           # Event definitions
+└─ contracts/                    # Smart contract interfaces
+   └─ abi/                       # Contract ABI JSON files
+      ├─ CogniSignal.json        # CogniSignal contract ABI (signal function + CogniAction event)
+      └─ AdminPlugin.json        # Aragon Admin Plugin ABI (createProposal function)
 
 tools/dev/webhook-capture/       # Webhook fixture capture system
 ├─ capture-server.ts             # HTTP server for capturing webhooks
@@ -60,13 +62,19 @@ test/
 └─ helpers/fixture-replay.ts     # Replay fixtures for testing
 
 e2e/
-└─ webhook-e2e.test.ts           # MVP smoke test for webhook processing
+├─ tests/
+│  ├─ fixture-replay.spec.ts    # Webhook fixture replay tests
+│  └─ blockchain-integration.spec.ts # Live blockchain E2E tests
+├─ helpers/                      # Test utilities and setup
+└─ AGENTS_E2E_MVP.md            # E2E workflow specification
 ```
 
-## Current Implementation Status
-- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy), E2E test connectivity to DigitalOcean deployment
-- **Scaffolding**: Directory structure and AGENTS.md documentation
-- **Empty**: Most new directories, provider adapters, health checks
+## Current Implementation
+- **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events, executes GitHub operations
+- **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
+- **E2E Testing**: Playwright-based test suite with fixture replay and live blockchain integration tests
+- **Contract Integration**: ABI definitions for CogniSignal and AdminPlugin contracts stored in src/contracts/abi/
+- **GitHub Integration**: Probot-based GitHub App with webhook handling and PR merge capabilities
 
 ## Environment Variables
 ```bash
@@ -82,7 +90,7 @@ ALCHEMY_SIGNING_KEY=<hmac_key>
 
 # E2E Testing
 E2E_APP_DEPLOYMENT_URL=<deployment_url>  # Target deployment for E2E tests
-TEST_REPO_GITHUB_PAT=<github_token>      # Optional: verify GitHub API effects
+E2E_TEST_REPO_GITHUB_PAT=<github_token>      # Optional: verify GitHub API effects
 
 # Webhook Capture (development)
 CAPTURE_PORT=4001                      # Capture server port
@@ -95,7 +103,8 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 ```bash
 npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
-npm run test:e2e   # Run E2E tests against deployment (requires E2E_APP_DEPLOYMENT_URL)
+npm test           # Run Jest unit tests
+npm run e2e        # Run Playwright E2E tests (uses dotenv for environment variables)
 
 # Webhook Fixture Capture
 npm run dev:capture              # Start capture server on port 4001
@@ -115,11 +124,6 @@ npm run capture                   # Run both Smee clients concurrently
 - **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
-
-- **E2E Test MVP Status**: Current E2E test (`e2e/e2e-runner.ts`) provides basic smoke testing with resolved connectivity issues
-  - **Limitations**: HTTP 2xx validation only, optional GitHub API verification, no error scenarios
-  - **Resolved**: SSL/TLS handshake issues fixed via header cleaning in fixture replay
-  - **Required**: Production-ready E2E testing with comprehensive validation
 
 - **GitHub App Installation IDs**: Hardcoded mapping between environments (dev: 89056469, production: 89353955)
   - **Impact**: Temporary solution requiring code changes for new installations

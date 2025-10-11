@@ -18,7 +18,26 @@ jobs:
     environment: preview-E2E-testing
     env:
       NODE_ENV: test # E2E test runner environment (separate from preview deployment being validated)
+      
+      # Application Configuration
       E2E_APP_DEPLOYMENT_URL: ${{ vars.E2E_APP_DEPLOYMENT_URL }}
+      
+      # Blockchain Configuration (Secrets for sensitive data)
+      E2E_SEPOLIA_RPC_URL: ${{ secrets.E2E_SEPOLIA_RPC_URL }}
+      E2E_TEST_WALLET_PRIVATE_KEY: ${{ secrets.E2E_TEST_WALLET_PRIVATE_KEY }}
+      
+      # Contract Addresses (Vars for public data)
+      E2E_COGNISIGNAL_CONTRACT: ${{ vars.E2E_COGNISIGNAL_CONTRACT }}
+      E2E_ADMIN_PLUGIN_CONTRACT: ${{ vars.E2E_ADMIN_PLUGIN_CONTRACT }}
+      E2E_DAO_ADDRESS: ${{ vars.E2E_DAO_ADDRESS }}
+      
+      # GitHub Configuration
+      E2E_TEST_REPO: ${{ vars.E2E_TEST_REPO }}
+      E2E_TEST_REPO_GITHUB_PAT: ${{ secrets.E2E_TEST_REPO_GITHUB_PAT }}
+      
+      # Optional Timing Configuration (with defaults)
+      E2E_WEBHOOK_TIMEOUT_MS: ${{ vars.E2E_WEBHOOK_TIMEOUT_MS || '120000' }}
+      E2E_POLL_INTERVAL_MS: ${{ vars.E2E_POLL_INTERVAL_MS || '5000' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,11 +46,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci --ignore-scripts
-      - run: npm run e2e
+      - run: npm run e2e  # Uses dotenv-cli to load environment variables automatically
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-summary
-          path: test-artifacts/e2e-summary.json
+          name: e2e-artifacts
+          path: e2e/artifacts/
           if-no-files-found: warn
           retention-days: 7
