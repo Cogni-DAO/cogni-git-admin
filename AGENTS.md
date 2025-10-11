@@ -101,6 +101,7 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 ```bash
 npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
+npm test           # Run Jest unit tests only
 npm run e2e        # Run Playwright E2E tests (requires E2E_APP_DEPLOYMENT_URL)
 
 # Webhook Fixture Capture
