@@ -1,29 +1,37 @@
-# {{ name }}
+# cogni-git-admin
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that {{ description }}
+> Blockchain-to-GitHub bridge that executes DAO decisions on repositories
 
-## Setup
+## What is this?
 
-```sh
-# Install dependencies
-npm install
+cogni-git-admin processes onchain DAO votes and executes corresponding GitHub operations. When a DAO votes on a proposal through smart contracts, this service receives webhook notifications and performs actions like merging pull requests.
 
-# Run typescript
-npm run build
+**Flow:**
+1. DAO votes on proposal → Blockchain transaction
+2. Smart contract emits `CogniAction` event  
+3. Webhook provider (Alchemy) notifies this App
+4. App validates chain event, and DAO permissions
+5. App executes defined GitHub admin action
 
-# Run the bot
-npm start
+**Current Actions:** `PR_APPROVE` → Merge PR #XX. Simple but powerful - DAOs can now merge code onchain.
 
-# temp: manually configure smee proxy for onchain webhooks
-smee -u https://smee.io/54cJZVNX6lNnJ4xj --path /api/v1/webhooks/onchain/cogni-signal
-```
+## Related Repositories
 
-## Contributing
+- **[cogni-signal-evm-contracts](https://github.com/Cogni-DAO/cogni-signal-evm-contracts)** - Smart contracts that emit CogniAction events
+- **[Contract ABIs](src/contracts/abi/)** - ABI definitions for CogniSignal and AdminPlugin contracts
 
-If you have suggestions for how {{ name }} could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
+## Architecture
 
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
+- **Webhook Processing**: Receives CogniSignal events from blockchain providers
+- **DAO Validation**: Enforces allowlist of authorized DAOs and repositories  
+- **GitHub Integration**: GitHub App with repository operation permissions
+- **Provider Adapters**: Currently supports Alchemy, extensible to other providers
+
+## Documentation
+
+- **[AGENTS.md](AGENTS.md)** - Complete architecture, environment setup, and development guide
+- **[E2E Testing](e2e/AGENTS_E2E_MVP.md)** - End-to-end workflow testing with live blockchain integration
 
 ## License
 
-[ISC](LICENSE) © {{{ year }}} {{{ author }}}
+[ISC](LICENSE) © 2025 CogniDAO

@@ -14,7 +14,7 @@ Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webho
 - **Probot Integration**: GitHub webhook handling via standard Probot patterns
 
 ## Project Management
-- **Cogni MCP Epic**: All work items must accrue up to this parent Epic for cogni-git-admin: 0b132be5-4692-4266-9e30-10acf9e1f1ca
+- **Cogni MCP Epic**: All work items must accrue up to this parent Epic for cogni-git-admin: `0b132be5-4692-4266-9e30-10acf9e1f1ca`
 
 ## Current Endpoints
 - `POST /api/v1/webhooks/onchain/cogni-signal` - CogniSignal events from any provider
@@ -109,6 +109,7 @@ npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
 npm test           # Run Jest unit tests
 npm run e2e        # Run Playwright E2E tests (uses dotenv for environment variables)
+npm run validate-e2e-setup  # Validate all E2E prerequisites (wallet, contracts, GitHub, webhooks)
 
 # Webhook Fixture Capture
 npm run dev:capture              # Start capture server on port 4001
