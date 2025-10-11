@@ -1,0 +1,295 @@
+{
+  "config": {
+    "configFile": "/Users/derek/dev/cogni-git-admin/playwright.config.ts",
+    "rootDir": "/Users/derek/dev/cogni-git-admin/e2e/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/Users/derek/dev/cogni-git-admin/e2e/helpers/global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "e2e/artifacts/playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "e2e/artifacts/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/derek/dev/cogni-git-admin/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "fixture-replay",
+        "name": "fixture-replay",
+        "testDir": "/Users/derek/dev/cogni-git-admin/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/fixture-replay.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/derek/dev/cogni-git-admin/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "blockchain-integration",
+        "name": "blockchain-integration",
+        "testDir": "/Users/derek/dev/cogni-git-admin/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/blockchain-integration.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.0",
+    "workers": 6,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "fixture-replay.spec.ts",
+      "file": "fixture-replay.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Saved Webhook Redelivery E2E Tests",
+          "file": "fixture-replay.spec.ts",
+          "line": 181,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should process captured Alchemy webhook fixture successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "fixture-replay",
+                  "projectName": "fixture-replay",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3385,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[E2E] Testing webhook processing against: http://localhost:3000\n"
+                        },
+                        {
+                          "text": "[E2E] Target: derekg1729/test-repo PR #121\n"
+                        },
+                        {
+                          "text": "[E2E] PR state before: closed (merged: true)\n"
+                        },
+                        {
+                          "text": "[replay] Reading fixture: test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json\n"
+                        },
+                        {
+                          "text": "[replay] Sending POST to http://localhost:3000/api/v1/webhooks/onchain/cogni-signal with 2336 bytes\n"
+                        },
+                        {
+                          "text": "[replay] Response: 200\n"
+                        },
+                        {
+                          "text": "✅ Webhook processed successfully (HTTP 200) in 478ms\n"
+                        },
+                        {
+                          "text": "[E2E] Waiting for GitHub operation to complete...\n"
+                        },
+                        {
+                          "text": "[E2E] PR state after: closed (merged: true)\n"
+                        },
+                        {
+                          "text": "ℹ️  PR is already merged (expected for this test fixture)\n"
+                        },
+                        {
+                          "text": "✅ E2E test passed!\n"
+                        },
+                        {
+                          "text": "Summary: {\n  \"deploymentUrl\": \"http://localhost:3000\",\n  \"testRepo\": \"derekg1729/test-repo\",\n  \"prNumber\": 121,\n  \"fixture\": \"test/fixtures/alchemy/CogniSignal/successful-cognisignal-prmerge-trigger-alchemy.json\",\n  \"webhookResponse\": 200,\n  \"githubVerification\": \"already_merged\",\n  \"durationMs\": 478,\n  \"timeoutSec\": 30,\n  \"ts\": \"2025-10-11T01:30:58.408Z\",\n  \"result\": \"success\"\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T01:30:55.019Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c7bc7471eeb2614c7599-8e1273afd13ec0a4ffe4",
+              "file": "fixture-replay.spec.ts",
+              "line": 182,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "blockchain-integration.spec.ts",
+      "file": "blockchain-integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Complete E2E: DAO Vote → PR Merge",
+          "file": "blockchain-integration.spec.ts",
+          "line": 65,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should complete DAO vote → PR merge workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "blockchain-integration",
+                  "projectName": "blockchain-integration",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 39464,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ E2E Setup Complete\n"
+                        },
+                        {
+                          "text": "- Contract: 0x8f26cf7b9ca6790385e255e8ab63acc35e7b9fb1\n"
+                        },
+                        {
+                          "text": "- DAO: 0xB0FcB5Ae33DFB4829f663458798E5e3843B21839\n"
+                        },
+                        {
+                          "text": "- Test Repo: derekg1729/test-repo\n"
+                        },
+                        {
+                          "text": "- App URL: http://localhost:3000\n"
+                        },
+                        {
+                          "text": "📝 Creating test PR...\n"
+                        },
+                        {
+                          "text": "✅ Created PR #153: https://github.com/derekg1729/test-repo/pull/153\n"
+                        },
+                        {
+                          "text": "🗳️  Executing DAO vote on Sepolia...\n"
+                        },
+                        {
+                          "text": "Wallet balance: 73246622372797785 wei\n"
+                        },
+                        {
+                          "text": "📤 Admin proposal transaction: 0x7e55e251584720d1ccf15050d64bc801d320155dc1c4340e3e0fb57eba092345\n"
+                        },
+                        {
+                          "text": "✅ Transaction confirmed in block 9386046\n"
+                        },
+                        {
+                          "text": "✅ CogniAction event emitted via proposal execution\n"
+                        },
+                        {
+                          "text": "⏳ Waiting for Alchemy webhook → cogni-git-admin → PR merge...\n"
+                        },
+                        {
+                          "text": "PR #153 state: open, merged: false\n"
+                        },
+                        {
+                          "text": "PR #153 state: closed, merged: true\n"
+                        },
+                        {
+                          "text": "🎉 SUCCESS: PR #153 merged by cogni-git-admin!\n"
+                        },
+                        {
+                          "text": "Merge commit: f6d70d841c65ba7d531770273ec996cceb40d186\n"
+                        },
+                        {
+                          "text": "Merged by: test-cogni-admin-derekg1729[bot]\n"
+                        },
+                        {
+                          "text": "🧹 Cleaning up test branch...\n"
+                        },
+                        {
+                          "text": "✅ Deleted branch e2e-test-1760146255392\n"
+                        },
+                        {
+                          "text": "✅ Cleaned up temp directory\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-11T01:30:55.357Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a6fb139ccff7ba91af1a-3a0ce155dde912b6a93c",
+              "file": "blockchain-integration.spec.ts",
+              "line": 118,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-11T01:30:54.359Z",
+    "duration": 40509.772000000004,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

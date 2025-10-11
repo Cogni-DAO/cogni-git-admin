@@ -7,6 +7,7 @@
  * 3. Wait for Alchemy webhook → cogni-git-admin
  * 4. Verify PR gets merged by cogni-git-admin
  */
+import { test, expect } from '@playwright/test';
 import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
@@ -61,12 +62,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-describe('Complete E2E: DAO Vote → PR Merge', () => {
+test.describe('Complete E2E: DAO Vote → PR Merge', () => {
   let publicClient: any;
   let walletClient: any;
   let adminPlugin: any;
   
-  beforeAll(async () => {
+  test.beforeAll(async () => {
     // Validate required environment variables
     const requiredEnvVars = [
       'E2E_COGNISIGNAL_CONTRACT',

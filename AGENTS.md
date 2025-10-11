@@ -47,7 +47,8 @@ src/
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/abi/                # Contract ABIs
-   └─ CogniSignal.json           # Event definitions
+   ├─ CogniSignal.json           # CogniSignal contract ABI (signal function + CogniAction event)
+   └─ AdminPlugin.json           # Aragon Admin Plugin ABI (createProposal function)
 
 tools/dev/webhook-capture/       # Webhook fixture capture system
 ├─ capture-server.ts             # HTTP server for capturing webhooks
@@ -60,11 +61,16 @@ test/
 └─ helpers/fixture-replay.ts     # Replay fixtures for testing
 
 e2e/
-└─ webhook-e2e.test.ts           # MVP smoke test for webhook processing
+├─ tests/
+│  ├─ fixture-replay.spec.ts    # Webhook fixture replay tests
+│  └─ blockchain-integration.spec.ts # Live blockchain E2E tests
+├─ helpers/                      # Test utilities and setup
+└─ AGENTS_E2E_MVP.md            # E2E workflow specification
 ```
 
 ## Current Implementation Status
-- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy), E2E test connectivity to DigitalOcean deployment
+- **Working**: Webhook reception, CogniAction parsing, validation (hardcoded to Alchemy), E2E test connectivity to DigitalOcean deployment, Playwright E2E test suite with fixture replay and blockchain integration tests
+- **Resolved**: HTTP response codes (400/422 for errors, 204 for success), E2E test runner integration (unified Playwright suite)
 - **Scaffolding**: Directory structure and AGENTS.md documentation
 - **Empty**: Most new directories, provider adapters, health checks
 
@@ -95,7 +101,7 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 ```bash
 npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
-npm run test:e2e   # Run E2E tests against deployment (requires E2E_APP_DEPLOYMENT_URL)
+npm run e2e        # Run Playwright E2E tests (requires E2E_APP_DEPLOYMENT_URL)
 
 # Webhook Fixture Capture
 npm run dev:capture              # Start capture server on port 4001
@@ -115,12 +121,6 @@ npm run capture                   # Run both Smee clients concurrently
 - **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
   - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
   - **Impact**: Eliminates dual module system complexity, enables modern build process
-
-- **E2E Test Webhook Processing Issue**: E2E tests successfully execute blockchain proposals but webhook processing fails silently
-  - **Working**: Admin plugin authorization, proposal execution, CogniAction event emission
-  - **Failing**: Webhook processing returns HTTP 204 despite valid blockchain events
-  - **Required**: Debug logging to identify validation/processing failure point
-  - **Example**: Transaction `0xb52f78c4...` emits valid event but webhook handler returns 204
 
 - **GitHub App Installation IDs**: Hardcoded mapping between environments (dev: 89056469, production: 89353955)
   - **Impact**: Temporary solution requiring code changes for new installations

@@ -9,13 +9,15 @@ Contract ABI definitions and type-safe interfaces for blockchain interactions.
 - Contract address constants
 
 ## Current Implementation
-- **CogniAction ABI**: Defined in `core/signal/parser.ts` using Viem's parseAbi
+- **CogniSignal ABI**: Available in `abi/CogniSignal.json` and inline in test files using Viem's parseAbi
+- **AdminPlugin ABI**: Available in `abi/AdminPlugin.json` for Aragon Admin Plugin interactions
 - **Contract Constants**: Topic hash and addresses managed in parser module
-- **No separate ABI files**: Using inline definitions for MVP
+- **Dual approach**: JSON ABI files for tooling + inline definitions for runtime
 
 ## Structure
-- `abi/` - JSON ABI files for contracts (empty, reserved for future)
-- **Current approach**: ABI definitions in respective domain modules
+- `abi/CogniSignal.json` - CogniSignal contract ABI with signal() function and CogniAction event
+- `abi/AdminPlugin.json` - Aragon Admin Plugin ABI for DAO proposal execution
+- **Runtime usage**: Inline parseAbi() definitions in blockchain integration tests and core modules
 
 ## Guidelines
 - Keep ABI files in sync with deployed contracts

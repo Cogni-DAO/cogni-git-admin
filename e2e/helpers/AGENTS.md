@@ -1,8 +1,14 @@
 # E2E Test Helpers
 
-Utilities for replaying captured webhook fixtures in end-to-end tests.
+Utilities and configuration for Playwright-based end-to-end tests.
 
 ## Components
+
+### Global Setup (`global-setup.ts`)
+Playwright global setup that validates required environment variables before test execution.
+
+### Playwright Setup (`playwright-setup.ts`)
+Test configuration helpers for Playwright test suite.
 
 ### Fixture Replay (`fixture-replay.ts`)
 HTTP client for replaying captured webhook fixtures against deployed applications. Reads fixture files created by the webhook capture system and sends them to target endpoints with proper TLS handling and header cleaning.
@@ -38,8 +44,9 @@ const statusCode = await replayFixture(
 
 ## Integration Points
 - **Fixture Source**: Reads fixtures from `test/fixtures/` directory created by `tools/dev/webhook-capture/`
-- **E2E Runner**: Used by `e2e/e2e-runner.ts` to test webhook processing
+- **Playwright Tests**: Used by test suite in `e2e/tests/` for webhook processing validation
 - **Target Deployments**: Sends requests to deployed applications specified via `E2E_APP_DEPLOYMENT_URL`
+- **Test Configuration**: Playwright config in `playwright.config.ts` defines test projects and timeouts
 
 ## Technical Considerations
 - Uses native Node.js `http`/`https` modules for maximum compatibility

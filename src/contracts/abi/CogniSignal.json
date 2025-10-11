@@ -1,0 +1,101 @@
+[
+  {
+    "type": "function",
+    "name": "signal",
+    "inputs": [
+      {
+        "name": "repo",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "pr",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "commit",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "extra",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CogniAction",
+    "inputs": [
+      {
+        "name": "dao",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "pr",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "commit",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "extra",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      },
+      {
+        "name": "executor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  }
+]
