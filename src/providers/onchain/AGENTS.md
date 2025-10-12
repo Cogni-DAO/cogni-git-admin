@@ -12,7 +12,7 @@ Parse blockchain webhook payloads from different providers into normalized forma
 ## Current Implementation
 - **alchemy.ts**: Exports `alchemyAdapter` with `verifySignature()` (HMAC) and `parse()` methods
 - **detect.ts**: Returns "alchemy" hardcoded (MVP scope)
-- **registry.ts**: Single hardcoded entry mapping "alchemy" to `alchemyAdapter`
+- **registry.ts**: Type-safe adapter lookup with runtime validation for unknown providers
 - **quicknode.ts**: Not implemented
 - **helius.ts**: Not implemented
 
@@ -36,3 +36,4 @@ Parse blockchain webhook payloads from different providers into normalized forma
 - Handle HMAC verification per provider's spec
 - Extract all txHashes from webhook (may be multiple)
 - Keep adapters small and focused
+- Use explicit type constraints to prevent runtime errors

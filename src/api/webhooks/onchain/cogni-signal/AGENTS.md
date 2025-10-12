@@ -12,7 +12,8 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 ## Current Implementation
 - Uses provider adapter pattern: `detectProvider() → getAdapter() → verifySignature() → parse()`
 - `detectProvider()` hardcoded to return "alchemy" (MVP scope)
-- Registry returns Alchemy adapter with separate verify and parse methods
+- Registry returns Alchemy adapter with type-safe verify and parse methods
+- Validates required environment variables before processing transactions
 - Processes multiple txHashes per webhook, validates chain/DAO, logs valid events
 - Executes GitHub actions via extensible registry system with `executeAction()` for valid events
 
@@ -22,11 +23,12 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - **400 Bad Request**: Unknown webhook provider detected
 - **401 Unauthorized**: Signature verification failed
 - **422 Unprocessable Entity**: Valid webhook but validation failures (wrong DAO/chain ID)
-- **500 Internal Server Error**: Fatal processing error
+- **500 Internal Server Error**: Fatal processing error or missing required configuration
 
 ## Implementation Details
-- Provider detection currently returns "alchemy" for MVP implementation
+- Provider detection returns "alchemy" for MVP implementation
 - Signature verification uses HMAC validation for Alchemy webhooks
+- Environment variable validation ensures COGNI_CHAIN_ID is present before processing
 - Validation errors return detailed messages in response body for debugging
 - Each valid CogniAction event triggers GitHub action execution via action registry system
 

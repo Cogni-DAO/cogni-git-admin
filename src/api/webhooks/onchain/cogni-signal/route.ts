@@ -37,7 +37,12 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     }
     logger.info('✅ [WEBHOOK] Transaction hashes parsed', { txHashes });
     
-    const allowChain = BigInt(process.env.COGNI_CHAIN_ID!);
+    const chainId = process.env.COGNI_CHAIN_ID;
+    if (!chainId) {
+      logger.error('❌ [WEBHOOK] COGNI_CHAIN_ID environment variable is required');
+      return res.status(500).send('Server configuration error');
+    }
+    const allowChain = BigInt(chainId);
     const allowDao = (process.env.COGNI_ALLOWED_DAO || '').toLowerCase();
     logger.info('🔧 [WEBHOOK] Environment validation config', { 
       allowChain: allowChain.toString(), 

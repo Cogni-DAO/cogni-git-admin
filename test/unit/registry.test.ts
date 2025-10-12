@@ -74,17 +74,17 @@ describe('Action Registry', () => {
     // Should have metadata for all actions
     const addAdminMeta = metadata.find(m => m.action === 'ADD_ADMIN');
     expect(addAdminMeta).toBeDefined();
-    expect(addAdminMeta!.target).toBe('repository');
-    expect(addAdminMeta!.description).toBeDefined();
+    expect(addAdminMeta?.target).toBe('repository');
+    expect(addAdminMeta?.description).toBeDefined();
     
     const removeAdminMeta = metadata.find(m => m.action === 'REMOVE_ADMIN');
     expect(removeAdminMeta).toBeDefined();
-    expect(removeAdminMeta!.target).toBe('repository');
-    expect(removeAdminMeta!.description).toBeDefined();
+    expect(removeAdminMeta?.target).toBe('repository');
+    expect(removeAdminMeta?.description).toBeDefined();
     
     const mergePRMeta = metadata.find(m => m.action === 'PR_APPROVE');
     expect(mergePRMeta).toBeDefined();
-    expect(mergePRMeta!.target).toBe('pull_request');
-    expect(mergePRMeta!.description).toBeDefined();
+    expect(mergePRMeta?.target).toBe('pull_request');
+    expect(mergePRMeta?.description).toBeDefined();
   });
 });
