@@ -16,3 +16,4 @@ Fast, isolated tests for individual components following clean architecture prin
 
 ## Current Tests
 - `add-admin-simple.test.ts` - Core ADD_ADMIN action validation and execution logic
+- `remove-admin-simple.test.ts` - Core REMOVE_ADMIN action validation and execution logic
