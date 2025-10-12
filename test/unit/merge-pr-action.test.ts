@@ -1,7 +1,8 @@
 // Merge PR Action Tests
+import { Octokit } from 'octokit';
+
 import { mergePRAction } from '../../src/core/action_execution/actions/merge-pr';
 import { CogniActionParsed } from '../../src/core/action_execution/types';
-import { Octokit } from 'octokit';
 
 // Mock external dependency
 jest.mock('../../src/services/github', () => ({

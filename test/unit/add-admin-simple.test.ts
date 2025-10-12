@@ -1,7 +1,8 @@
 // Simple ADD_ADMIN Core Logic Tests
+import { Octokit } from 'octokit';
+
 import { addAdminAction } from '../../src/core/action_execution/actions/add-admin';
 import { CogniActionParsed } from '../../src/core/action_execution/types';
-import { Octokit } from 'octokit';
 
 // Mock external dependencies
 jest.mock('../../src/services/github', () => ({

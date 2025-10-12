@@ -1,7 +1,8 @@
 // Simple REMOVE_ADMIN Core Logic Tests
+import { Octokit } from 'octokit';
+
 import { removeAdminAction } from '../../src/core/action_execution/actions/remove-admin';
 import { CogniActionParsed } from '../../src/core/action_execution/types';
-import { Octokit } from 'octokit';
 
 // Mock external dependencies
 jest.mock('../../src/services/github', () => ({
@@ -10,7 +11,7 @@ jest.mock('../../src/services/github', () => ({
   cancelInvitation: jest.fn()
 }));
 
-import { removeCollaborator, listInvitations, cancelInvitation } from '../../src/services/github';
+import { cancelInvitation,listInvitations, removeCollaborator } from '../../src/services/github';
 
 describe('REMOVE_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;

@@ -1,5 +1,5 @@
 // Registry Functionality Tests
-import { getAction, getAvailableActions, getActionMetadata } from '../../src/core/action_execution/registry';
+import { getAction, getActionMetadata,getAvailableActions } from '../../src/core/action_execution/registry';
 
 describe('Action Registry', () => {
   test('getAction returns correct handler for ADD_ADMIN:repository', () => {

@@ -1,4 +1,5 @@
 import { Application } from 'probot'
+
 import { createApiRoutes } from './routes'
 
 export default (app: Application) => {

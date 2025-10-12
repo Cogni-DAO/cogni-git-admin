@@ -1,7 +1,8 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { addAdmin } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { addAdmin } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const addAdminAction: ActionHandler = {
   action: "ADD_ADMIN",

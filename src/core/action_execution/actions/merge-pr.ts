@@ -1,7 +1,8 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { mergePR } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { mergePR } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const mergePRAction: ActionHandler = {
   action: "PR_APPROVE",

@@ -7,8 +7,8 @@
  * 3. Add to ACTIONS registry with "ACTION:target" key
  */
 
-import { mergePRAction } from './actions/merge-pr';
 import { addAdminAction } from './actions/add-admin';
+import { mergePRAction } from './actions/merge-pr';
 import { removeAdminAction } from './actions/remove-admin';
 import { ActionHandler } from './types';
 

@@ -1,5 +1,6 @@
 import { Application } from 'probot'
 import { GitHubAPI } from 'probot/lib/github'
+
 // Requiring our app implementation
 import myProbotApp from '../src'
 import issuesOpenedPayload from './fixtures/issues.opened.json'

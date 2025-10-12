@@ -1,7 +1,8 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { removeCollaborator, listInvitations, cancelInvitation } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { cancelInvitation,listInvitations, removeCollaborator } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const removeAdminAction: ActionHandler = {
   action: "REMOVE_ADMIN",
