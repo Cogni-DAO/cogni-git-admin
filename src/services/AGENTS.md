@@ -14,9 +14,6 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 ## Current Implementation
 - **rpc.ts**: Blockchain RPC client using Viem for Sepolia
 - **github.ts**: GitHub API integration with repository management operations
-  - `mergePR()`: Merges pull requests with bypass capabilities
-  - `addAdmin()`: Adds users as repository administrators
-  - `removeAdmin()`: Removes users as repository administrators
 - **logging.ts**: Not implemented (using Probot's built-in logger)
 
 ## Structure
@@ -75,3 +72,4 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - Implement retry logic where appropriate
 - Abstract external APIs behind service interfaces
 - Provide clear error messages
+- Keep service functions atomic - one external API call per function

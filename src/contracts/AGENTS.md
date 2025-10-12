@@ -8,46 +8,28 @@ Contract ABI definitions and type-safe interfaces for blockchain interactions.
 - Type definitions for contract events
 - Contract address constants
 
-## Current Implementation Status
+## Current Implementation
 
-### Reference-Only ABI Files (Not Yet Used in Code)
+### ABI Files
 - `abi/CogniSignal.json` - Complete CogniSignal contract ABI with signal() function and CogniAction event
 - `abi/AdminPlugin.json` - Aragon Admin Plugin ABI for DAO proposal execution
-- **Current approach**: Production code uses inline `parseAbi()` definitions for reliability
 
-### Active ABI Usage (Inline Definitions)
-- **`src/core/signal/parser.ts`**: Production CogniAction event parsing via `parseAbi()`
-- **`e2e/tests/blockchain-integration.spec.ts`**: Test code with inline CogniSignal + AdminPlugin ABIs
-- **`debug-admin.js`**: Debug script with inline ABI definitions
+### ABI Usage Pattern
+- **Production**: `src/core/signal/parser.ts` uses inline `parseAbi()` definitions
+- **Tests**: E2E tests use inline ABI definitions for reliability
+- **Rationale**: Inline definitions provide compile-time safety and avoid runtime file loading
 
-## Future Implementation Guide
+## Migration Considerations
 
-### Simple Migration Path (Production Code)
-The production parser (`src/core/signal/parser.ts`) can be easily updated:
-
-**Current:**
-```typescript
-export const abi = parseAbi([
-  'event CogniAction(address indexed dao,uint256 indexed chainId,string repo,string action,string target,uint256 pr,bytes32 commit,bytes extra,address indexed executor)'
-]);
-```
-
-**Future (when ready):**
+### JSON Import Option
+ABI files can be imported directly when needed:
 ```typescript
 import cogniSignalAbi from '../contracts/abi/CogniSignal.json';
-export const abi = cogniSignalAbi.filter(item => item.type === 'event' && item.name === 'CogniAction');
 ```
 
-### Prerequisites for Migration
-- ✅ TypeScript config has `resolveJsonModule: true` (already enabled)
-- ✅ JSON ABI files are properly formatted (already done)
-- ⚠️ **Recommendation**: Keep working test code unchanged to avoid regression risk
-
-### Complex Migration (Test/Debug Code)
-Test files and debug scripts use multiple ABIs and are currently working reliably:
-- **`e2e/tests/blockchain-integration.spec.ts`**: Uses both CogniSignal + AdminPlugin ABIs
-- **`debug-admin.js`**: Temporary debug tooling with inline ABIs
-- **Decision**: Leave as-is until there's a compelling reason to change
+### Prerequisites
+- TypeScript config has `resolveJsonModule: true` (enabled)
+- JSON ABI files are properly formatted
 
 ## Structure
 - `abi/CogniSignal.json` - CogniSignal contract ABI (reference for tooling/future use)

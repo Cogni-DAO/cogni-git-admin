@@ -14,7 +14,7 @@ Pure business logic with no external dependencies. Testable, predictable functio
 - **action_execution/**: Extensible action registry system with pluggable action handlers
   - Registry pattern for mapping action:target pairs to specific handlers
   - Type-safe action execution with validation and structured results
-  - Currently supports `PR_APPROVE:pull_request` and `ADD_ADMIN:repository`
+  - Supports `PR_APPROVE:pull_request`, `ADD_ADMIN:repository`, and `REMOVE_ADMIN:repository`
 - **auth/**: Installation ID mapping in `github.ts`
 
 ## Structure

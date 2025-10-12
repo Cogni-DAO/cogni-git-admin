@@ -34,6 +34,7 @@ CogniActionParsed {
 ## Supported Actions
 - **PR_APPROVE**: Approve and merge pull requests
 - **ADD_ADMIN**: Add repository administrators
+- **REMOVE_ADMIN**: Remove repository administrators
 - Additional actions can be added via the action_execution registry
 
 ## Guidelines

@@ -15,5 +15,7 @@ Fast, isolated tests for individual components following clean architecture prin
 - Focus on critical paths and edge cases
 
 ## Current Tests
-- `add-admin-simple.test.ts` - Core ADD_ADMIN action validation and execution logic
-- `remove-admin-simple.test.ts` - Core REMOVE_ADMIN action validation and execution logic
+- `add-admin-simple.test.ts` - ADD_ADMIN action validation and execution
+- `remove-admin-simple.test.ts` - REMOVE_ADMIN action validation and execution  
+- `merge-pr-action.test.ts` - PR_APPROVE action validation and execution
+- `registry.test.ts` - Action registry registration and lookup

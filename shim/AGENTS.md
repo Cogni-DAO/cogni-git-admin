@@ -20,6 +20,5 @@ The build script copies these files to `/lib` after TypeScript compilation:
 npm run build  # Runs: tsc + copy shim files
 ```
 
-## Future
-When Probot upgrades to v12+ (native ESM support), this entire directory can be deleted.
-Related work item: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80`
+## Removal Criteria
+This directory can be deleted when Probot is upgraded to v12+ with native ESM support.

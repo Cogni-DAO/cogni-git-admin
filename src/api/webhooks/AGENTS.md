@@ -9,12 +9,12 @@ HTTP endpoints for receiving webhooks from external services.
 - Routing to appropriate domain handlers
 
 ## Current Implementation
-- **Empty**: No webhook routes implemented yet
-- **Planned**: Alchemy and GitHub webhook endpoints
+- **GitHub**: Repository event webhooks via Probot
+- **Onchain**: Blockchain event webhooks with provider adapters
 
 ## Structure
-- `alchemy/` - Alchemy blockchain event webhooks
 - `github/` - GitHub repository event webhooks
+- `onchain/cogni-signal/` - CogniSignal blockchain event webhooks
 
 ## Guidelines
 - Verify signatures before processing

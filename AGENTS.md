@@ -89,12 +89,14 @@ e2e/
 - **Action Execution**: Extensible registry-based system supporting multiple action types
   - `PR_APPROVE`: Merges pull requests with bypass capabilities
   - `ADD_ADMIN`: Adds users as repository administrators
+  - `REMOVE_ADMIN`: Removes users as repository administrators or cancels pending invitations
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
 - **Testing**: Comprehensive test coverage with Jest unit tests and Playwright E2E tests
-  - **Unit Tests**: Core action logic (ADD_ADMIN, PR_APPROVE) and registry functionality with mocked dependencies
+  - **Unit Tests**: Core action logic and registry functionality with mocked dependencies
   - **E2E Tests**: Playwright-based test suite with fixture replay and live blockchain integration tests
 - **Contract Integration**: ABI definitions for CogniSignal and AdminPlugin contracts stored in src/contracts/abi/
 - **GitHub Integration**: Probot-based GitHub App with repository management capabilities
+- **Code Quality**: ESLint with TypeScript type checking and automatic import sorting enforced
 
 ## Environment Variables
 ```bash
@@ -148,20 +150,8 @@ npm run capture                   # Run both Smee clients concurrently
 5. Use `e2e/helpers/fixture-replay.ts` to replay in tests
 
 ## Technical Debt
-- **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7 
-  - **Work Item**: `3ec4c3ea-dd9c-4597-a96e-a0d69c626b80` - Upgrade to Probot v12+ for native ES module support
-  - **Impact**: Eliminates dual module system complexity, enables modern build process
+- **Probot v7 Legacy**: Current build uses CJS adapter (`lib/entry.cjs`) to bridge ESM source with legacy Probot v7
+  - Blocks native ES module support and modern build patterns
 
 - **GitHub App Installation IDs**: Hardcoded mapping between environments (dev: 89056469, production: 89353955)
-  - **Impact**: Temporary solution requiring code changes for new installations
-  - **Required**: Database-backed installation mapping
-
-- **Smee Client Environment Variables**: Known issue with environment variable parsing in Smee proxy commands
-  - **Impact**: Environment variables not correctly passed to capture server
-  - **Workaround**: Hardcode values or use alternative proxy methods
-
-## Next Refactoring Steps
-1. Move existing logic to new directory structure
-2. Extract provider adapter for Alchemy
-3. Implement central routing with version prefix
-4. Add health check endpoint
+  - Requires database-backed installation mapping for scalability

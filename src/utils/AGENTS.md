@@ -10,8 +10,9 @@ Small, stateless helper functions used across the application.
 - Common data transformations
 
 ## Current Implementation
-- **Partial**: HMAC logic exists in `src/mw.ts`, needs to be moved here
-- **Planned**: Environment validation, idempotency tracking
+- **env.ts**: Environment variable validation and loading
+- **hmac.ts**: HMAC signature verification for webhook security
+- **idempotency.ts**: Transaction deduplication logic
 
 ## Structure
 - `env.ts` - Environment variable loading and validation

@@ -55,7 +55,7 @@ interface ActionHandler {
 ### Current Actions
 - **PR_APPROVE:pull_request** → Merge pull request via DAO vote
 - **ADD_ADMIN:repository** → Add user as repository admin via DAO vote
-- **REMOVE_ADMIN:repository** → Remove user as repository admin via DAO vote (basic proof of concept)
+- **REMOVE_ADMIN:repository** → Remove user as repository admin via DAO vote
 
 ### Adding New Actions
 1. Create handler file in `actions/` implementing `ActionHandler` interface
@@ -103,7 +103,7 @@ interface ActionHandler {
 - **Permissions Required**: `administration: write` on repository
 - **Risk Level**: Medium - removes administrative access from repository
 - **Use Case**: DAO-approved removal of administrative access
-- **Enhanced Functionality**: Handles both active collaborators AND pending invitations. Will attempt to remove active collaborator and/or cancel pending invitation as appropriate. Returns success if either operation succeeds.
+- **Functionality**: Handles both active collaborators and pending invitations. Returns success if either operation succeeds.
 
 Note: Bypass capability for PR_APPROVE can be granted to specific apps/users without full admin permissions through GitHub's branch protection rules and repository rulesets.
 
@@ -114,8 +114,7 @@ Note: Bypass capability for PR_APPROVE can be granted to specific apps/users wit
 - Log all execution attempts with executor identity for audit trail
 - Handle errors gracefully with descriptive error messages
 
-## Future Enhancements (TODOs in code)
+## Future Considerations
 - Database lookup to validate DAO permissions for repositories
 - Rate limiting per DAO/executor to prevent abuse
 - Persistent audit logging for compliance and debugging
-- Additional action types as required by DAO governance needs

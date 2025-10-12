@@ -31,28 +31,24 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Each valid CogniAction event triggers GitHub action execution via action registry system
 
 ## Architecture
-```
 route.ts → detectProvider() → getAdapter() → adapter.verifySignature() → adapter.parse() → RPC verify
-```
 
 ## Data Flow
 1. `detectProvider()` returns "alchemy" (hardcoded for MVP) → 400 if unknown provider
 2. `getAdapter("alchemy")` returns alchemyAdapter from registry
 3. `adapter.verifySignature()` validates HMAC → 401 if fails
-4. `adapter.parse()` extracts txHashes from `body.event.data.block.logs[].transaction.hash`
-5. Return 204 if txHashes.length === 0
+4. `adapter.parse()` extracts txHashes from webhook payload
+5. Return 204 if no transactions found
 6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events
 7. Validate chainId and DAO address → collect validation errors if mismatches
-8. Execute GitHub action via extensible action registry system using `executeAction()` for each valid event
+8. Execute GitHub action via action registry using `executeAction()` for each valid event
 9. Response logic:
-   - **200**: validEventsFound > 0 (success)
-   - **422**: validationErrors.length > 0 (validation failures with details)
-   - **204**: No relevant events found (normal case)
-
-**Improvement**: Validation failures now return 422 with detailed error messages instead of generic 204
+   - **200**: Valid events processed successfully
+   - **422**: Validation failures with detailed error messages
+   - **204**: No relevant events found
 
 ## Provider Status
-- **Alchemy**: Uses `alchemyAdapter` with `verifySignature()` and `parse()` methods
+- **Alchemy**: Implemented with HMAC signature verification
 - **QuickNode**: Not implemented
 - **Helius**: Not implemented
 
