@@ -66,6 +66,26 @@ gh api repos/OWNER/REPO/environments/Preview/secrets
 gh secret list
 ```
 
+
+### Running Locally
+
+1. **Validate E2E setup**: 
+   ```bash
+   npm run validate-e2e-setup
+   ```
+
+2. **Set up webhook proxy for Alchemy events**:
+   ```bash
+   smee -u $ALCHEMY_PROXY_URL --target http://localhost:3000/api/v1/webhooks/onchain/cogni-signal
+   ```
+
+3. **Build and run**:
+   ```bash
+   npm run build
+   npm start
+   ```
+
+
 ### Security Note
 
 - **Always delete the `.pem` file** after setting the secret: `rm app.private-key.pem`

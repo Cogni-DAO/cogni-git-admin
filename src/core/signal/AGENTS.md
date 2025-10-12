@@ -10,23 +10,31 @@ Domain logic for CogniAction blockchain events. Pure parsing and validation.
 - Zod schema definitions
 
 ## Current Implementation
-- **Empty**: Logic exists in `src/cogni.ts`, needs to be moved here
-- **Planned**: `parser.ts` (ABI decoding) and `schema.ts` (validation)
+- **`parser.ts`**: CogniAction event ABI decoding and parsing
+  - Exports `abi` for event signature
+  - Exports `COGNI_TOPIC0` event topic hash
+  - `tryParseCogniLog()` decodes raw logs into structured CogniAction objects
+- **`schema.ts`**: Zod validation schemas (if present)
 
 ## Domain Model
 ```typescript
-CogniAction {
-  dao: Address
-  chainId: bigint
-  repo: string
-  action: string (PR_APPROVE, PR_MERGE, etc.)
-  target: string (pull_request, etc.)
-  pr: number
-  commit: Hex
-  extra: Hex
-  executor: Address
+CogniActionParsed {
+  dao: string          // DAO address
+  chainId: bigint      // Blockchain ID
+  repo: string         // GitHub repo (owner/name)
+  action: string       // Action type (PR_APPROVE, ADD_ADMIN, etc.)
+  target: string       // Target type (pull_request, repository, etc.)
+  pr: number          // PR number (0 if not applicable)
+  commit: string      // Commit hash
+  extra: string       // Additional data (hex encoded)
+  executor: string    // Executor address
 }
 ```
+
+## Supported Actions
+- **PR_APPROVE**: Approve and merge pull requests
+- **ADD_ADMIN**: Add repository administrators
+- Additional actions can be added via the action_execution registry
 
 ## Guidelines
 - No blockchain RPC calls (delegate to services)

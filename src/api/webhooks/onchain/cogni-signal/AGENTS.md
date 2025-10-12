@@ -14,7 +14,7 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - `detectProvider()` hardcoded to return "alchemy" (MVP scope)
 - Registry returns Alchemy adapter with separate verify and parse methods
 - Processes multiple txHashes per webhook, validates chain/DAO, logs valid events
-- Executes GitHub actions via `executeAction()` for valid events
+- Executes GitHub actions via extensible registry system with `executeAction()` for valid events
 
 ## HTTP Response Codes
 - **200 OK**: Valid events processed successfully
@@ -28,7 +28,7 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Provider detection currently returns "alchemy" for MVP implementation
 - Signature verification uses HMAC validation for Alchemy webhooks
 - Validation errors return detailed messages in response body for debugging
-- Each valid CogniAction event triggers GitHub action execution
+- Each valid CogniAction event triggers GitHub action execution via action registry system
 
 ## Architecture
 ```
@@ -43,7 +43,7 @@ route.ts → detectProvider() → getAdapter() → adapter.verifySignature() →
 5. Return 204 if txHashes.length === 0
 6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events
 7. Validate chainId and DAO address → collect validation errors if mismatches
-8. Execute GitHub action via `executeAction()` for each valid event
+8. Execute GitHub action via extensible action registry system using `executeAction()` for each valid event
 9. Response logic:
    - **200**: validEventsFound > 0 (success)
    - **422**: validationErrors.length > 0 (validation failures with details)
