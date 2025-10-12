@@ -2,7 +2,6 @@
 import { removeAdminAction } from '../../src/core/action_execution/actions/remove-admin';
 import { CogniActionParsed } from '../../src/core/action_execution/types';
 import { Octokit } from 'octokit';
-import { Application } from 'probot';
 
 // Mock external dependencies
 jest.mock('../../src/services/github', () => ({
@@ -15,7 +14,7 @@ import { removeCollaborator, listInvitations, cancelInvitation } from '../../src
 
 describe('REMOVE_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
-  let mockLogger: jest.Mocked<Application['log']>;
+  let mockLogger: any;
 
   const createValidParsed = (): CogniActionParsed => ({
     dao: '0x123',
@@ -30,7 +29,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
   });
 
   beforeEach(() => {
-    mockOctokit = {} as any;
+    mockOctokit = {} as jest.Mocked<Octokit>;
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
