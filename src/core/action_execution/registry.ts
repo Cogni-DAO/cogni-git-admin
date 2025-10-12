@@ -9,11 +9,13 @@
 
 import { mergePRAction } from './actions/merge-pr';
 import { addAdminAction } from './actions/add-admin';
+import { removeAdminAction } from './actions/remove-admin';
 import { ActionHandler } from './types';
 
 export const ACTIONS: Record<string, ActionHandler> = Object.freeze({
   "PR_APPROVE:pull_request": mergePRAction,
   "ADD_ADMIN:repository": addAdminAction,
+  "REMOVE_ADMIN:repository": removeAdminAction,
 });
 
 /**

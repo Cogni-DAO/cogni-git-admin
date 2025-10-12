@@ -55,6 +55,7 @@ interface ActionHandler {
 ### Current Actions
 - **PR_APPROVE:pull_request** → Merge pull request via DAO vote
 - **ADD_ADMIN:repository** → Add user as repository admin via DAO vote
+- **REMOVE_ADMIN:repository** → Remove user as repository admin via DAO vote (basic proof of concept)
 
 ### Adding New Actions
 1. Create handler file in `actions/` implementing `ActionHandler` interface
@@ -86,6 +87,23 @@ interface ActionHandler {
 - **Permissions Required**: `administration: write` on repository
 - **Risk Level**: High - grants full administrative access to repository
 - **Use Case**: DAO-approved administrative access for trusted contributors
+
+### 3. `REMOVE_ADMIN:repository`
+- **Handler**: `actions/remove-admin.ts`
+- **GitHub Operations**: 
+  - Removes active repository collaborator
+  - Cancels pending repository invitations
+- **Parameters**: 
+  - `repo`: Repository in `owner/repo` format  
+  - `extra`: ABI-encoded string containing GitHub username
+  - `target`: Must be "repository"
+  - `pr`: Unused (set to 0)
+  - `commit`: Unused (set to bytes32(0))
+- **Validation**: Validates repo format and decodes/validates GitHub username
+- **Permissions Required**: `administration: write` on repository
+- **Risk Level**: Medium - removes administrative access from repository
+- **Use Case**: DAO-approved removal of administrative access
+- **Enhanced Functionality**: Handles both active collaborators AND pending invitations. Will attempt to remove active collaborator and/or cancel pending invitation as appropriate. Returns success if either operation succeeds.
 
 Note: Bypass capability for PR_APPROVE can be granted to specific apps/users without full admin permissions through GitHub's branch protection rules and repository rulesets.
 

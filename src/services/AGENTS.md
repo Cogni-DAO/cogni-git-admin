@@ -3,6 +3,8 @@
 ## Purpose
 Integration with external systems (blockchain, GitHub, logging, etc.).
 
+**Design Principle**: Service functions provide atomic 1:1 mappings to external API calls. Each function should map to exactly one external API endpoint. Complex business logic and orchestration should be handled in action handlers or core domain logic, not in services.
+
 ## Scope
 - RPC client management
 - GitHub API integration
@@ -14,6 +16,7 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **github.ts**: GitHub API integration with repository management operations
   - `mergePR()`: Merges pull requests with bypass capabilities
   - `addAdmin()`: Adds users as repository administrators
+  - `removeAdmin()`: Removes users as repository administrators
 - **logging.ts**: Not implemented (using Probot's built-in logger)
 
 ## Structure
@@ -21,6 +24,9 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - `github.ts` - GitHub repository operations:
   - `mergePR(octokit, repo, prNumber, executor)` - Merge pull request
   - `addAdmin(octokit, repo, username, executor)` - Add repository admin
+  - `removeCollaborator(octokit, repo, username, executor)` - Remove repository collaborator
+  - `listInvitations(octokit, repo, executor)` - List pending repository invitations
+  - `cancelInvitation(octokit, repo, invitationId, executor)` - Cancel repository invitation
 - `logging.ts` - Planned: Structured logging service
 
 ## GitHub Service Details
@@ -42,6 +48,26 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **Permissions Required**: `administration: write`
 - **Parameters**: Repository path, GitHub username, executor identity
 - **Validation**: Username format and non-empty checks
+- **Returns**: Success with status or failure with error details
+
+#### `removeCollaborator(octokit, repo, username, executor)`  
+- **Endpoint**: `DELETE /repos/{owner}/{repo}/collaborators/{username}`
+- **Permissions Required**: `administration: write`
+- **Parameters**: Repository path, GitHub username, executor identity
+- **Validation**: Username format and non-empty checks
+- **Returns**: Success with status or failure with error details
+
+#### `listInvitations(octokit, repo, executor)`  
+- **Endpoint**: `GET /repos/{owner}/{repo}/invitations`
+- **Permissions Required**: `administration: read`
+- **Parameters**: Repository path, executor identity
+- **Returns**: Success with invitations array or failure with error details
+
+#### `cancelInvitation(octokit, repo, invitationId, executor)`  
+- **Endpoint**: `DELETE /repos/{owner}/{repo}/invitations/{invitation_id}`
+- **Permissions Required**: `administration: write`
+- **Parameters**: Repository path, invitation ID, executor identity
+- **Validation**: Invitation ID must be positive number
 - **Returns**: Success with status or failure with error details
 
 ## Guidelines

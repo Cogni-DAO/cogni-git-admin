@@ -128,7 +128,9 @@ WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
 npm run dev        # Start with nodemon
 npm run build      # Compile TypeScript
 npm test           # Run Jest unit tests
-npm run e2e        # Run Playwright E2E tests (uses dotenv for environment variables)
+npm run e2e              # Run all Playwright E2E tests
+npm run e2e:fixtures      # Fast fixture replay tests only
+npm run e2e:blockchain    # Blockchain integration tests only
 npm run validate-e2e-setup  # Validate all E2E prerequisites (wallet, contracts, GitHub, webhooks)
 
 # Webhook Fixture Capture
