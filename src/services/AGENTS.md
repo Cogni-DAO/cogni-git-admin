@@ -3,6 +3,8 @@
 ## Purpose
 Integration with external systems (blockchain, GitHub, logging, etc.).
 
+**Design Principle**: Service functions provide atomic 1:1 mappings to external API calls. Each function should map to exactly one external API endpoint. Complex business logic and orchestration should be handled in action handlers or core domain logic, not in services.
+
 ## Scope
 - RPC client management
 - GitHub API integration
@@ -14,6 +16,7 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **github.ts**: GitHub API integration with repository management operations
   - `mergePR()`: Merges pull requests with bypass capabilities
   - `addAdmin()`: Adds users as repository administrators
+  - `removeAdmin()`: Removes users as repository administrators
 - **logging.ts**: Not implemented (using Probot's built-in logger)
 
 ## Structure
@@ -21,6 +24,7 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - `github.ts` - GitHub repository operations:
   - `mergePR(octokit, repo, prNumber, executor)` - Merge pull request
   - `addAdmin(octokit, repo, username, executor)` - Add repository admin
+  - `removeAdmin(octokit, repo, username, executor)` - Remove repository admin
 - `logging.ts` - Planned: Structured logging service
 
 ## GitHub Service Details
@@ -43,6 +47,14 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **Parameters**: Repository path, GitHub username, executor identity
 - **Validation**: Username format and non-empty checks
 - **Returns**: Success with status or failure with error details
+
+#### `removeAdmin(octokit, repo, username, executor)`  
+- **Endpoint**: `DELETE /repos/{owner}/{repo}/collaborators/{username}`
+- **Permissions Required**: `administration: write`
+- **Parameters**: Repository path, GitHub username, executor identity
+- **Validation**: Username format and non-empty checks
+- **Returns**: Success with status or failure with error details
+- **Limitation**: Only removes active collaborators. Pending invitations (users who haven't accepted yet) remain as pending invites and are NOT removed by this API call
 
 ## Guidelines
 - Handle external system failures gracefully

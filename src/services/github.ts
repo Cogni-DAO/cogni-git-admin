@@ -1,3 +1,13 @@
+/**
+ * GitHub Service - Atomic GitHub API Operations
+ * 
+ * This service provides 1:1 mappings to GitHub API calls.
+ * Each function should map to exactly one GitHub API endpoint.
+ * Complex business logic should be handled in action handlers, not here.
+ * 
+ * Note: currently uses Probot's Octokit instance for Github connection. 
+ * In the future? maybe Github MCP
+ */
 import { Octokit } from 'octokit';
 
 export async function mergePR(octokit: Octokit, repo: string, prNumber: number, executor: string) {
@@ -100,6 +110,63 @@ export async function addAdmin(octokit: Octokit, repo: string, username: string,
     const errorStatus = (error as { status?: number })?.status;
     
     console.log(`Add Admin FAILED:`, {
+      repo: `${owner}/${repoName}`,
+      username,
+      error: errorMessage,
+      status: errorStatus,
+      executor
+    });
+    
+    return {
+      success: false,
+      error: errorMessage,
+      status: errorStatus
+    };
+  }
+}
+
+export async function removeAdmin(octokit: Octokit, repo: string, username: string, executor: string) {
+  if (!repo.includes('/')) {
+    throw new Error(`Invalid repo format: ${repo}. Expected "owner/repo"`);
+  }
+  
+  if (!username || username.length === 0) {
+    throw new Error('Username cannot be empty');
+  }
+  
+  // Basic GitHub username validation
+  if (!/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(username)) {
+    throw new Error(`Invalid GitHub username format: ${username}`);
+  }
+  
+  const [owner, repoName] = repo.split('/');
+  
+  console.log(`Attempting Remove Admin: /repos/${owner}/${repoName}/collaborators/${username}`);
+  console.log(`Executor: ${executor}`);
+  
+  try {
+    const result = await octokit.request({
+      method: "DELETE",
+      url: `/repos/${owner}/${repoName}/collaborators/${username}`
+    });
+    
+    console.log(`Remove Admin SUCCESS:`, {
+      repo: `${owner}/${repoName}`,
+      username,
+      status: result.status,
+      executor
+    });
+    
+    return {
+      success: true,
+      username,
+      status: result.status
+    };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStatus = (error as { status?: number })?.status;
+    
+    console.log(`Remove Admin FAILED:`, {
       repo: `${owner}/${repoName}`,
       username,
       error: errorMessage,
