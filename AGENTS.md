@@ -21,7 +21,7 @@ Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webho
 - `POST /api/v1/webhooks/github` - GitHub repository webhooks (Probot)
 - `GET /api/v1/health` - Application health check
 
-## Code Structure (Scaffolding - Many Empty)
+## Code Structure
 ```
 src/
 ├─ index.ts                      # Boot Probot, mount API routes
@@ -35,21 +35,31 @@ src/
 │  ├─ alchemy.ts                 # Alchemy payload parser (MVP)
 │  ├─ detect.ts                  # Provider detection
 │  └─ (future: quicknode.ts)     # Other providers
-├─ core/signal/                  # Pure domain logic
-│  ├─ parser.ts                  # CogniAction ABI decoding
-│  └─ schema.ts                  # Zod validation schemas
+├─ core/                         # Pure domain logic
+│  ├─ signal/                    # CogniAction parsing
+│  │  ├─ parser.ts               # ABI decoding and validation
+│  │  └─ schema.ts               # Zod validation schemas
+│  ├─ action_execution/          # Extensible action system
+│  │  ├─ types.ts                # Core interfaces
+│  │  ├─ registry.ts             # Action registration
+│  │  ├─ executor.ts             # Execution orchestrator
+│  │  └─ actions/                # Action handlers
+│  │     ├─ merge-pr.ts          # PR_APPROVE handler
+│  │     └─ add-admin.ts         # ADD_ADMIN handler
+│  └─ auth/                      # Authentication helpers
+│     └─ github.ts               # Installation ID mapping
 ├─ services/                     # External system integrations
 │  ├─ rpc.ts                     # Blockchain RPC client
-│  ├─ github.ts                  # GitHub API client
-│  └─ logging.ts                 # Structured logging
+│  ├─ github.ts                  # GitHub API operations
+│  └─ logging.ts                 # Structured logging (planned)
 ├─ utils/                        # Stateless helpers
 │  ├─ env.ts                     # Environment validation
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/                    # Smart contract interfaces
    └─ abi/                       # Contract ABI JSON files
-      ├─ CogniSignal.json        # CogniSignal contract ABI (signal function + CogniAction event)
-      └─ AdminPlugin.json        # Aragon Admin Plugin ABI (createProposal function)
+      ├─ CogniSignal.json        # CogniSignal contract ABI
+      └─ AdminPlugin.json        # Aragon Admin Plugin ABI
 
 tools/dev/webhook-capture/       # Webhook fixture capture system
 ├─ capture-server.ts             # HTTP server for capturing webhooks
@@ -71,10 +81,13 @@ e2e/
 
 ## Current Implementation
 - **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events, executes GitHub operations
+- **Action Execution**: Extensible registry-based system supporting multiple action types
+  - `PR_APPROVE`: Merges pull requests with bypass capabilities
+  - `ADD_ADMIN`: Adds users as repository administrators
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
 - **E2E Testing**: Playwright-based test suite with fixture replay and live blockchain integration tests
 - **Contract Integration**: ABI definitions for CogniSignal and AdminPlugin contracts stored in src/contracts/abi/
-- **GitHub Integration**: Probot-based GitHub App with webhook handling and PR merge capabilities
+- **GitHub Integration**: Probot-based GitHub App with repository management capabilities
 
 ## Environment Variables
 ```bash

@@ -1,43 +1,57 @@
 # Source Code Structure
 
-## Current Status: Files Moved to Clean Architecture
+## Architecture Overview
+Clean architecture with separation of concerns: API handlers, core domain logic, external services, and utilities.
 
-### `index.ts` - Main Application Entry Point  
-- **Purpose**: Probot application with dual webhook handlers
-- **Dependencies**: Now imports from `utils/hmac` and `services/rpc`
-- **Status**: Updated imports, functionality unchanged
+## Key Components
 
-### `core/signal/parser.ts` - CogniAction Event Parser (moved from `cogni.ts`)
-- **Purpose**: Pure domain logic for CogniAction event parsing
-- **Key Exports**:
-  - `abi`: ParseAbi for CogniAction event signature  
-  - `COGNI_TOPIC0`: Event topic hash constant
-  - `tryParseCogniLog()`: Decodes event log data into structured object
-- **Layer**: Core domain logic (no external dependencies)
+### Entry Points
+- **`index.ts`**: Probot application bootstrap with route mounting
+- **`routes.ts`**: Central route registration for versioned API
 
-### `services/rpc.ts` - Blockchain RPC Client (moved from `rpc.ts`)
-- **Purpose**: External RPC service integration with Viem
-- **Key Exports**:
-  - `client`: PublicClient configured for Sepolia testnet
-  - `fetchCogniFromTx()`: Fetches transaction receipt and parses CogniAction events
-- **Layer**: Services layer (external system integration)
+### API Layer (`api/`)
+- **`health/`**: Health check endpoints
+- **`webhooks/github/`**: GitHub webhook processing via Probot
+- **`webhooks/onchain/cogni-signal/`**: Blockchain event webhook handler with provider adapter pattern
 
-### `utils/hmac.ts` - HMAC Utilities (moved from `mw.ts`)
-- **Purpose**: Stateless helper functions for webhook processing
-- **Key Exports**:
-  - `rawJson()`: Express middleware for JSON parsing with raw body access
-  - `verifyAlchemyHmac()`: HMAC signature verification
-- **Layer**: Utilities (stateless helpers)
+### Core Domain (`core/`)
+- **`signal/`**: CogniAction event parsing and validation
+  - `parser.ts`: ABI decoding and event parsing
+  - `schema.ts`: Zod validation schemas
+- **`action_execution/`**: Extensible action execution system
+  - `types.ts`: Core interfaces (ActionHandler, ValidationResult, ActionResult)
+  - `registry.ts`: Action registration and lookup
+  - `executor.ts`: Orchestrates action validation and execution
+  - `actions/`: Individual action handlers (merge-pr, add-admin)
+- **`auth/`**: Authentication helpers (GitHub installation mapping)
+
+### Services Layer (`services/`)
+- **`rpc.ts`**: Blockchain RPC client using Viem
+- **`github.ts`**: GitHub API operations (mergePR, addAdmin)
+- **`logging.ts`**: Structured logging (planned)
+
+### Providers (`providers/onchain/`)
+- **`alchemy.ts`**: Alchemy webhook adapter
+- **`detect.ts`**: Provider detection logic
+- **`registry.ts`**: Provider adapter registry
+
+### Utilities (`utils/`)
+- **`env.ts`**: Environment variable validation
+- **`hmac.ts`**: HMAC signature verification
+- **`idempotency.ts`**: Deduplication logic
 
 ## Data Flow
 ```
-Alchemy → Express middleware → txHash extraction → RPC call → 
-event parsing → validation → structured logging
+Webhook → Provider Detection → Adapter Verification → Transaction Extraction →
+RPC Fetch → Event Parsing → Validation → Action Registry → Handler Execution →
+GitHub API → Response
 ```
 
 ## Key Patterns
-- TypeScript with Viem for type-safe blockchain interactions
-- Express router mounted on Probot app for custom endpoints  
-- Environment variable validation at runtime
-- Error handling with appropriate HTTP status codes (400, 401, 204, 500)
-- BigInt serialization handling for JSON logging
+- **Registry Pattern**: Extensible action handlers and provider adapters
+- **Clean Architecture**: Separation of API, domain, services layers
+- **Type Safety**: Full TypeScript with Viem for blockchain interactions
+- **Provider Agnostic**: Adapter pattern for multiple webhook providers
+- **Versioned API**: `/api/v1/*` namespace for future compatibility
+- **Error Handling**: Appropriate HTTP status codes with detailed error messages
+- **Audit Trail**: Executor identity logged for all actions
