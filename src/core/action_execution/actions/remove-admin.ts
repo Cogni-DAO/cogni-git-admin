@@ -31,7 +31,7 @@ export const removeAdminAction: ActionHandler = {
         return { valid: false, error: `Invalid GitHub username format: ${username}` };
       }
       
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Invalid username encoding in extra data' };
     }
     

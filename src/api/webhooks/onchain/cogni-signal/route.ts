@@ -45,7 +45,7 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     });
     
     let validEventsFound = 0;
-    let validationErrors: string[] = [];
+    const validationErrors: string[] = [];
     
     for (const txHash of txHashes) {
       logger.info('🔍 [WEBHOOK] Processing transaction', { txHash });
