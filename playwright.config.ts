@@ -51,7 +51,7 @@ export default defineConfig({
   projects: [
     {
       name: 'fixture-replay',
-      testMatch: '**/fixture-replay.spec.ts',
+      testMatch: '**/fixture-*.spec.ts',
       timeout: 30000, // 30 seconds - fast fixture tests
       use: {
         // No browser needed for fixture replay
@@ -59,18 +59,8 @@ export default defineConfig({
     },
     
     {
-      name: 'blockchain-integration',
-      testMatch: '**/blockchain-integration.spec.ts',
-      timeout: 300000, // 5 minutes - slow blockchain tests
-      retries: 2, // Extra retries for network flakiness
-      use: {
-        // No browser needed for blockchain tests
-      },
-    },
-    
-    {
-      name: 'admin-management',
-      testMatch: '**/admin-management.spec.ts',
+      name: 'blockchain-e2e',
+      testMatch: '**/blockchain-*.spec.ts',
       timeout: 300000, // 5 minutes - slow blockchain tests
       retries: 2, // Extra retries for network flakiness
       use: {

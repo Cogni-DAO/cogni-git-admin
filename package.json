@@ -27,6 +27,8 @@
     "test": "jest",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
     "e2e": "npx dotenv -- npx playwright test",
+    "e2e:fixtures": "npx dotenv -- npx playwright test --project=fixture-replay",
+    "e2e:blockchain": "npx dotenv -- npx playwright test --project=blockchain-e2e",
     "validate-e2e-setup": "npx dotenv -- tsx tools/dev/chain-setup/validate-setup.ts",
     "deploy-test-dao": "npx dotenv -- tsx tools/dev/chain-setup/deploy-test-contracts.ts"
   },
