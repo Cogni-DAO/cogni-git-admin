@@ -1,11 +1,12 @@
 import { Response } from 'express';
 import { Application } from 'probot';
-import { RequestWithRawBody } from '../../../../utils/hmac';
+
+import { executeAction } from '../../../../core/action_execution/executor';
+import { getInstallationId } from '../../../../core/auth/github';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
-import { executeAction } from '../../../../core/action_execution/executor';
-import { getInstallationId } from '../../../../core/auth/github';
+import { RequestWithRawBody } from '../../../../utils/hmac';
 
 export async function handleCogniSignal(req: RequestWithRawBody, res: Response, logger: Application['log'], app: Application) {
   try {
@@ -36,7 +37,12 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     }
     logger.info('✅ [WEBHOOK] Transaction hashes parsed', { txHashes });
     
-    const allowChain = BigInt(process.env.COGNI_CHAIN_ID!);
+    const chainId = process.env.COGNI_CHAIN_ID;
+    if (!chainId) {
+      logger.error('❌ [WEBHOOK] COGNI_CHAIN_ID environment variable is required');
+      return res.status(500).send('Server configuration error');
+    }
+    const allowChain = BigInt(chainId);
     const allowDao = (process.env.COGNI_ALLOWED_DAO || '').toLowerCase();
     logger.info('🔧 [WEBHOOK] Environment validation config', { 
       allowChain: allowChain.toString(), 
@@ -45,7 +51,7 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     });
     
     let validEventsFound = 0;
-    let validationErrors: string[] = [];
+    const validationErrors: string[] = [];
     
     for (const txHash of txHashes) {
       logger.info('🔍 [WEBHOOK] Processing transaction', { txHash });

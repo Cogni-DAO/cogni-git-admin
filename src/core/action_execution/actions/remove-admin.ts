@@ -1,14 +1,15 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { removeCollaborator, listInvitations, cancelInvitation } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { cancelInvitation,listInvitations, removeCollaborator } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const removeAdminAction: ActionHandler = {
   action: "REMOVE_ADMIN",
   target: "repository",
   description: "Remove a user as repository admin via DAO vote",
 
-  async validate(parsed: CogniActionParsed): Promise<ValidationResult> {
+  validate(parsed: CogniActionParsed): ValidationResult {
     if (!parsed.repo.includes('/')) {
       return { valid: false, error: 'Repo must be in format "owner/repo"' };
     }
@@ -31,7 +32,7 @@ export const removeAdminAction: ActionHandler = {
         return { valid: false, error: `Invalid GitHub username format: ${username}` };
       }
       
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Invalid username encoding in extra data' };
     }
     
@@ -79,7 +80,7 @@ export const removeAdminAction: ActionHandler = {
     
     if (invitationsResult.success && invitationsResult.invitations) {
         // Find invitation for this user
-        const userInvitation = invitationsResult.invitations.find((invitation: any) => 
+        const userInvitation = invitationsResult.invitations.find((invitation: { id: number; invitee?: { login: string } }) => 
           invitation.invitee?.login === username
         );
         

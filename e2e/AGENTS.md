@@ -10,14 +10,15 @@ Playwright-based E2E test suite providing unified test execution and reporting f
 ```
 e2e/
 ├── tests/
-│   ├── fixture-replay.spec.ts       # Webhook fixture replay tests
-│   └── blockchain-integration.spec.ts # Live blockchain E2E tests
+│   ├── fixture-replay.spec.ts            # Webhook fixture replay tests
+│   ├── blockchain-integration.spec.ts    # Live blockchain E2E tests
+│   └── blockchain-admin-management.spec.ts # Admin management E2E tests
 ├── helpers/
-│   ├── fixture-replay.ts            # HTTP replay utilities
-│   ├── global-setup.ts              # Playwright global setup
-│   └── playwright-setup.ts          # Test configuration helpers
-├── playwright.config.ts              # Playwright test configuration
-└── AGENTS_E2E_MVP.md                # Detailed workflow specification
+│   ├── fixture-replay.ts                 # HTTP replay utilities
+│   ├── global-setup.ts                   # Playwright global setup
+│   └── playwright-setup.ts               # Test configuration helpers
+├── playwright.config.ts                   # Playwright test configuration
+└── AGENTS_E2E_MVP.md                     # Detailed workflow specification
 ```
 
 ## Test Execution
@@ -75,6 +76,8 @@ TIMEOUT_SEC=30                   # Fixture test timeout (default: 30 seconds)
 - ✅ PR creation and cleanup
 - ✅ CogniAction event emission
 - ✅ Webhook delivery verification
+- ✅ ADD_ADMIN and REMOVE_ADMIN operations
+- ✅ Repository invitation management
 
 ## Test Features
 - **HTTP Response Validation**: Tests verify correct 200/204/400/422 response codes

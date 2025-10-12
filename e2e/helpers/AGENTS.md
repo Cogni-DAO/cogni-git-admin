@@ -67,7 +67,7 @@ const statusCode = await replayFixture(
 - Cannot replay WebSocket or streaming connections
 - Timeout is fixed at 10 seconds (not configurable)
 
-## Recent Fixes
-- **SSL/TLS Connection**: Resolved handshake failures with DigitalOcean/Cloudflare by cleaning proxy headers
-- **SNI/ALPN Negotiation**: Fixed by removing headers that poison TLS negotiation
-- **IPv4 Forcing**: Prevents IPv6 routing issues in certain edge configurations
+## Implementation Notes
+- **SSL/TLS Compatibility**: Cleans proxy headers to ensure proper handshake with edge servers
+- **SNI/ALPN Negotiation**: Removes headers that interfere with TLS negotiation
+- **IPv4 Enforcement**: Uses IPv4 to avoid routing issues in certain edge configurations

@@ -1,14 +1,15 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { mergePR } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { mergePR } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const mergePRAction: ActionHandler = {
   action: "PR_APPROVE",
   target: "pull_request",
   description: "Merge a pull request via DAO vote",
 
-  async validate(parsed: CogniActionParsed): Promise<ValidationResult> {
+  validate(parsed: CogniActionParsed): ValidationResult {
     if (parsed.pr <= 0) {
       return { valid: false, error: 'PR number must be greater than 0' };
     }

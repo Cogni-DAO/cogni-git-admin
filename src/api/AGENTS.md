@@ -10,8 +10,9 @@ HTTP endpoints and request/response handling. Pure HTTP surface with no business
 - HTTP middleware integration
 
 ## Current Implementation
-- **Empty**: No endpoints implemented yet
-- **Planned**: Health check endpoint and webhook routes
+- **Health Check**: Application health status endpoint
+- **Webhook Routes**: GitHub and blockchain event receivers
+- **Versioned API**: All endpoints under `/api/v1/*` namespace
 
 ## Structure
 - `health/` - Health check and status endpoints → `/api/v1/health`

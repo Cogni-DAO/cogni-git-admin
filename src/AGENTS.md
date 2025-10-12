@@ -41,17 +41,12 @@ Clean architecture with separation of concerns: API handlers, core domain logic,
 - **`idempotency.ts`**: Deduplication logic
 
 ## Data Flow
-```
-Webhook → Provider Detection → Adapter Verification → Transaction Extraction →
-RPC Fetch → Event Parsing → Validation → Action Registry → Handler Execution →
-GitHub API → Response
-```
+Webhook → Provider Detection → Adapter Verification → Transaction Extraction → RPC Fetch → Event Parsing → Validation → Action Registry → Handler Execution → GitHub API → Response
 
 ## Key Patterns
 - **Registry Pattern**: Extensible action handlers and provider adapters
 - **Clean Architecture**: Separation of API, domain, services layers
-- **Type Safety**: Full TypeScript with Viem for blockchain interactions
+- **Type Safety**: TypeScript with Viem for blockchain interactions
 - **Provider Agnostic**: Adapter pattern for multiple webhook providers
 - **Versioned API**: `/api/v1/*` namespace for future compatibility
-- **Error Handling**: Appropriate HTTP status codes with detailed error messages
 - **Audit Trail**: Executor identity logged for all actions

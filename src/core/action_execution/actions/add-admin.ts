@@ -1,14 +1,15 @@
-import { ActionHandler, CogniActionParsed, ValidationResult, ActionResult } from '../types';
-import { addAdmin } from '../../../services/github';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { addAdmin } from '../../../services/github';
+import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const addAdminAction: ActionHandler = {
   action: "ADD_ADMIN",
   target: "repository",
   description: "Add a user as repository admin via DAO vote",
 
-  async validate(parsed: CogniActionParsed): Promise<ValidationResult> {
+  validate(parsed: CogniActionParsed): ValidationResult {
     if (!parsed.repo.includes('/')) {
       return { valid: false, error: 'Repo must be in format "owner/repo"' };
     }
@@ -31,7 +32,7 @@ export const addAdminAction: ActionHandler = {
         return { valid: false, error: `Invalid GitHub username format: ${username}` };
       }
       
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Invalid username encoding in extra data' };
     }
     

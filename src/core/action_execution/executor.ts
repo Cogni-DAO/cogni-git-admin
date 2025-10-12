@@ -1,7 +1,8 @@
-import { getAction, getAvailableActions } from './registry';
-import { CogniActionParsed, ActionResult } from './types';
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
+
+import { getAction, getAvailableActions } from './registry';
+import { ActionResult,CogniActionParsed } from './types';
 
 export async function executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
   // TODO: Add database lookup to validate DAO has permission for this repo
@@ -15,7 +16,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
     const handler = getAction(action, target);
     
     // Validate action parameters
-    const validation = await handler.validate(parsed);
+    const validation = handler.validate(parsed);
     if (!validation.valid) {
       logger.error(`Action validation failed: ${validation.error}`, { action, target, repo, executor });
       return { 
@@ -52,4 +53,4 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
 }
 
 // Re-export types for backward compatibility
-export type { CogniActionParsed, ActionResult } from './types';
+export type { ActionResult,CogniActionParsed } from './types';

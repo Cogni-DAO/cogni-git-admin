@@ -1,8 +1,8 @@
 // Merge PR Action Tests
+import { Octokit } from 'octokit';
+
 import { mergePRAction } from '../../src/core/action_execution/actions/merge-pr';
 import { CogniActionParsed } from '../../src/core/action_execution/types';
-import { Octokit } from 'octokit';
-import { Application } from 'probot';
 
 // Mock external dependency
 jest.mock('../../src/services/github', () => ({
@@ -13,7 +13,8 @@ import { mergePR } from '../../src/services/github';
 
 describe('Merge PR Action', () => {
   let mockOctokit: jest.Mocked<Octokit>;
-  let mockLogger: jest.Mocked<Application['log']>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockLogger: any;
 
   const createValidParsed = (): CogniActionParsed => ({
     dao: '0x123',
@@ -28,10 +29,11 @@ describe('Merge PR Action', () => {
   });
 
   beforeEach(() => {
-    mockOctokit = {} as any;
+    mockOctokit = {} as jest.Mocked<Octokit>;
     mockLogger = {
       info: jest.fn(),
       error: jest.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     jest.clearAllMocks();
   });

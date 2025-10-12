@@ -1,4 +1,4 @@
-import { parseAbi, decodeEventLog, Hex, Address } from 'viem';
+import { Address,decodeEventLog, Hex, parseAbi } from 'viem';
 
 export const abi = parseAbi([
   'event CogniAction(address indexed dao,uint256 indexed chainId,string repo,string action,string target,uint256 pr,bytes32 commit,bytes extra,address indexed executor)'
@@ -12,14 +12,14 @@ export function tryParseCogniLog(log: { address: Address; topics: Hex[]; data: H
   const { args } = decodeEventLog({ abi, data: log.data, topics: log.topics as [Hex, ...Hex[]] });
   
   return {
-    dao: args.dao as Address,
+    dao: args.dao,
     chainId: BigInt(args.chainId as unknown as string),
-    repo: args.repo as string,
-    action: args.action as string,
-    target: args.target as string,
+    repo: args.repo,
+    action: args.action,
+    target: args.target,
     pr: Number(args.pr),
-    commit: args.commit as Hex,
-    extra: args.extra as Hex,
-    executor: args.executor as Address
+    commit: args.commit,
+    extra: args.extra,
+    executor: args.executor
   };
 }
