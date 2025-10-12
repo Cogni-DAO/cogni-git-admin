@@ -23,7 +23,7 @@ describe('ADD_ADMIN Core Logic', () => {
     target: 'repository',
     pr: 0,
     commit: '0x0000000000000000000000000000000000000000000000000000000000000000',
-    extra: Buffer.from('cogni-1729').toString('hex'), // hex encoding of "cogni-1729"
+    extra: Buffer.from('cogni-test-user').toString('hex'), // hex encoding of "cogni-test-user"
     executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
   });
 
@@ -39,7 +39,7 @@ describe('ADD_ADMIN Core Logic', () => {
   test('validates valid ADD_ADMIN request', async () => {
     const parsed = createValidParsed();
     const result = await addAdminAction.validate(parsed);
-    
+
     expect(result.valid).toBe(true);
     expect(result.error).toBeUndefined();
   });
@@ -48,7 +48,7 @@ describe('ADD_ADMIN Core Logic', () => {
     (addAdmin as jest.Mock).mockResolvedValue({
       success: true,
       status: 201, // 201 = user added as new collaborator
-      username: 'cogni-1729',
+      username: 'cogni-test-user',
       permission: 'admin'
     });
 
@@ -57,13 +57,13 @@ describe('ADD_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_added');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.username).toBe('cogni-test-user');
     expect(result.repo).toBe('derekg1729/test-repo');
-    
+
     expect(addAdmin).toHaveBeenCalledWith(
       mockOctokit,
       'derekg1729/test-repo',
-      'cogni-1729',
+      'cogni-test-user',
       '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
     );
   });
@@ -72,7 +72,7 @@ describe('ADD_ADMIN Core Logic', () => {
     (addAdmin as jest.Mock).mockResolvedValue({
       success: true,
       status: 204, // 204 = user already exists, no change made
-      username: 'cogni-1729',
+      username: 'cogni-test-user',
       permission: 'admin'
     });
 
@@ -82,6 +82,6 @@ describe('ADD_ADMIN Core Logic', () => {
     // Should still report success even if user was already admin
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_added');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.username).toBe('cogni-test-user');
   });
 });

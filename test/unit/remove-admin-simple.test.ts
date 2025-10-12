@@ -25,7 +25,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
     target: 'repository',
     pr: 0,
     commit: '0x0000000000000000000000000000000000000000000000000000000000000000',
-    extra: Buffer.from('cogni-1729').toString('hex'), // hex encoding of "cogni-1729"
+    extra: Buffer.from('cogni-test-user').toString('hex'), // hex encoding of "cogni-test-user"
     executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
   });
 
@@ -42,7 +42,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
   test('validates valid REMOVE_ADMIN request', async () => {
     const parsed = createValidParsed();
     const result = await removeAdminAction.validate(parsed);
-    
+
     expect(result.valid).toBe(true);
     expect(result.error).toBeUndefined();
   });
@@ -50,9 +50,9 @@ describe('REMOVE_ADMIN Core Logic', () => {
   test('validates invalid repo format', async () => {
     const parsed = createValidParsed();
     parsed.repo = 'invalid-repo';
-    
+
     const result = await removeAdminAction.validate(parsed);
-    
+
     expect(result.valid).toBe(false);
     expect(result.error).toBe('Repo must be in format "owner/repo"');
   });
@@ -60,9 +60,9 @@ describe('REMOVE_ADMIN Core Logic', () => {
   test('validates missing username in extra data', async () => {
     const parsed = createValidParsed();
     parsed.extra = '';
-    
+
     const result = await removeAdminAction.validate(parsed);
-    
+
     expect(result.valid).toBe(false);
     expect(result.error).toBe('Username required in extra data');
   });
@@ -70,9 +70,9 @@ describe('REMOVE_ADMIN Core Logic', () => {
   test('validates invalid GitHub username format', async () => {
     const parsed = createValidParsed();
     parsed.extra = Buffer.from('invalid_user@name!').toString('hex');
-    
+
     const result = await removeAdminAction.validate(parsed);
-    
+
     expect(result.valid).toBe(false);
     expect(result.error).toBe('Invalid GitHub username format: invalid_user@name!');
   });
@@ -81,9 +81,9 @@ describe('REMOVE_ADMIN Core Logic', () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
-      username: 'cogni-1729'
+      username: 'cogni-test-user'
     });
-    
+
     (listInvitations as jest.Mock).mockResolvedValue({
       success: true,
       status: 200,
@@ -95,15 +95,15 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.username).toBe('cogni-test-user');
     expect(result.repo).toBe('derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(true);
     expect(result.invitationCancelled).toBe(false);
-    
+
     expect(removeCollaborator).toHaveBeenCalledWith(
       mockOctokit,
       'derekg1729/test-repo',
-      'cogni-1729',
+      'cogni-test-user',
       '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
     );
     expect(listInvitations).toHaveBeenCalled();
@@ -115,19 +115,19 @@ describe('REMOVE_ADMIN Core Logic', () => {
       status: 404,
       error: 'Not Found'
     });
-    
+
     (listInvitations as jest.Mock).mockResolvedValue({
       success: true,
       status: 200,
       invitations: [
         {
           id: 123,
-          invitee: { login: 'cogni-1729' },
+          invitee: { login: 'cogni-test-user' },
           permissions: 'admin'
         }
       ]
     });
-    
+
     (cancelInvitation as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
@@ -139,11 +139,11 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.username).toBe('cogni-test-user');
     expect(result.repo).toBe('derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(false);
     expect(result.invitationCancelled).toBe(true);
-    
+
     expect(removeCollaborator).toHaveBeenCalled();
     expect(listInvitations).toHaveBeenCalled();
     expect(cancelInvitation).toHaveBeenCalledWith(mockOctokit, 'derekg1729/test-repo', 123, '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5');
@@ -153,9 +153,9 @@ describe('REMOVE_ADMIN Core Logic', () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
-      username: 'cogni-1729'
+      username: 'cogni-test-user'
     });
-    
+
     // Even though collaborator was removed, still check for invitations
     (listInvitations as jest.Mock).mockResolvedValue({
       success: true,
@@ -163,12 +163,12 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitations: [
         {
           id: 456,
-          invitee: { login: 'cogni-1729' },
+          invitee: { login: 'cogni-test-user' },
           permissions: 'admin'
         }
       ]
     });
-    
+
     (cancelInvitation as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
@@ -180,7 +180,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.username).toBe('cogni-test-user');
     expect(result.repo).toBe('derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(true);
     expect(result.invitationCancelled).toBe(true);
@@ -192,7 +192,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
       status: 404,
       error: 'Not Found'
     });
-    
+
     (listInvitations as jest.Mock).mockResolvedValue({
       success: true,
       status: 200,
@@ -204,8 +204,8 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(false);
     expect(result.action).toBe('admin_remove_failed');
-    expect(result.error).toBe('User cogni-1729 not found as active collaborator or pending invitation');
-    expect(result.username).toBe('cogni-1729');
+    expect(result.error).toBe('User cogni-test-user not found as active collaborator or pending invitation');
+    expect(result.username).toBe('cogni-test-user');
     expect(result.repo).toBe('derekg1729/test-repo');
   });
 
@@ -215,7 +215,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
       error: 'Username cannot be empty',
       status: 400
     });
-    
+
     (listInvitations as jest.Mock).mockResolvedValue({
       success: true,
       status: 200,
@@ -224,7 +224,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     const parsed = createValidParsed();
     parsed.extra = 'invalid-hex-data'; // Results in empty string after decoding
-    
+
     const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
 
     expect(result.success).toBe(false);
