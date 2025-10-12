@@ -141,43 +141,115 @@ export async function removeAdmin(octokit: Octokit, repo: string, username: stri
   
   const [owner, repoName] = repo.split('/');
   
-  console.log(`Attempting Remove Admin: /repos/${owner}/${repoName}/collaborators/${username}`);
-  console.log(`Executor: ${executor}`);
+  console.log(`Attempting Remove Admin: checking for active collaborator and pending invitations`);
+  console.log(`Repository: ${owner}/${repoName}, Username: ${username}, Executor: ${executor}`);
+  
+  let collaboratorRemoved = false;
+  let invitationCancelled = false;
   
   try {
-    const result = await octokit.request({
+    // Step 1: Try to remove active collaborator
+    console.log(`Attempting to remove active collaborator: /repos/${owner}/${repoName}/collaborators/${username}`);
+    const collaboratorResult = await octokit.request({
       method: "DELETE",
       url: `/repos/${owner}/${repoName}/collaborators/${username}`
     });
     
-    console.log(`Remove Admin SUCCESS:`, {
+    collaboratorRemoved = true;
+    console.log(`Active collaborator removal SUCCESS:`, {
       repo: `${owner}/${repoName}`,
       username,
-      status: result.status,
+      status: collaboratorResult.status,
+      executor
+    });
+    
+  } catch (collaboratorError: unknown) {
+    const errorStatus = (collaboratorError as { status?: number })?.status;
+    
+    // 404 means user is not an active collaborator - this is expected if they're only invited
+    if (errorStatus === 404) {
+      console.log(`No active collaborator found (404) - checking for pending invitation`);
+    } else {
+      console.log(`Failed to remove active collaborator:`, {
+        error: collaboratorError instanceof Error ? collaboratorError.message : 'Unknown error',
+        status: errorStatus
+      });
+    }
+  }
+  
+  try {
+    // Step 2: Check for and cancel pending invitations
+    console.log(`Checking for pending invitations: /repos/${owner}/${repoName}/invitations`);
+    const invitationsResult = await octokit.request({
+      method: "GET",
+      url: `/repos/${owner}/${repoName}/invitations`
+    });
+    
+    // Find invitation for this user
+    const userInvitation = invitationsResult.data.find((invitation: any) => 
+      invitation.invitee?.login === username
+    );
+    
+    if (userInvitation) {
+      console.log(`Found pending invitation ID ${userInvitation.id} for ${username}`);
+      
+      // Cancel the invitation
+      await octokit.request({
+        method: "DELETE", 
+        url: `/repos/${owner}/${repoName}/invitations/${userInvitation.id}`
+      });
+      
+      invitationCancelled = true;
+      console.log(`Pending invitation cancellation SUCCESS:`, {
+        repo: `${owner}/${repoName}`,
+        username,
+        invitationId: userInvitation.id,
+        executor
+      });
+    } else {
+      console.log(`No pending invitation found for ${username}`);
+    }
+    
+  } catch (invitationError: unknown) {
+    console.log(`Failed to process invitations:`, {
+      error: invitationError instanceof Error ? invitationError.message : 'Unknown error',
+      status: (invitationError as { status?: number })?.status
+    });
+  }
+  
+  // Determine overall result
+  if (collaboratorRemoved || invitationCancelled) {
+    const actions = [];
+    if (collaboratorRemoved) actions.push('removed active collaborator');
+    if (invitationCancelled) actions.push('cancelled pending invitation');
+    
+    console.log(`Remove Admin SUCCESS: ${actions.join(' and ')}`, {
+      repo: `${owner}/${repoName}`,
+      username,
+      collaboratorRemoved,
+      invitationCancelled,
       executor
     });
     
     return {
       success: true,
       username,
-      status: result.status
+      status: 204, // GitHub standard for successful deletion
+      collaboratorRemoved,
+      invitationCancelled
     };
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStatus = (error as { status?: number })?.status;
-    
-    console.log(`Remove Admin FAILED:`, {
+  } else {
+    const errorMessage = `User ${username} not found as active collaborator or pending invitation`;
+    console.log(`Remove Admin FAILED: ${errorMessage}`, {
       repo: `${owner}/${repoName}`,
       username,
-      error: errorMessage,
-      status: errorStatus,
       executor
     });
     
     return {
       success: false,
       error: errorMessage,
-      status: errorStatus
+      status: 404
     };
   }
 }

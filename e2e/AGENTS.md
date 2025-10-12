@@ -35,6 +35,7 @@ E2E_APP_DEPLOYMENT_URL=http://localhost:3000  # Target deployment URL
 # GitHub Configuration  
 E2E_TEST_REPO=owner/repo                      # Test repository (e.g., derekg1729/test-repo)
 E2E_TEST_REPO_GITHUB_PAT=github_pat_...       # GitHub PAT for API operations
+E2E_TEST_ADMIN_USERNAME=cogni-test-user       # Test username for admin management tests (optional, defaults to 'cogni-test-user')
 
 # Blockchain Configuration (for blockchain integration tests)
 E2E_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoint

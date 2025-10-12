@@ -49,12 +49,14 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **Returns**: Success with status or failure with error details
 
 #### `removeAdmin(octokit, repo, username, executor)`  
-- **Endpoint**: `DELETE /repos/{owner}/{repo}/collaborators/{username}`
+- **Endpoints**: 
+  - `DELETE /repos/{owner}/{repo}/collaborators/{username}` (remove active collaborator)
+  - `GET /repos/{owner}/{repo}/invitations` + `DELETE /repos/{owner}/{repo}/invitations/{invitation_id}` (cancel pending invitation)
 - **Permissions Required**: `administration: write`
 - **Parameters**: Repository path, GitHub username, executor identity
 - **Validation**: Username format and non-empty checks
-- **Returns**: Success with status or failure with error details
-- **Limitation**: Only removes active collaborators. Pending invitations (users who haven't accepted yet) remain as pending invites and are NOT removed by this API call
+- **Returns**: Success with status and flags for `collaboratorRemoved`/`invitationCancelled`, or failure with error details
+- **Enhanced Functionality**: Handles both active collaborators AND pending invitations - will remove active collaborator if present, cancel pending invitation if present, or both
 
 ## Guidelines
 - Handle external system failures gracefully

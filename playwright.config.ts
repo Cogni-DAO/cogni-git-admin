@@ -67,6 +67,16 @@ export default defineConfig({
         // No browser needed for blockchain tests
       },
     },
+    
+    {
+      name: 'admin-management',
+      testMatch: '**/admin-management.spec.ts',
+      timeout: 300000, // 5 minutes - slow blockchain tests
+      retries: 2, // Extra retries for network flakiness
+      use: {
+        // No browser needed for blockchain tests
+      },
+    },
   ],
 
   /* Environment variable validation */

@@ -74,11 +74,13 @@ describe('REMOVE_ADMIN Core Logic', () => {
     expect(result.error).toBe('Invalid GitHub username format: invalid_user@name!');
   });
 
-  test('executes REMOVE_ADMIN successfully', async () => {
+  test('executes REMOVE_ADMIN successfully - removes active collaborator', async () => {
     (removeAdmin as jest.Mock).mockResolvedValue({
       success: true,
-      status: 204, // 204 = user removed successfully
-      username: 'cogni-1729'
+      status: 204,
+      username: 'cogni-1729',
+      collaboratorRemoved: true,
+      invitationCancelled: false
     });
 
     const parsed = createValidParsed();
@@ -97,10 +99,46 @@ describe('REMOVE_ADMIN Core Logic', () => {
     );
   });
 
-  test('handles REMOVE_ADMIN failure', async () => {
+  test('executes REMOVE_ADMIN successfully - cancels pending invitation', async () => {
+    (removeAdmin as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 204,
+      username: 'cogni-1729',
+      collaboratorRemoved: false,
+      invitationCancelled: true
+    });
+
+    const parsed = createValidParsed();
+    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+
+    expect(result.success).toBe(true);
+    expect(result.action).toBe('admin_removed');
+    expect(result.username).toBe('cogni-1729');
+    expect(result.repo).toBe('derekg1729/test-repo');
+  });
+
+  test('executes REMOVE_ADMIN successfully - removes collaborator and cancels invitation', async () => {
+    (removeAdmin as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 204,
+      username: 'cogni-1729',
+      collaboratorRemoved: true,
+      invitationCancelled: true
+    });
+
+    const parsed = createValidParsed();
+    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+
+    expect(result.success).toBe(true);
+    expect(result.action).toBe('admin_removed');
+    expect(result.username).toBe('cogni-1729');
+    expect(result.repo).toBe('derekg1729/test-repo');
+  });
+
+  test('handles REMOVE_ADMIN failure - user not found', async () => {
     (removeAdmin as jest.Mock).mockResolvedValue({
       success: false,
-      error: 'User not found',
+      error: 'User cogni-1729 not found as active collaborator or pending invitation',
       status: 404
     });
 
@@ -109,7 +147,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(false);
     expect(result.action).toBe('admin_remove_failed');
-    expect(result.error).toBe('User not found');
+    expect(result.error).toBe('User cogni-1729 not found as active collaborator or pending invitation');
     expect(result.username).toBe('cogni-1729');
     expect(result.repo).toBe('derekg1729/test-repo');
   });

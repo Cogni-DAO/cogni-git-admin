@@ -25,13 +25,16 @@ Individual action handler implementations for the extensible action registry sys
 - **Execution**: Adds user as repository collaborator with admin permissions
 - **Returns**: Success with user details or failure with error details
 
-### remove-admin.ts - REMOVE_ADMIN Handler (Basic Proof of Concept)
+### remove-admin.ts - REMOVE_ADMIN Handler
 - **Action**: `REMOVE_ADMIN:repository`
 - **Purpose**: Remove users as repository administrators via DAO vote
 - **Validation**: Validates repository format and decodes GitHub username from hex data
-- **Execution**: Removes user as repository collaborator 
-- **Returns**: Success with user details or failure with error details
-- **Critical Limitation**: Only removes active collaborators. Pending invitations remain unchanged - this is a basic implementation that does not handle all edge cases
+- **Execution**: 
+  - Attempts to remove active repository collaborator
+  - Checks for and cancels pending repository invitations
+  - Returns success if either operation succeeds
+- **Returns**: Success with user details and operation flags (`collaboratorRemoved`, `invitationCancelled`) or failure with error details
+- **Enhanced Functionality**: Comprehensive removal handling for both active collaborators and pending invitations
 
 ## Handler Interface
 All handlers implement the `ActionHandler` interface:
