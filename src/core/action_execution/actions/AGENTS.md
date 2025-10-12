@@ -29,12 +29,13 @@ Individual action handler implementations for the extensible action registry sys
 - **Action**: `REMOVE_ADMIN:repository`
 - **Purpose**: Remove users as repository administrators via DAO vote
 - **Validation**: Validates repository format and decodes GitHub username from hex data
-- **Execution**: 
-  - Attempts to remove active repository collaborator
-  - Checks for and cancels pending repository invitations
+- **Orchestration Logic**: 
+  - Calls `removeCollaborator()` to remove active collaborator
+  - Calls `listInvitations()` to check for pending invitations
+  - Calls `cancelInvitation()` if user has pending invitation
   - Returns success if either operation succeeds
 - **Returns**: Success with user details and operation flags (`collaboratorRemoved`, `invitationCancelled`) or failure with error details
-- **Enhanced Functionality**: Comprehensive removal handling for both active collaborators and pending invitations
+- **Design**: Uses atomic service functions, implements business logic orchestration in action layer
 
 ## Handler Interface
 All handlers implement the `ActionHandler` interface:
@@ -59,7 +60,7 @@ interface ActionHandler {
 ## GitHub Permissions Required
 - **merge-pr.ts**: `pull_requests: write`, `contents: write` (with bypass capabilities)
 - **add-admin.ts**: `administration: write`
-- **remove-admin.ts**: `administration: write`
+- **remove-admin.ts**: `administration: read` (list invitations), `administration: write` (remove collaborator, cancel invitation)
 
 ## Adding New Actions
 1. Create new handler file implementing `ActionHandler` interface

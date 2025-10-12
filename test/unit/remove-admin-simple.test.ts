@@ -6,10 +6,12 @@ import { Application } from 'probot';
 
 // Mock external dependencies
 jest.mock('../../src/services/github', () => ({
-  removeAdmin: jest.fn()
+  removeCollaborator: jest.fn(),
+  listInvitations: jest.fn(),
+  cancelInvitation: jest.fn()
 }));
 
-import { removeAdmin } from '../../src/services/github';
+import { removeCollaborator, listInvitations, cancelInvitation } from '../../src/services/github';
 
 describe('REMOVE_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
@@ -31,7 +33,8 @@ describe('REMOVE_ADMIN Core Logic', () => {
     mockOctokit = {} as any;
     mockLogger = {
       info: jest.fn(),
-      error: jest.fn()
+      error: jest.fn(),
+      warn: jest.fn()
     } as any;
     jest.clearAllMocks();
   });
@@ -75,12 +78,16 @@ describe('REMOVE_ADMIN Core Logic', () => {
   });
 
   test('executes REMOVE_ADMIN successfully - removes active collaborator', async () => {
-    (removeAdmin as jest.Mock).mockResolvedValue({
+    (removeCollaborator as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
-      username: 'cogni-1729',
-      collaboratorRemoved: true,
-      invitationCancelled: false
+      username: 'cogni-1729'
+    });
+    
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 200,
+      invitations: [] // No pending invitations
     });
 
     const parsed = createValidParsed();
@@ -90,22 +97,41 @@ describe('REMOVE_ADMIN Core Logic', () => {
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-1729');
     expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.collaboratorRemoved).toBe(true);
+    expect(result.invitationCancelled).toBe(false);
     
-    expect(removeAdmin).toHaveBeenCalledWith(
+    expect(removeCollaborator).toHaveBeenCalledWith(
       mockOctokit,
       'derekg1729/test-repo',
       'cogni-1729',
       '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
     );
+    expect(listInvitations).toHaveBeenCalled();
   });
 
   test('executes REMOVE_ADMIN successfully - cancels pending invitation', async () => {
-    (removeAdmin as jest.Mock).mockResolvedValue({
+    (removeCollaborator as jest.Mock).mockResolvedValue({
+      success: false,
+      status: 404,
+      error: 'Not Found'
+    });
+    
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 200,
+      invitations: [
+        {
+          id: 123,
+          invitee: { login: 'cogni-1729' },
+          permissions: 'admin'
+        }
+      ]
+    });
+    
+    (cancelInvitation as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
-      username: 'cogni-1729',
-      collaboratorRemoved: false,
-      invitationCancelled: true
+      invitationId: 123
     });
 
     const parsed = createValidParsed();
@@ -115,15 +141,38 @@ describe('REMOVE_ADMIN Core Logic', () => {
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-1729');
     expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.collaboratorRemoved).toBe(false);
+    expect(result.invitationCancelled).toBe(true);
+    
+    expect(removeCollaborator).toHaveBeenCalled();
+    expect(listInvitations).toHaveBeenCalled();
+    expect(cancelInvitation).toHaveBeenCalledWith(mockOctokit, 'derekg1729/test-repo', 123, '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5');
   });
 
   test('executes REMOVE_ADMIN successfully - removes collaborator and cancels invitation', async () => {
-    (removeAdmin as jest.Mock).mockResolvedValue({
+    (removeCollaborator as jest.Mock).mockResolvedValue({
       success: true,
       status: 204,
-      username: 'cogni-1729',
-      collaboratorRemoved: true,
-      invitationCancelled: true
+      username: 'cogni-1729'
+    });
+    
+    // Even though collaborator was removed, still check for invitations
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 200,
+      invitations: [
+        {
+          id: 456,
+          invitee: { login: 'cogni-1729' },
+          permissions: 'admin'
+        }
+      ]
+    });
+    
+    (cancelInvitation as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 204,
+      invitationId: 456
     });
 
     const parsed = createValidParsed();
@@ -133,13 +182,21 @@ describe('REMOVE_ADMIN Core Logic', () => {
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-1729');
     expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.collaboratorRemoved).toBe(true);
+    expect(result.invitationCancelled).toBe(true);
   });
 
   test('handles REMOVE_ADMIN failure - user not found', async () => {
-    (removeAdmin as jest.Mock).mockResolvedValue({
+    (removeCollaborator as jest.Mock).mockResolvedValue({
       success: false,
-      error: 'User cogni-1729 not found as active collaborator or pending invitation',
-      status: 404
+      status: 404,
+      error: 'Not Found'
+    });
+    
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 200,
+      invitations: [] // No invitations found
     });
 
     const parsed = createValidParsed();
@@ -153,10 +210,16 @@ describe('REMOVE_ADMIN Core Logic', () => {
   });
 
   test('handles username decoding failure (empty result)', async () => {
-    (removeAdmin as jest.Mock).mockResolvedValue({
+    (removeCollaborator as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Username cannot be empty',
       status: 400
+    });
+    
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 200,
+      invitations: [] // No invitations found
     });
 
     const parsed = createValidParsed();
@@ -166,6 +229,6 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(result.success).toBe(false);
     expect(result.action).toBe('admin_remove_failed');
-    expect(result.error).toBe('Username cannot be empty');
+    expect(result.error).toBe('User  not found as active collaborator or pending invitation');
   });
 });
