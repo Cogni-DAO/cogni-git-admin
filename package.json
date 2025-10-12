@@ -14,14 +14,14 @@
     "probot-app"
   ],
   "scripts": {
-    "prebuild": "rm -rf lib",
-    "build": "tsc -p tsconfig.runtime.json && cp shim/* lib/",
+    "prebuild": "rm -rf dist",
+    "build": "tsc -p tsconfig.runtime.json && cp shim/* dist/",
     "dev": "nodemon --exec \"npm start\"",
     "dev:capture": "tsx tools/dev/webhook-capture/capture-server.ts",
     "smee-capture-chain-events": "npx dotenv -- sh -c 'smee -u $ALCHEMY_PROXY_URL --path /capture --port 4001'",
     "smee-capture-git-events": "npx dotenv -- sh -c 'smee -u $WEBHOOK_PROXY_URL --path /capture --port 4001'",
     "capture": "concurrently \"npm run smee-capture-chain-events\" \"npm run smee-capture-git-events\"",
-    "start": "probot run ./runtime.cjs",
+    "start": "probot run dist/runtime.js",
     "lint": "eslint \"{src,test}/**/*.{ts,tsx,js}\"",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
@@ -33,7 +33,11 @@
     "deploy-test-dao": "npx dotenv -- tsx tools/dev/chain-setup/deploy-test-contracts.ts"
   },
   "dependencies": {
+    "@octokit/plugin-retry": "^8.0.2",
+    "@octokit/plugin-throttling": "^11.0.2",
+    "@octokit/request-error": "^7.0.1",
     "@octokit/rest": "^22.0.0",
+    "@octokit/types": "^15.0.0",
     "octokit": "^5.0.3",
     "probot": "^7.0.0",
     "viem": "^2.38.0",
@@ -74,6 +78,6 @@
     "typescript-eslint": "^8.46.0"
   },
   "engines": {
-    "node": ">= 8.3.0"
+    "node": ">=20.8"
   }
 }

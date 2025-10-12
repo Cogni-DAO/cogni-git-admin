@@ -1,3 +1,11 @@
+jest.mock('../src/services/github/index', () => ({
+  addAdmin: jest.fn(),
+  removeCollaborator: jest.fn(),
+  listInvitations: jest.fn(),
+  cancelInvitation: jest.fn(),
+  mergePR: jest.fn()
+}));
+
 import { Application } from 'probot'
 import { GitHubAPI } from 'probot/lib/github'
 

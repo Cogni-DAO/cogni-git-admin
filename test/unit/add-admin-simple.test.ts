@@ -5,11 +5,11 @@ import { addAdminAction } from '../../src/core/action_execution/actions/add-admi
 import { CogniActionParsed } from '../../src/core/action_execution/types';
 
 // Mock external dependencies
-jest.mock('../../src/services/github', () => ({
+jest.mock('../../src/services/github/index', () => ({
   addAdmin: jest.fn()
 }));
 
-import { addAdmin } from '../../src/services/github';
+import { addAdmin } from '../../src/services/github/index';
 
 describe('ADD_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
@@ -48,10 +48,14 @@ describe('ADD_ADMIN Core Logic', () => {
 
   test('executes ADD_ADMIN successfully', async () => {
     (addAdmin as jest.Mock).mockResolvedValue({
-      success: true,
-      status: 201, // 201 = user added as new collaborator
-      username: 'cogni-test-user',
-      permission: 'admin'
+      ok: true,
+      data: {
+        status: 201, // 201 = user added as new collaborator
+        data: {
+          username: 'cogni-test-user',
+          permission: 'admin'
+        }
+      }
     });
 
     const parsed = createValidParsed();
@@ -64,18 +68,24 @@ describe('ADD_ADMIN Core Logic', () => {
 
     expect(addAdmin).toHaveBeenCalledWith(
       mockOctokit,
-      'derekg1729/test-repo',
-      'cogni-test-user',
-      '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+      {
+        owner: 'derekg1729',
+        repo: 'test-repo',
+        username: 'cogni-test-user'
+      }
     );
   });
 
   test('handles case where user is already admin (204 status)', async () => {
     (addAdmin as jest.Mock).mockResolvedValue({
-      success: true,
-      status: 204, // 204 = user already exists, no change made
-      username: 'cogni-test-user',
-      permission: 'admin'
+      ok: true,
+      data: {
+        status: 204, // 204 = user already exists, no change made
+        data: {
+          username: 'cogni-test-user',
+          permission: 'admin'
+        }
+      }
     });
 
     const parsed = createValidParsed();

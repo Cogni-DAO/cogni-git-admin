@@ -5,11 +5,11 @@ import { mergePRAction } from '../../src/core/action_execution/actions/merge-pr'
 import { CogniActionParsed } from '../../src/core/action_execution/types';
 
 // Mock external dependency
-jest.mock('../../src/services/github', () => ({
+jest.mock('../../src/services/github/index', () => ({
   mergePR: jest.fn()
 }));
 
-import { mergePR } from '../../src/services/github';
+import { mergePR } from '../../src/services/github/index';
 
 describe('Merge PR Action', () => {
   let mockOctokit: jest.Mocked<Octokit>;
@@ -75,9 +75,12 @@ describe('Merge PR Action', () => {
   describe('execute', () => {
     test('executes PR merge successfully', async () => {
       (mergePR as jest.Mock).mockResolvedValue({
-        success: true,
-        sha: 'abc123def456',
-        status: 200
+        ok: true,
+        data: {
+          sha: 'abc123def456',
+          merged: true,
+          message: 'Pull request successfully merged'
+        }
       });
 
       const parsed = createValidParsed();
@@ -91,9 +94,14 @@ describe('Merge PR Action', () => {
       
       expect(mergePR).toHaveBeenCalledWith(
         mockOctokit,
-        'derekg1729/test-repo',
-        5,
-        '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        {
+          owner: 'derekg1729',
+          repo: 'test-repo',
+          pull_number: 5,
+          merge_method: 'merge',
+          commit_title: 'Merge PR #5 via CogniAction',
+          commit_message: 'Executed by: 0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        }
       );
 
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -107,9 +115,9 @@ describe('Merge PR Action', () => {
 
     test('handles failed PR merge', async () => {
       (mergePR as jest.Mock).mockResolvedValue({
-        success: false,
-        error: 'PR cannot be merged - conflicts detected',
-        status: 409
+        ok: false,
+        code: 409,
+        reason: 'PR cannot be merged - conflicts detected'
       });
 
       const parsed = createValidParsed();
@@ -123,14 +131,19 @@ describe('Merge PR Action', () => {
       
       expect(mergePR).toHaveBeenCalledWith(
         mockOctokit,
-        'derekg1729/test-repo',
-        5,
-        '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        {
+          owner: 'derekg1729',
+          repo: 'test-repo',
+          pull_number: 5,
+          merge_method: 'merge',
+          commit_title: 'Merge PR #5 via CogniAction',
+          commit_message: 'Executed by: 0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        }
       );
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to merge PR #5 in derekg1729/test-repo',
-        { error: 'PR cannot be merged - conflicts detected', status: 409 }
+        { error: 'PR cannot be merged - conflicts detected', code: 409 }
       );
     });
   });

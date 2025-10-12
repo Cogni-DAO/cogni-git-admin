@@ -1,5 +1,13 @@
 // Registry Functionality Tests
-import { getAction, getActionMetadata,getAvailableActions } from '../../src/core/action_execution/registry';
+jest.mock('../../src/services/github/index', () => ({
+  addAdmin: jest.fn(),
+  removeCollaborator: jest.fn(),
+  listInvitations: jest.fn(),
+  cancelInvitation: jest.fn(),
+  mergePR: jest.fn()
+}));
+
+import { getAction, getActionMetadata, getAvailableActions } from '../../src/core/action_execution/registry';
 
 describe('Action Registry', () => {
   test('getAction returns correct handler for ADD_ADMIN:repository', () => {

@@ -5,13 +5,13 @@ import { removeAdminAction } from '../../src/core/action_execution/actions/remov
 import { CogniActionParsed } from '../../src/core/action_execution/types';
 
 // Mock external dependencies
-jest.mock('../../src/services/github', () => ({
+jest.mock('../../src/services/github/index', () => ({
   removeCollaborator: jest.fn(),
   listInvitations: jest.fn(),
   cancelInvitation: jest.fn()
 }));
 
-import { cancelInvitation,listInvitations, removeCollaborator } from '../../src/services/github';
+import { cancelInvitation, listInvitations, removeCollaborator } from '../../src/services/github/index';
 
 describe('REMOVE_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
@@ -81,15 +81,14 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
   test('executes REMOVE_ADMIN successfully - removes active collaborator', async () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
-      success: true,
-      status: 204,
-      username: 'cogni-test-user'
+      ok: true,
+      status: 204
     });
 
     (listInvitations as jest.Mock).mockResolvedValue({
-      success: true,
-      status: 200,
-      invitations: [] // No pending invitations
+      ok: true,
+      data: [],
+      status: 200
     });
 
     const parsed = createValidParsed();
@@ -104,24 +103,26 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(removeCollaborator).toHaveBeenCalledWith(
       mockOctokit,
-      'derekg1729/test-repo',
-      'cogni-test-user',
-      '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+      {
+        owner: 'derekg1729',
+        repo: 'test-repo',
+        username: 'cogni-test-user'
+      }
     );
     expect(listInvitations).toHaveBeenCalled();
   });
 
   test('executes REMOVE_ADMIN successfully - cancels pending invitation', async () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
-      success: false,
+      ok: false,
       status: 404,
       error: 'Not Found'
     });
 
     (listInvitations as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 200,
-      invitations: [
+      data: [
         {
           id: 123,
           invitee: { login: 'cogni-test-user' },
@@ -131,7 +132,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
     });
 
     (cancelInvitation as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 204,
       invitationId: 123
     });
@@ -148,21 +149,25 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
     expect(removeCollaborator).toHaveBeenCalled();
     expect(listInvitations).toHaveBeenCalled();
-    expect(cancelInvitation).toHaveBeenCalledWith(mockOctokit, 'derekg1729/test-repo', 123, '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5');
+    expect(cancelInvitation).toHaveBeenCalledWith(mockOctokit, {
+      owner: 'derekg1729',
+      repo: 'test-repo',
+      invitation_id: 123
+    });
   });
 
   test('executes REMOVE_ADMIN successfully - removes collaborator and cancels invitation', async () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 204,
       username: 'cogni-test-user'
     });
 
     // Even though collaborator was removed, still check for invitations
     (listInvitations as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 200,
-      invitations: [
+      data: [
         {
           id: 456,
           invitee: { login: 'cogni-test-user' },
@@ -172,7 +177,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
     });
 
     (cancelInvitation as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 204,
       invitationId: 456
     });
@@ -190,15 +195,15 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
   test('handles REMOVE_ADMIN failure - user not found', async () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
-      success: false,
+      ok: false,
       status: 404,
       error: 'Not Found'
     });
 
     (listInvitations as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 200,
-      invitations: [] // No invitations found
+      data: [] // No invitations found
     });
 
     const parsed = createValidParsed();
@@ -213,15 +218,15 @@ describe('REMOVE_ADMIN Core Logic', () => {
 
   test('handles username decoding failure (empty result)', async () => {
     (removeCollaborator as jest.Mock).mockResolvedValue({
-      success: false,
+      ok: false,
       error: 'Username cannot be empty',
       status: 400
     });
 
     (listInvitations as jest.Mock).mockResolvedValue({
-      success: true,
+      ok: true,
       status: 200,
-      invitations: [] // No invitations found
+      data: [] // No invitations found
     });
 
     const parsed = createValidParsed();

@@ -4,5 +4,6 @@ npm-debug.log
 .env
 coverage
 lib
+dist
 test-artifacts
 e2e/artifacts
