@@ -12,6 +12,7 @@ import { addAdmin } from '../../src/services/github';
 
 describe('ADD_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
   const createValidParsed = (): CogniActionParsed => ({
@@ -31,6 +32,7 @@ describe('ADD_ADMIN Core Logic', () => {
     mockLogger = {
       info: jest.fn(),
       error: jest.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     jest.clearAllMocks();
   });

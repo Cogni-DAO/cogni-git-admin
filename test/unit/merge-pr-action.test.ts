@@ -12,6 +12,7 @@ import { mergePR } from '../../src/services/github';
 
 describe('Merge PR Action', () => {
   let mockOctokit: jest.Mocked<Octokit>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
   const createValidParsed = (): CogniActionParsed => ({
@@ -31,6 +32,7 @@ describe('Merge PR Action', () => {
     mockLogger = {
       info: jest.fn(),
       error: jest.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     jest.clearAllMocks();
   });

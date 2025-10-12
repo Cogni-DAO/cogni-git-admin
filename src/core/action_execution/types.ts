@@ -22,7 +22,17 @@ export interface ActionResult {
   success: boolean;
   action: string;
   error?: string;
-  [key: string]: any; // Allow additional result data
+  // Domain-specific additional properties that actions can include
+  username?: string;
+  repo?: string;
+  permission?: string;
+  prNumber?: number;
+  collaboratorRemoved?: boolean;
+  invitationCancelled?: boolean;
+  // Special case for availableActions array
+  availableActions?: string[];
+  // Allow other string/number/boolean values for extensibility
+  [key: string]: string | number | boolean | string[] | undefined;
 }
 
 export interface ActionHandler {

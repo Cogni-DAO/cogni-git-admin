@@ -79,7 +79,7 @@ export const removeAdminAction: ActionHandler = {
     
     if (invitationsResult.success && invitationsResult.invitations) {
         // Find invitation for this user
-        const userInvitation = invitationsResult.invitations.find((invitation: any) => 
+        const userInvitation = invitationsResult.invitations.find((invitation: { id: number; invitee?: { login: string } }) => 
           invitation.invitee?.login === username
         );
         

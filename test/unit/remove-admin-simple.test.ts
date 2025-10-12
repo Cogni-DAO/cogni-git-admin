@@ -14,6 +14,7 @@ import { removeCollaborator, listInvitations, cancelInvitation } from '../../src
 
 describe('REMOVE_ADMIN Core Logic', () => {
   let mockOctokit: jest.Mocked<Octokit>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
   const createValidParsed = (): CogniActionParsed => ({
@@ -34,6 +35,7 @@ describe('REMOVE_ADMIN Core Logic', () => {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
     jest.clearAllMocks();
   });
