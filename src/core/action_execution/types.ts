@@ -42,7 +42,7 @@ export interface ActionHandler {
   readonly description: string;   // Human readable description
   
   // Validation
-  validate(parsed: CogniActionParsed): Promise<ValidationResult>;
+  validate(parsed: CogniActionParsed): ValidationResult;
   
   // Execution  
   execute(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult>;

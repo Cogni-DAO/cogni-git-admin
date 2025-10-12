@@ -9,7 +9,7 @@ export const addAdminAction: ActionHandler = {
   target: "repository",
   description: "Add a user as repository admin via DAO vote",
 
-  async validate(parsed: CogniActionParsed): Promise<ValidationResult> {
+  validate(parsed: CogniActionParsed): ValidationResult {
     if (!parsed.repo.includes('/')) {
       return { valid: false, error: 'Repo must be in format "owner/repo"' };
     }

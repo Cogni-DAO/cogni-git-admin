@@ -41,15 +41,18 @@ describe('Action Registry', () => {
     expect(() => getAction('PR_APPROVE', 'repository')).toThrow();
     
     // Check that error message includes available actions
+    let errorMessage = '';
     try {
       getAction('UNKNOWN_ACTION', 'repository');
     } catch (error) {
-      expect((error as Error).message).toContain('Unknown action: UNKNOWN_ACTION:repository');
-      expect((error as Error).message).toContain('Available:');
-      expect((error as Error).message).toContain('PR_APPROVE:pull_request');
-      expect((error as Error).message).toContain('ADD_ADMIN:repository');
-      expect((error as Error).message).toContain('REMOVE_ADMIN:repository');
+      errorMessage = (error as Error).message;
     }
+    
+    expect(errorMessage).toContain('Unknown action: UNKNOWN_ACTION:repository');
+    expect(errorMessage).toContain('Available:');
+    expect(errorMessage).toContain('PR_APPROVE:pull_request');
+    expect(errorMessage).toContain('ADD_ADMIN:repository');
+    expect(errorMessage).toContain('REMOVE_ADMIN:repository');
   });
 
   test('getAvailableActions returns array with all registered actions', () => {

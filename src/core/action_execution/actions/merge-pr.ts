@@ -9,7 +9,7 @@ export const mergePRAction: ActionHandler = {
   target: "pull_request",
   description: "Merge a pull request via DAO vote",
 
-  async validate(parsed: CogniActionParsed): Promise<ValidationResult> {
+  validate(parsed: CogniActionParsed): ValidationResult {
     if (parsed.pr <= 0) {
       return { valid: false, error: 'PR number must be greater than 0' };
     }

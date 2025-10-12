@@ -16,7 +16,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
     const handler = getAction(action, target);
     
     // Validate action parameters
-    const validation = await handler.validate(parsed);
+    const validation = handler.validate(parsed);
     if (!validation.valid) {
       logger.error(`Action validation failed: ${validation.error}`, { action, target, repo, executor });
       return { 

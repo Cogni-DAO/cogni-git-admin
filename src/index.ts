@@ -8,7 +8,7 @@ export default (app: Application) => {
 
   app.on('issues.opened', async context => {
     const issueComment = context.issue({ body: 'Thanks for opening this issue!' })
-    context.github.issues.createComment(issueComment)
+    await context.github.issues.createComment(issueComment)
   })
 
   // Mount API routes
