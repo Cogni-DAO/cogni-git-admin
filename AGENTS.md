@@ -66,10 +66,15 @@ tools/dev/webhook-capture/       # Webhook fixture capture system
 └─ lib/fixture-writer.ts         # Fixture persistence logic
 
 test/
-├─ test/fixtures/                # Captured webhook fixtures
+├─ fixtures/                     # Captured webhook fixtures
 │  ├─ alchemy/                   # Alchemy webhook fixtures
-│  └─ github/                    # GitHub webhook fixtures  
-└─ helpers/fixture-replay.ts     # Replay fixtures for testing
+│  └─ github/                    # GitHub webhook fixtures
+├─ unit/                         # Unit tests for core logic
+│  ├─ add-admin-simple.test.ts   # ADD_ADMIN action tests
+│  ├─ merge-pr-action.test.ts    # PR_APPROVE action tests
+│  └─ registry.test.ts           # Action registry tests
+├─ helpers/fixture-replay.ts     # Replay fixtures for testing
+└─ index.test.ts                 # Main application tests
 
 e2e/
 ├─ tests/
@@ -85,7 +90,9 @@ e2e/
   - `PR_APPROVE`: Merges pull requests with bypass capabilities
   - `ADD_ADMIN`: Adds users as repository administrators
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
-- **E2E Testing**: Playwright-based test suite with fixture replay and live blockchain integration tests
+- **Testing**: Comprehensive test coverage with Jest unit tests and Playwright E2E tests
+  - **Unit Tests**: Core action logic (ADD_ADMIN, PR_APPROVE) and registry functionality with mocked dependencies
+  - **E2E Tests**: Playwright-based test suite with fixture replay and live blockchain integration tests
 - **Contract Integration**: ABI definitions for CogniSignal and AdminPlugin contracts stored in src/contracts/abi/
 - **GitHub Integration**: Probot-based GitHub App with repository management capabilities
 
