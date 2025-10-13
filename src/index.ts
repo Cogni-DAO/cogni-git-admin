@@ -1,9 +1,11 @@
 import { Application } from 'probot'
 
 import { createApiRoutes } from './routes'
+import './utils/env' // Import triggers validation, exports not used yet
 
 export default (app: Application) => {
-  // Your code here
+  // Environment validation already ran during import - this will exit on missing required vars
+  app.log('✅ Environment validation passed')
   app.log('Yay, the app was loaded!')
 
   app.on('issues.opened', async context => {

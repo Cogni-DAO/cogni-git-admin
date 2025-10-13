@@ -39,6 +39,11 @@ const CONFIG = {
   GITHUB_TOKEN: requireEnv('E2E_TEST_REPO_GITHUB_PAT'),
   APP_URL: requireEnv('E2E_APP_DEPLOYMENT_URL'),
   
+  // GitHub App Configuration (for cogni-git-admin)
+  GITHUB_APP_ID: requireEnv('APP_ID'),
+  GITHUB_PRIVATE_KEY: requireEnv('PRIVATE_KEY'),
+  GITHUB_WEBHOOK_SECRET: requireEnv('WEBHOOK_SECRET'),
+  
   // Optional Environment Variables
   WEBHOOK_TIMEOUT_MS: parseInt(optionalEnv('E2E_WEBHOOK_TIMEOUT_MS', '120000')!),
   POLL_INTERVAL_MS: parseInt(optionalEnv('E2E_POLL_INTERVAL_MS', '5000')!),
@@ -125,6 +130,30 @@ class SetupValidator {
       } else {
         this.addResult('Environment', name, 'pass', `Valid address: ${address}`);
       }
+    }
+
+    // Validate GitHub App configuration
+    if (CONFIG.GITHUB_APP_ID && !isNaN(parseInt(CONFIG.GITHUB_APP_ID))) {
+      this.addResult('Environment', 'GitHub App ID', 'pass', `App ID: ${CONFIG.GITHUB_APP_ID}`);
+    } else {
+      this.addResult('Environment', 'GitHub App ID', 'fail', 'APP_ID must be a valid number');
+    }
+
+    if (CONFIG.GITHUB_PRIVATE_KEY) {
+      // Check if it's a base64 encoded key or PEM format
+      if (CONFIG.GITHUB_PRIVATE_KEY.includes('-----BEGIN') || CONFIG.GITHUB_PRIVATE_KEY.length > 500) {
+        this.addResult('Environment', 'GitHub Private Key', 'pass', 'GitHub Private Key format appears valid');
+      } else {
+        this.addResult('Environment', 'GitHub Private Key', 'warn', 'GitHub Private Key format may be invalid - should be PEM format or base64 encoded');
+      }
+    } else {
+      this.addResult('Environment', 'GitHub Private Key', 'fail', 'PRIVATE_KEY is required for GitHub App authentication');
+    }
+
+    if (CONFIG.GITHUB_WEBHOOK_SECRET && CONFIG.GITHUB_WEBHOOK_SECRET.length >= 8) {
+      this.addResult('Environment', 'Webhook Secret', 'pass', 'Webhook secret is set');
+    } else {
+      this.addResult('Environment', 'Webhook Secret', 'fail', 'WEBHOOK_SECRET must be at least 8 characters');
     }
   }
 
