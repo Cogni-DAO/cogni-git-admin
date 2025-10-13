@@ -12,7 +12,7 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - External API calls and responses
 
 ## Current Implementation
-- **rpc.ts**: Blockchain RPC client using Viem, configured via `process.env.EVM_RPC_URL` (validated at startup by `src/utils/env.ts`)
+- **rpc.ts**: Blockchain RPC client using Viem, configured via `environment.EVM_RPC_URL` from typed environment object
 - **github.ts**: GitHub API integration with repository management operations
 - **logging.ts**: Not implemented (using Probot's built-in logger)
 

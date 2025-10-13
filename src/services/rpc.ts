@@ -2,10 +2,11 @@ import { Address, createPublicClient, http, Log } from 'viem';
 import { sepolia } from 'viem/chains';
 
 import { tryParseCogniLog } from '../core/signal/parser';
+import { environment } from '../utils/env';
 
 export const client = createPublicClient({
   chain: sepolia,
-  transport: http(process.env.EVM_RPC_URL)
+  transport: http(environment.EVM_RPC_URL)
 });
 
 export async function fetchCogniFromTx(txHash: `0x${string}`, contract: Address) {

@@ -20,8 +20,6 @@ const baseSchema = z.object({
   // Note: PRIVATE_KEY is handled entirely by Probot framework, not accessible via env.ts
   APP_ID: isDevelopmentMode ? z.coerce.number().int().positive().optional() : z.coerce.number().int().positive(),
   WEBHOOK_SECRET: isDevelopmentMode ? z.string().optional() : z.string().min(1),
-  GITHUB_CLIENT_ID: isDevelopmentMode ? z.string().optional() : z.string().min(1),
-  GITHUB_CLIENT_SECRET: isDevelopmentMode ? z.string().optional() : z.string().min(1),
 
   // Chain core (required in production, optional in dev/test)
   CHAIN_ID: isDevelopmentMode ? z.coerce.number().int().positive().optional() : z.coerce.number().int().positive(),
@@ -39,6 +37,10 @@ const devSchema = z.object({
   ALCHEMY_PROXY_URL: z.string().url().optional(),
   CAPTURE_PORT: z.coerce.number().int().positive().default(4001),
   FIXTURE_CAPTURE_DIR: z.string().default("./test/fixtures"),
+  
+  // GitHub OAuth (dev-only, not used in production app)
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
 });
 
 
@@ -54,18 +56,6 @@ if (!parsed.success) {
 }
 
 const env = parsed.data;
-
-/** safe log in non-prod */
-if (env.APP_ENV !== "prod") {
-  console.info("env ok:", {
-    APP_ENV: env.APP_ENV,
-    NODE_ENV: env.NODE_ENV,
-    APP_ID: env.APP_ID,
-    CHAIN_ID: env.CHAIN_ID,
-    SIGNAL_CONTRACT: env.SIGNAL_CONTRACT,
-    DAO_ADDRESS: env.DAO_ADDRESS,
-  });
-}
 
 export type Env = z.infer<typeof schema>;
 export const environment: Env = env;

@@ -13,7 +13,7 @@ Maps DAOs and repositories to GitHub App installation IDs for authenticated API 
 - Environment-aware hardcoded mapping for DAO `0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5` → `derekg1729/test-repo`:
   - Development environment: installation ID `89056469`
   - Production environment: installation ID `89353955`
-- Determines environment via `NODE_ENV` environment variable
+- Determines environment via `environment.NODE_ENV` from typed environment object
 - Throws error for unmapped DAO/repo combinations
 
 ## Interface
@@ -40,6 +40,6 @@ getInstallationId(dao: string, repo: string): number
 
 ## Technical Debt
 - Installation IDs hardcoded for both dev and production GitHub Apps
-- Environment detection relies on NODE_ENV variable
+- Environment detection relies on `environment.NODE_ENV` from typed environment object
 - Requires code changes to add new DAO/repository mappings
 - Solution: Implement database-backed installation registry

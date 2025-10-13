@@ -35,4 +35,8 @@ npm run e2e:blockchain    # Blockchain integration tests only
 - `E2E_POLL_INTERVAL_MS` - Polling interval for status checks (default: 5000)
 - `E2E_TEST_ADMIN_USERNAME` - Test user for admin management (default: "cogni-test-user")
 
-See `e2e/helpers/global-setup.ts` for centralized validation logic.
+### Configuration Management
+- Tests import shared configuration from `e2e/helpers/test-config.ts`
+- Configuration combines `environment` object values with E2E-specific `process.env` values
+- Eliminates duplicate TEST_CONFIG objects across test files
+- See `e2e/helpers/global-setup.ts` for centralized validation logic
