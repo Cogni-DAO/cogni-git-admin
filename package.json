@@ -24,7 +24,7 @@
     "start": "probot run ./runtime.cjs",
     "lint": "eslint \"{src,test}/**/*.{ts,tsx,js}\"",
     "lint:fix": "npm run lint -- --fix",
-    "test": "jest",
+    "test": "npx dotenv -- jest",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
     "e2e": "npx dotenv -- npx playwright test",
     "e2e:fixtures": "npx dotenv -- npx playwright test --project=fixture-replay",
