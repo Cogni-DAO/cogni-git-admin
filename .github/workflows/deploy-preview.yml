@@ -26,5 +26,5 @@ jobs:
          EVM_RPC_URL: ${{ secrets.EVM_RPC_URL }}
          APP_ID: ${{ vars.APP_ID }}
          SIGNAL_CONTRACT: ${{ vars.SIGNAL_CONTRACT }}
-         ALLOWED_DAO: ${{ vars.ALLOWED_DAO }}
+         DAO_ADDRESS: ${{ vars.DAO_ADDRESS }}
          CHAIN_ID: ${{ vars.CHAIN_ID }}

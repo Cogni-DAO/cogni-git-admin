@@ -33,7 +33,7 @@ const TEST_CONFIG = {
   // Blockchain Configuration
   SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
   ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
-  DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
+  DAO_ADDRESS: process.env.DAO_ADDRESS!,
   EVM_RPC_URL: process.env.EVM_RPC_URL!,
   PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
 
@@ -78,7 +78,7 @@ test.beforeAll(async () => {
   const requiredEnvVars = [
     'SIGNAL_CONTRACT',
     'ARAGON_ADMIN_PLUGIN_CONTRACT',
-    'E2E_DAO_ADDRESS',
+    'DAO_ADDRESS',
     'EVM_RPC_URL',
     'WALLET_PRIVATE_KEY',
     'E2E_TEST_REPO',

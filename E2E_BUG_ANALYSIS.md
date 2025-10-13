@@ -59,7 +59,7 @@ This document archives the resolution of E2E testing issues that were blocking t
 
 **Original Issue**: Webhooks were delivered but returned HTTP 204 with no GitHub operations triggered.
 
-**Root Cause**: Missing `ALLOWED_DAO` environment variable (was commented out in `.env`)
+**Root Cause**: Missing `DAO_ADDRESS` environment variable (was commented out in `.env`)
 
 **Resolution**: 
 - Uncommented the environment variable

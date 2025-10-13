@@ -38,7 +38,7 @@ export const validateE2EEnvironment = () => {
     'WALLET_PRIVATE_KEY',
     'SIGNAL_CONTRACT',
     'ARAGON_ADMIN_PLUGIN_CONTRACT',
-    'E2E_DAO_ADDRESS',
+    'DAO_ADDRESS',
     'E2E_TEST_REPO',
     'E2E_TEST_REPO_GITHUB_PAT'
   ];
@@ -62,7 +62,7 @@ export const validateE2EEnvironment = () => {
 
     console.log('✅ Blockchain environment validated');
     console.log(`- RPC: ${process.env.EVM_RPC_URL?.substring(0, 50)}...`);
-    console.log(`- DAO: ${process.env.E2E_DAO_ADDRESS}`);
+    console.log(`- DAO: ${process.env.DAO_ADDRESS}`);
     console.log(`- CogniSignal: ${process.env.SIGNAL_CONTRACT}`);
     console.log(`- Admin Plugin: ${process.env.ARAGON_ADMIN_PLUGIN_CONTRACT}`);
   }
@@ -90,7 +90,7 @@ export const getTestConfig = () => {
     PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
     SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
     ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT,
-    DAO_ADDRESS: process.env.E2E_DAO_ADDRESS,
+    DAO_ADDRESS: process.env.DAO_ADDRESS,
 
     // Test timeouts
     WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),

@@ -43,7 +43,7 @@ EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoin
 WALLET_PRIVATE_KEY=0x...                                    # Test wallet private key
 SIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
 ARAGON_ADMIN_PLUGIN_CONTRACT=0x...                                      # Aragon Admin Plugin address
-E2E_DAO_ADDRESS=0x...                                                # DAO address
+DAO_ADDRESS=0x...                                                # DAO address
 ```
 
 ## Optional Variables

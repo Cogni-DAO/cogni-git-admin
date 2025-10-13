@@ -14,8 +14,8 @@ Validate prerequisites and environment setup for comprehensive E2E testing of DA
 ### Two-DAO Test Strategy
 
 **Current State:**
-- **Valid DAO**: `0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5` (in app config `ALLOWED_DAO`)
-- **Test DAO**: `0xB0FcB5Ae33DFB4829f663458798E5e3843B21839` (in test config `E2E_DAO_ADDRESS`)
+- **Valid DAO**: `0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5` (in app config `DAO_ADDRESS`)
+- **Test DAO**: `0xB0FcB5Ae33DFB4829f663458798E5e3843B21839` (in test config `DAO_ADDRESS`)
 - **Result**: Test correctly fails when DAOs don't match ✅
 
 **Target Test Scenarios:**
@@ -45,7 +45,7 @@ Validate prerequisites and environment setup for comprehensive E2E testing of DA
 ### For Two-DAO Testing
 1. **Use existing contracts** on Sepolia (no new deployments)
 2. **Create webhook fixtures** with different DAO addresses
-3. **Test app configuration** changes (ALLOWED_DAO)
+3. **Test app configuration** changes (DAO_ADDRESS)
 4. **Mock Alchemy webhooks** for local development
 
 ### For Local Development

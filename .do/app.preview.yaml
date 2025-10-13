@@ -43,9 +43,9 @@ services:
   - key: SIGNAL_CONTRACT
     scope: RUN_TIME
     value: ${SIGNAL_CONTRACT}
-  - key: ALLOWED_DAO
+  - key: DAO_ADDRESS
     scope: RUN_TIME
-    value: ${ALLOWED_DAO}
+    value: ${DAO_ADDRESS}
   - key: CHAIN_ID
     scope: RUN_TIME
     value: ${CHAIN_ID}

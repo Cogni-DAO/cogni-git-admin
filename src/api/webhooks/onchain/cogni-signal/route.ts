@@ -43,7 +43,7 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
       return res.status(500).send('Server configuration error');
     }
     const allowChain = BigInt(chainId);
-    const allowDao = (process.env.ALLOWED_DAO || '').toLowerCase();
+    const allowDao = (process.env.DAO_ADDRESS || '').toLowerCase();
     logger.info('🔧 [WEBHOOK] Environment validation config', {
       allowChain: allowChain.toString(),
       allowDao,
