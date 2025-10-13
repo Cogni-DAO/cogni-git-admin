@@ -55,17 +55,5 @@ if (!parsed.success) {
 
 const env = parsed.data;
 
-/** safe log in non-prod */
-if (env.APP_ENV !== "prod") {
-  console.info("env ok:", {
-    APP_ENV: env.APP_ENV,
-    NODE_ENV: env.NODE_ENV,
-    APP_ID: env.APP_ID,
-    CHAIN_ID: env.CHAIN_ID,
-    SIGNAL_CONTRACT: env.SIGNAL_CONTRACT,
-    DAO_ADDRESS: env.DAO_ADDRESS,
-  });
-}
-
 export type Env = z.infer<typeof schema>;
 export const environment: Env = env;

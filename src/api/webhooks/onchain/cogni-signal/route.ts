@@ -45,11 +45,6 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     
     const allowChain = BigInt(environment.CHAIN_ID);
     const allowDao = environment.DAO_ADDRESS.toLowerCase();
-    logger.info('🔧 [WEBHOOK] Environment validation config', {
-      allowChain: allowChain.toString(),
-      allowDao,
-      signalContract: environment.SIGNAL_CONTRACT
-    });
 
     let validEventsFound = 0;
     const validationErrors: string[] = [];
