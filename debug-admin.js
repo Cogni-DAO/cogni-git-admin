@@ -23,7 +23,7 @@ const adminPluginAbi = parseAbi([
 
 const config = {
   SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
-  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
+  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT,
   EVM_RPC_URL: process.env.EVM_RPC_URL,
   PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
   TEST_REPO: process.env.E2E_TEST_REPO
@@ -68,7 +68,7 @@ async function debugAdminPlugin() {
     try {
       const PROPOSER_PERMISSION_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'; // placeholder
       const hasPermission = await adminPlugin.read.hasPermission([
-        config.ADMIN_PLUGIN_CONTRACT,
+        config.ARAGON_ADMIN_PLUGIN_CONTRACT,
         account.address,
         PROPOSER_PERMISSION_ID,
         '0x'

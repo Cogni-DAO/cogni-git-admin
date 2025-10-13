@@ -28,7 +28,7 @@ jobs:
       
       # Contract Addresses (Vars for public data)
       SIGNAL_CONTRACT: ${{ vars.SIGNAL_CONTRACT }}
-      E2E_ADMIN_PLUGIN_CONTRACT: ${{ vars.E2E_ADMIN_PLUGIN_CONTRACT }}
+      ARAGON_ADMIN_PLUGIN_CONTRACT: ${{ vars.ARAGON_ADMIN_PLUGIN_CONTRACT }}
       E2E_DAO_ADDRESS: ${{ vars.E2E_DAO_ADDRESS }}
       
       # GitHub Configuration

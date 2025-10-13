@@ -33,7 +33,7 @@ const adminPluginAbi = parseAbi([
 const TEST_CONFIG = {
   // Blockchain Configuration
   SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
-  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
+  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
   DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
   EVM_RPC_URL: process.env.EVM_RPC_URL!,
   PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
@@ -71,7 +71,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     // Validate required environment variables
     const requiredEnvVars = [
       'SIGNAL_CONTRACT',
-      'E2E_ADMIN_PLUGIN_CONTRACT',
+      'ARAGON_ADMIN_PLUGIN_CONTRACT',
       'E2E_DAO_ADDRESS',
       'EVM_RPC_URL',
       'E2E_TEST_WALLET_PRIVATE_KEY',

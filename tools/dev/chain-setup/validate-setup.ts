@@ -33,7 +33,7 @@ const CONFIG = {
   EVM_RPC_URL: requireEnv('EVM_RPC_URL'),
   PRIVATE_KEY: requireEnv('E2E_TEST_WALLET_PRIVATE_KEY'),
   SIGNAL_CONTRACT: requireEnv('SIGNAL_CONTRACT'),
-  ADMIN_PLUGIN_CONTRACT: requireEnv('E2E_ADMIN_PLUGIN_CONTRACT'),
+  ARAGON_ADMIN_PLUGIN_CONTRACT: requireEnv('ARAGON_ADMIN_PLUGIN_CONTRACT'),
   DAO_ADDRESS: requireEnv('E2E_DAO_ADDRESS'),
   TEST_REPO: requireEnv('E2E_TEST_REPO'),
   GITHUB_TOKEN: requireEnv('E2E_TEST_REPO_GITHUB_PAT'),
@@ -119,13 +119,12 @@ class SetupValidator {
     }
 
     // Validate contract addresses format  
-    const contractAddresses = [CONFIG.SIGNAL_CONTRACT, CONFIG.ADMIN_PLUGIN_CONTRACT, CONFIG.DAO_ADDRESS];
     for (const [name, address] of [
       ['CogniSignal Contract', CONFIG.SIGNAL_CONTRACT],
-      ['Admin Plugin Contract', CONFIG.ADMIN_PLUGIN_CONTRACT],
+      ['Admin Plugin Contract', CONFIG.ARAGON_ADMIN_PLUGIN_CONTRACT],
       ['DAO Address', CONFIG.DAO_ADDRESS]
     ]) {
-      if (!address.startsWith('0x') || address.length !== 42) {
+      if (!address || !address.startsWith('0x') || address.length !== 42) {
         this.addResult('Environment', name, 'fail', 'Invalid Ethereum address format');
       } else {
         this.addResult('Environment', name, 'pass', `Valid address: ${address}`);
@@ -241,7 +240,7 @@ class SetupValidator {
     // Check Admin Plugin contract
     try {
       const adminPluginCode = await this.publicClient.getBytecode({
-        address: CONFIG.ADMIN_PLUGIN_CONTRACT as `0x${string}`
+        address: CONFIG.ARAGON_ADMIN_PLUGIN_CONTRACT as `0x${string}`
       });
 
       if (adminPluginCode && adminPluginCode !== '0x') {

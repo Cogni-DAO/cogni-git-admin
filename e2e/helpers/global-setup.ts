@@ -37,7 +37,7 @@ export const validateE2EEnvironment = () => {
     'EVM_RPC_URL',
     'E2E_TEST_WALLET_PRIVATE_KEY',
     'SIGNAL_CONTRACT',
-    'E2E_ADMIN_PLUGIN_CONTRACT',
+    'ARAGON_ADMIN_PLUGIN_CONTRACT',
     'E2E_DAO_ADDRESS',
     'E2E_TEST_REPO',
     'E2E_TEST_REPO_GITHUB_PAT'
@@ -64,7 +64,7 @@ export const validateE2EEnvironment = () => {
     console.log(`- RPC: ${process.env.EVM_RPC_URL?.substring(0, 50)}...`);
     console.log(`- DAO: ${process.env.E2E_DAO_ADDRESS}`);
     console.log(`- CogniSignal: ${process.env.SIGNAL_CONTRACT}`);
-    console.log(`- Admin Plugin: ${process.env.E2E_ADMIN_PLUGIN_CONTRACT}`);
+    console.log(`- Admin Plugin: ${process.env.ARAGON_ADMIN_PLUGIN_CONTRACT}`);
   }
 
   console.log('✅ Base environment validated');
@@ -89,7 +89,7 @@ export const getTestConfig = () => {
     EVM_RPC_URL: process.env.EVM_RPC_URL,
     PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
     SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
-    ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
+    ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT,
     DAO_ADDRESS: process.env.E2E_DAO_ADDRESS,
 
     // Test timeouts
