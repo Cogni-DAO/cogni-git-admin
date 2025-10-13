@@ -23,4 +23,8 @@ jobs:
           repolinter lint -c repolinter.json .
       - run: npm ci
       - run: npm run lint --if-present
+        env:
+          NODE_ENV: test
       - run: npm test
+        env:
+          NODE_ENV: test

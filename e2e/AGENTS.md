@@ -39,11 +39,11 @@ E2E_TEST_REPO_GITHUB_PAT=github_pat_...       # GitHub PAT for API operations
 E2E_TEST_ADMIN_USERNAME=cogni-test-user       # Test username for admin management tests (optional, defaults to 'cogni-test-user')
 
 # Blockchain Configuration (for blockchain integration tests)
-E2E_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoint
-E2E_TEST_WALLET_PRIVATE_KEY=0x...                                    # Test wallet private key
-E2E_COGNISIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
-E2E_ADMIN_PLUGIN_CONTRACT=0x...                                      # Aragon Admin Plugin address
-E2E_DAO_ADDRESS=0x...                                                # DAO address
+EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoint
+WALLET_PRIVATE_KEY=0x...                                    # Test wallet private key
+SIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
+ARAGON_ADMIN_PLUGIN_CONTRACT=0x...                                      # Aragon Admin Plugin address
+DAO_ADDRESS=0x...                                                # DAO address
 ```
 
 ## Optional Variables

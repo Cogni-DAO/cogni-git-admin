@@ -23,13 +23,13 @@ jobs:
       E2E_APP_DEPLOYMENT_URL: ${{ vars.E2E_APP_DEPLOYMENT_URL }}
       
       # Blockchain Configuration (Secrets for sensitive data)
-      E2E_SEPOLIA_RPC_URL: ${{ secrets.E2E_SEPOLIA_RPC_URL }}
-      E2E_TEST_WALLET_PRIVATE_KEY: ${{ secrets.E2E_TEST_WALLET_PRIVATE_KEY }}
+      EVM_RPC_URL: ${{ secrets.EVM_RPC_URL }}
+      WALLET_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
       
       # Contract Addresses (Vars for public data)
-      E2E_COGNISIGNAL_CONTRACT: ${{ vars.E2E_COGNISIGNAL_CONTRACT }}
-      E2E_ADMIN_PLUGIN_CONTRACT: ${{ vars.E2E_ADMIN_PLUGIN_CONTRACT }}
-      E2E_DAO_ADDRESS: ${{ vars.E2E_DAO_ADDRESS }}
+      SIGNAL_CONTRACT: ${{ vars.SIGNAL_CONTRACT }}
+      ARAGON_ADMIN_PLUGIN_CONTRACT: ${{ vars.ARAGON_ADMIN_PLUGIN_CONTRACT }}
+      DAO_ADDRESS: ${{ vars.DAO_ADDRESS }}
       
       # GitHub Configuration
       E2E_TEST_REPO: ${{ vars.E2E_TEST_REPO }}

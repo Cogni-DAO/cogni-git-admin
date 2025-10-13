@@ -22,10 +22,10 @@ const adminPluginAbi = parseAbi([
 ]);
 
 const config = {
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT,
-  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
-  RPC_URL: process.env.E2E_SEPOLIA_RPC_URL,
-  PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
+  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT,
+  EVM_RPC_URL: process.env.EVM_RPC_URL,
+  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
   TEST_REPO: process.env.E2E_TEST_REPO
 };
 
@@ -35,13 +35,13 @@ async function debugAdminPlugin() {
   // Setup clients
   const publicClient = createPublicClient({
     chain: sepolia,
-    transport: http(config.RPC_URL),
+    transport: http(config.EVM_RPC_URL),
   });
 
   const account = privateKeyToAccount(config.PRIVATE_KEY);
   const walletClient = createWalletClient({
     chain: sepolia,
-    transport: http(config.RPC_URL),
+    transport: http(config.EVM_RPC_URL),
     account,
   });
 
@@ -53,13 +53,13 @@ async function debugAdminPlugin() {
 
   console.log(`Wallet: ${account.address}`);
   console.log(`Admin Plugin: ${config.ADMIN_PLUGIN_CONTRACT}`);
-  console.log(`CogniSignal: ${config.COGNISIGNAL_CONTRACT}\n`);
+  console.log(`CogniSignal: ${config.SIGNAL_CONTRACT}\n`);
 
   try {
     // 1. Check wallet balance
     const balance = await publicClient.getBalance({ address: account.address });
     console.log(`💰 Wallet balance: ${balance.toString()} wei`);
-    
+
     if (balance === BigInt(0)) {
       throw new Error('No ETH for gas');
     }
@@ -68,7 +68,7 @@ async function debugAdminPlugin() {
     try {
       const PROPOSER_PERMISSION_ID = '0x0000000000000000000000000000000000000000000000000000000000000000'; // placeholder
       const hasPermission = await adminPlugin.read.hasPermission([
-        config.ADMIN_PLUGIN_CONTRACT,
+        config.ARAGON_ADMIN_PLUGIN_CONTRACT,
         account.address,
         PROPOSER_PERMISSION_ID,
         '0x'
@@ -81,7 +81,7 @@ async function debugAdminPlugin() {
     // 3. Prepare the same action as in test
     const testPrNumber = 999; // dummy PR for testing
     const actions = [{
-      to: config.COGNISIGNAL_CONTRACT,
+      to: config.SIGNAL_CONTRACT,
       value: BigInt(0),
       data: encodeFunctionData({
         abi: cogniSignalAbi,

@@ -32,29 +32,29 @@ const adminPluginAbi = parseAbi([
 // Test configuration from environment variables
 const TEST_CONFIG = {
   // Blockchain Configuration
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
-  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
-  DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
-  RPC_URL: process.env.E2E_SEPOLIA_RPC_URL!,
-  PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
-  
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
+  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
+  DAO_ADDRESS: process.env.DAO_ADDRESS!,
+  EVM_RPC_URL: process.env.EVM_RPC_URL!,
+  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
+
   // GitHub Configuration
   TEST_REPO: process.env.E2E_TEST_REPO!,
   GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
-  
+
   // App Configuration
   E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
-  
+
   // Timeouts
   WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),
   POLL_INTERVAL_MS: parseInt(process.env.E2E_POLL_INTERVAL_MS || '5000'),
 };
 
 function sh(cmd: string, opts: any = {}) {
-  return execSync(cmd, { 
-    stdio: ['ignore', 'pipe', 'pipe'], 
-    encoding: 'utf8', 
-    ...opts 
+  return execSync(cmd, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    ...opts
   }).trim();
 }
 
@@ -66,38 +66,38 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
   let publicClient: any;
   let walletClient: any;
   let adminPlugin: any;
-  
+
   test.beforeAll(async () => {
     // Validate required environment variables
     const requiredEnvVars = [
-      'E2E_COGNISIGNAL_CONTRACT',
-      'E2E_ADMIN_PLUGIN_CONTRACT',
-      'E2E_DAO_ADDRESS', 
-      'E2E_SEPOLIA_RPC_URL',
-      'E2E_TEST_WALLET_PRIVATE_KEY',
+      'SIGNAL_CONTRACT',
+      'ARAGON_ADMIN_PLUGIN_CONTRACT',
+      'DAO_ADDRESS',
+      'EVM_RPC_URL',
+      'WALLET_PRIVATE_KEY',
       'E2E_TEST_REPO',
       'E2E_TEST_REPO_GITHUB_PAT',
       'E2E_APP_DEPLOYMENT_URL'
     ];
-    
+
     const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
-    
+
     // E2E_APP_URL can be localhost for development or deployed URL for CI/production
-    
+
     // Setup blockchain clients
     publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.RPC_URL),
+      transport: http(TEST_CONFIG.EVM_RPC_URL),
     });
 
     const account = privateKeyToAccount(TEST_CONFIG.PRIVATE_KEY as `0x${string}`);
-    
+
     walletClient = createWalletClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.RPC_URL),
+      transport: http(TEST_CONFIG.EVM_RPC_URL),
       account,
     });
 
@@ -109,7 +109,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     });
 
     console.log(`✅ E2E Setup Complete`);
-    console.log(`- Contract: ${TEST_CONFIG.COGNISIGNAL_CONTRACT}`);
+    console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
     console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
     console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
     console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
@@ -124,13 +124,13 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     try {
       // === PHASE 1: Create Test PR ===
       console.log('📝 Creating test PR...');
-      
+
       const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
-      
+
       // Clone repo and create test change
       sh(`gh repo clone ${TEST_CONFIG.TEST_REPO} ${tempDir}`, { env: envWithToken });
       sh(`git -C ${tempDir} switch -c ${branch}`);
-      
+
       const testContent = `E2E test change ${new Date().toISOString()}`;
       sh(`echo '${testContent}' > ${tempDir}/.e2e-test.txt`);
       sh(`git -C ${tempDir} add .e2e-test.txt`);
@@ -140,25 +140,25 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       // Create PR
       const prUrl = sh(`gh pr create -R ${TEST_CONFIG.TEST_REPO} --title "E2E Test PR ${timestamp}" --body "Auto-created for E2E testing - will be merged by DAO vote" --base main --head ${branch}`, { env: envWithToken });
       prNumber = prUrl.split('/').pop()!;
-      
+
       console.log(`✅ Created PR #${prNumber}: ${prUrl}`);
 
       // === PHASE 2: Execute DAO Vote on Sepolia ===
       console.log('🗳️  Executing DAO vote on Sepolia...');
-      
+
       // Check wallet balance
-      const balance = await publicClient.getBalance({ 
-        address: walletClient.account.address 
+      const balance = await publicClient.getBalance({
+        address: walletClient.account.address
       });
       console.log(`Wallet balance: ${balance.toString()} wei`);
-      
+
       if (balance === BigInt(0)) {
         throw new Error('Test wallet has no Sepolia ETH for gas');
       }
 
       // Create proposal to execute signal() function
       const actions = [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT,
+        to: TEST_CONFIG.SIGNAL_CONTRACT,
         value: BigInt(0),
         data: encodeFunctionData({
           abi: cogniSignalAbi,
@@ -187,41 +187,41 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       // Wait for confirmation
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       console.log(`✅ Transaction confirmed in block ${receipt.blockNumber}`);
-      
+
       // Verify CogniAction event was emitted (from the executed proposal)
-      const cogniActionLog = receipt.logs.find((log: any) => 
-        log.address.toLowerCase() === TEST_CONFIG.COGNISIGNAL_CONTRACT.toLowerCase()
+      const cogniActionLog = receipt.logs.find((log: any) =>
+        log.address.toLowerCase() === TEST_CONFIG.SIGNAL_CONTRACT.toLowerCase()
       );
-      
+
       if (!cogniActionLog) {
         throw new Error('CogniAction event not found in transaction logs - proposal may not have executed');
       }
-      
+
       console.log('✅ CogniAction event emitted via proposal execution');
 
       // === PHASE 3: Wait for Webhook Processing & PR Merge ===
       console.log('⏳ Waiting for Alchemy webhook → cogni-git-admin → PR merge...');
-      
+
       let merged = false;
       const startTime = Date.now();
-      
+
       while (!merged && (Date.now() - startTime) < TEST_CONFIG.WEBHOOK_TIMEOUT_MS) {
         // Check PR status
         const prStatusJson = sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/pulls/${prNumber}`, { env: envWithToken });
         const prStatus = JSON.parse(prStatusJson);
-        
+
         console.log(`PR #${prNumber} state: ${prStatus.state}, merged: ${prStatus.merged}`);
-        
+
         if (prStatus.merged) {
           merged = true;
           console.log(`🎉 SUCCESS: PR #${prNumber} merged by cogni-git-admin!`);
-          
+
           // Get merge commit info for validation
           console.log(`Merge commit: ${prStatus.merge_commit_sha}`);
           console.log(`Merged by: ${prStatus.merged_by?.login || 'unknown'}`);
           break;
         }
-        
+
         await sleep(TEST_CONFIG.POLL_INTERVAL_MS);
       }
 
@@ -234,31 +234,31 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
         } catch (e) {
           console.log('Could not fetch app logs');
         }
-        
-        throw new Error(`TIMEOUT: PR #${prNumber} was not merged within ${TEST_CONFIG.WEBHOOK_TIMEOUT_MS/1000}s`);
+
+        throw new Error(`TIMEOUT: PR #${prNumber} was not merged within ${TEST_CONFIG.WEBHOOK_TIMEOUT_MS / 1000}s`);
       }
 
       // Success! 🎉
       expect(merged).toBe(true);
-      
+
     } finally {
       // === CLEANUP ===
       if (prNumber && TEST_CONFIG.GITHUB_TOKEN) {
         try {
           console.log('🧹 Cleaning up test branch...');
           const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
-          
+
           // Since PR was merged, just delete the branch
-          sh(`git push origin --delete ${branch}`, { 
-            cwd: tempDir, 
-            env: envWithToken 
+          sh(`git push origin --delete ${branch}`, {
+            cwd: tempDir,
+            env: envWithToken
           });
           console.log(`✅ Deleted branch ${branch}`);
         } catch (cleanupErr) {
           console.warn('⚠️  Branch cleanup failed:', cleanupErr);
         }
       }
-      
+
       // Always cleanup temp directory
       try {
         execSync(`rm -rf "${tempDir}"`, { stdio: 'ignore' });

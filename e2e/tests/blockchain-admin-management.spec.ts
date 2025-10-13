@@ -31,22 +31,22 @@ const adminPluginAbi = parseAbi([
 // Test configuration from environment variables
 const TEST_CONFIG = {
   // Blockchain Configuration
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
-  ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
-  DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
-  RPC_URL: process.env.E2E_SEPOLIA_RPC_URL!,
-  PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
-  
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
+  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
+  DAO_ADDRESS: process.env.DAO_ADDRESS!,
+  EVM_RPC_URL: process.env.EVM_RPC_URL!,
+  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
+
   // GitHub Configuration
   TEST_REPO: process.env.E2E_TEST_REPO!,
   GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
-  
+
   // App Configuration
   E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
-  
+
   // Test User to Add/Remove
   TEST_USERNAME: process.env.E2E_TEST_ADMIN_USERNAME || 'cogni-test-user',
-  
+
   // Timeouts
   WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),
   POLL_INTERVAL_MS: parseInt(process.env.E2E_POLL_INTERVAL_MS || '5000'),
@@ -56,8 +56,8 @@ const TEST_CONFIG = {
 function sh(cmd: string, options: { env?: Record<string, string> } = {}) {
   console.log(`[E2E] Running: ${cmd}`);
   try {
-    return execSync(cmd, { 
-      encoding: 'utf8', 
+    return execSync(cmd, {
+      encoding: 'utf8',
       stdio: 'pipe',
       env: { ...process.env, ...options.env }
     }).trim();
@@ -73,56 +73,56 @@ function sh(cmd: string, options: { env?: Record<string, string> } = {}) {
 // Validation
 test.beforeAll(async () => {
   console.log('🚀 Starting E2E Admin Management Test Setup...');
-  
+
   // Validate required environment variables
   const requiredEnvVars = [
-    'E2E_COGNISIGNAL_CONTRACT',
-    'E2E_ADMIN_PLUGIN_CONTRACT', 
-    'E2E_DAO_ADDRESS',
-    'E2E_SEPOLIA_RPC_URL',
-    'E2E_TEST_WALLET_PRIVATE_KEY',
+    'SIGNAL_CONTRACT',
+    'ARAGON_ADMIN_PLUGIN_CONTRACT',
+    'DAO_ADDRESS',
+    'EVM_RPC_URL',
+    'WALLET_PRIVATE_KEY',
     'E2E_TEST_REPO',
     'E2E_TEST_REPO_GITHUB_PAT',
     'E2E_APP_DEPLOYMENT_URL'
   ];
-  
+
   for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
       throw new Error(`Missing required environment variable: ${envVar}`);
     }
   }
-  
+
   console.log('✅ E2E Setup Complete');
-  console.log(`- Contract: ${TEST_CONFIG.COGNISIGNAL_CONTRACT}`);
-  console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);  
+  console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
+  console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
   console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
   console.log(`- Test Username: ${TEST_CONFIG.TEST_USERNAME}`);
   console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
 });
 
 test.describe('Complete E2E: DAO Admin Management', () => {
-  
+
   test('should complete ADD_ADMIN → REMOVE_ADMIN workflow', async () => {
     const envWithToken = { GITHUB_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
     const [owner, repo] = TEST_CONFIG.TEST_REPO.split('/');
-    
+
     // Setup blockchain clients
     const account = privateKeyToAccount(TEST_CONFIG.PRIVATE_KEY as `0x${string}`);
     const publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.RPC_URL)
+      transport: http(TEST_CONFIG.EVM_RPC_URL)
     });
-    
+
     const walletClient = createWalletClient({
       account,
       chain: sepolia,
-      transport: http(TEST_CONFIG.RPC_URL)
+      transport: http(TEST_CONFIG.EVM_RPC_URL)
     });
-    
+
     console.log(`✅ E2E Setup Complete`);
     const balance = await publicClient.getBalance({ address: account.address });
     console.log(`Wallet balance: ${balance} wei`);
-    
+
     // Step 1: Clean up any existing invitations for test user
     console.log('🧹 Cleaning up any existing invitations...');
     try {
@@ -135,14 +135,14 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     } catch (error) {
       console.log('ℹ️  No existing invitations to clean up');
     }
-    
+
     // Step 2: Execute ADD_ADMIN DAO vote  
     console.log('🗳️  Executing ADD_ADMIN DAO vote on Sepolia...');
-    
+
     // Encode username as hex for extra parameter
     const usernameHex = `0x${Buffer.from(TEST_CONFIG.TEST_USERNAME).toString('hex')}`;
     console.log(`📝 Username "${TEST_CONFIG.TEST_USERNAME}" encoded as: ${usernameHex}`);
-    
+
     // Create DAO proposal for ADD_ADMIN action
     const addAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
@@ -156,17 +156,17 @@ test.describe('Complete E2E: DAO Admin Management', () => {
         usernameHex                     // extra (username)
       ]
     });
-    
+
     const adminPlugin = getContract({
       address: TEST_CONFIG.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: { public: publicClient, wallet: walletClient }
     });
-    
+
     const addAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
+        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: addAdminCalldata
       }],
@@ -174,26 +174,26 @@ test.describe('Complete E2E: DAO Admin Management', () => {
       BigInt(Math.floor(Date.now() / 1000) + 300), // endDate (5 min from now)
       '0x' // data
     ]);
-    
+
     console.log(`📤 ADD_ADMIN proposal transaction: ${addAdminTx}`);
-    
+
     // Wait for ADD_ADMIN transaction to be processed by webhook
     console.log('⏳ Waiting for ADD_ADMIN webhook processing...');
     await new Promise(resolve => setTimeout(resolve, 30000)); // Wait 30 seconds
-    
+
     // Step 3: Verify user was invited as admin (pending invitation)
     console.log('🔍 Verifying ADD_ADMIN created pending invitation...');
     const invitations = JSON.parse(sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations`, { env: envWithToken }));
     const testUserInvite = invitations.find((inv: any) => inv.invitee?.login === TEST_CONFIG.TEST_USERNAME);
-    
+
     expect(testUserInvite).toBeTruthy();
     expect(testUserInvite.permissions).toBe('admin');
     console.log(`✅ Confirmed pending admin invitation for ${TEST_CONFIG.TEST_USERNAME}`);
     console.log(`📋 Invitation ID: ${testUserInvite.id}`);
-    
+
     // Step 4: Execute REMOVE_ADMIN DAO vote
     console.log('🗳️  Executing REMOVE_ADMIN DAO vote on Sepolia...');
-    
+
     // Create DAO proposal for REMOVE_ADMIN action  
     const removeAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
@@ -207,11 +207,11 @@ test.describe('Complete E2E: DAO Admin Management', () => {
         usernameHex                     // extra (username)
       ]
     });
-    
+
     const removeAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
+        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: removeAdminCalldata
       }],
@@ -219,22 +219,22 @@ test.describe('Complete E2E: DAO Admin Management', () => {
       BigInt(Math.floor(Date.now() / 1000) + 300), // endDate (5 min from now)
       '0x' // data
     ]);
-    
+
     console.log(`📤 REMOVE_ADMIN proposal transaction: ${removeAdminTx}`);
-    
+
     // Wait for REMOVE_ADMIN transaction to be processed by webhook
     console.log('⏳ Waiting for REMOVE_ADMIN webhook processing...');
     await new Promise(resolve => setTimeout(resolve, 30000)); // Wait 30 seconds
-    
+
     // Step 5: Verify pending invitation was cancelled
     console.log('🔍 Verifying REMOVE_ADMIN cancelled pending invitation...');
     const afterInvitations = JSON.parse(sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations`, { env: envWithToken }));
     const remainingInvite = afterInvitations.find((inv: any) => inv.invitee?.login === TEST_CONFIG.TEST_USERNAME);
-    
+
     expect(remainingInvite).toBeFalsy();
     console.log(`✅ Confirmed pending invitation was cancelled for ${TEST_CONFIG.TEST_USERNAME}`);
-    
+
     console.log('🎉 E2E Admin Management test completed successfully!');
   });
-  
+
 });

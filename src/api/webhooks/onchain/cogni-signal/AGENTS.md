@@ -28,7 +28,7 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 ## Implementation Details
 - Provider detection returns "alchemy" for MVP implementation
 - Signature verification uses HMAC validation for Alchemy webhooks
-- Environment variable validation ensures COGNI_CHAIN_ID is present before processing
+- Environment variable validation ensures CHAIN_ID is present before processing
 - Validation errors return detailed messages in response body for debugging
 - Each valid CogniAction event triggers GitHub action execution via action registry system
 
