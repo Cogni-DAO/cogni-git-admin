@@ -36,7 +36,7 @@ const TEST_CONFIG = {
   ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
   DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
   EVM_RPC_URL: process.env.EVM_RPC_URL!,
-  PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY!,
+  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
 
   // GitHub Configuration
   TEST_REPO: process.env.E2E_TEST_REPO!,
@@ -74,7 +74,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       'ARAGON_ADMIN_PLUGIN_CONTRACT',
       'E2E_DAO_ADDRESS',
       'EVM_RPC_URL',
-      'E2E_TEST_WALLET_PRIVATE_KEY',
+      'WALLET_PRIVATE_KEY',
       'E2E_TEST_REPO',
       'E2E_TEST_REPO_GITHUB_PAT',
       'E2E_APP_DEPLOYMENT_URL'

@@ -35,7 +35,7 @@ export const validateE2EEnvironment = () => {
 
   const requiredBlockchain = [
     'EVM_RPC_URL',
-    'E2E_TEST_WALLET_PRIVATE_KEY',
+    'WALLET_PRIVATE_KEY',
     'SIGNAL_CONTRACT',
     'ARAGON_ADMIN_PLUGIN_CONTRACT',
     'E2E_DAO_ADDRESS',
@@ -87,7 +87,7 @@ export const getTestConfig = () => {
 
     // Blockchain configuration (only if running blockchain tests)
     EVM_RPC_URL: process.env.EVM_RPC_URL,
-    PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
+    PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
     SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
     ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT,
     DAO_ADDRESS: process.env.E2E_DAO_ADDRESS,

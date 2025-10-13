@@ -31,7 +31,7 @@ function optionalEnv(name: string, fallback?: string): string | undefined {
 const CONFIG = {
   // Required Environment Variables
   EVM_RPC_URL: requireEnv('EVM_RPC_URL'),
-  PRIVATE_KEY: requireEnv('E2E_TEST_WALLET_PRIVATE_KEY'),
+  WALLET_PRIVATE_KEY: requireEnv('WALLET_PRIVATE_KEY'),
   SIGNAL_CONTRACT: requireEnv('SIGNAL_CONTRACT'),
   ARAGON_ADMIN_PLUGIN_CONTRACT: requireEnv('ARAGON_ADMIN_PLUGIN_CONTRACT'),
   DAO_ADDRESS: requireEnv('E2E_DAO_ADDRESS'),
@@ -81,7 +81,7 @@ class SetupValidator {
 
   constructor() {
     // Initialize blockchain clients
-    this.account = privateKeyToAccount(CONFIG.PRIVATE_KEY as `0x${string}`);
+    this.account = privateKeyToAccount(CONFIG.WALLET_PRIVATE_KEY as `0x${string}`);
 
     this.publicClient = createPublicClient({
       chain: sepolia,
@@ -112,7 +112,7 @@ class SetupValidator {
     }
 
     // Validate wallet private key format
-    if (!CONFIG.PRIVATE_KEY.startsWith('0x') || CONFIG.PRIVATE_KEY.length !== 66) {
+    if (!CONFIG.WALLET_PRIVATE_KEY.startsWith('0x') || CONFIG.WALLET_PRIVATE_KEY.length !== 66) {
       this.addResult('Environment', 'Private Key Format', 'fail', 'Private key must be 64 hex chars with 0x prefix');
     } else {
       this.addResult('Environment', 'Private Key Format', 'pass', `Wallet address: ${this.account.address}`);
