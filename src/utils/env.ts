@@ -9,10 +9,10 @@ const requiredEnvSchema = z.object({
   WEBHOOK_SECRET: z.string().min(1),
 
   // Blockchain Configuration  
-  COGNI_CHAIN_ID: z.coerce.number().min(1),
-  COGNI_SIGNAL_CONTRACT: z.string().min(1),
-  COGNI_ALLOWED_DAO: z.string().min(1),
-  COGNI_ALLOWED_REPO: z.string().min(1),
+  CHAIN_ID: z.coerce.number().min(1),
+  SIGNAL_CONTRACT: z.string().min(1),
+  ALLOWED_DAO: z.string().min(1),
+  ALLOWED_REPO: z.string().min(1),
   EVM_RPC_URL: z.string().url(),
 
   // Alchemy (for webhook verification)
@@ -29,7 +29,7 @@ const optionalEnvSchema = z.object({
   WEBHOOK_PROXY_URL: z.string().url().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
-  
+
 });
 
 const envSchema = requiredEnvSchema.merge(optionalEnvSchema);

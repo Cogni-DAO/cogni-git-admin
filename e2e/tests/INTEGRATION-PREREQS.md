@@ -97,14 +97,14 @@
 - Must deliver within ~30-60 seconds of transaction confirmation
 
 ### 2. DAO Permission Alignment
-- `E2E_DAO_ADDRESS` (0xB0FcB5...) must match `COGNI_ALLOWED_DAO` in app config
+- `E2E_DAO_ADDRESS` (0xB0FcB5...) must match `ALLOWED_DAO` in app config
 - Both must have execution rights on Admin Plugin
 - CogniSignal must accept calls from Admin Plugin
 
 ### 3. GitHub App Configuration
 - cogni-git-admin GitHub App must be installed on `derekg1729/test-repo`
 - App must have merge permissions and webhook processing enabled
-- Repository must match `E2E_TEST_REPO` and `COGNI_ALLOWED_REPO` settings
+- Repository must match `E2E_TEST_REPO` and `ALLOWED_REPO` settings
 
 ### 4. Network Connectivity
 - Test environment must reach Sepolia RPC endpoint

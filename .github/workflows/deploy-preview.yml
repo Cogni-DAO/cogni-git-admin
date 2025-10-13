@@ -25,6 +25,6 @@ jobs:
          ALCHEMY_SIGNING_KEY: ${{ secrets.ALCHEMY_SIGNING_KEY }}
          EVM_RPC_URL: ${{ secrets.EVM_RPC_URL }}
          APP_ID: ${{ vars.APP_ID }}
-         COGNI_SIGNAL_CONTRACT: ${{ vars.COGNI_SIGNAL_CONTRACT }}
-         COGNI_ALLOWED_DAO: ${{ vars.COGNI_ALLOWED_DAO }}
-         COGNI_CHAIN_ID: ${{ vars.COGNI_CHAIN_ID }}
+         SIGNAL_CONTRACT: ${{ vars.SIGNAL_CONTRACT }}
+         ALLOWED_DAO: ${{ vars.ALLOWED_DAO }}
+         CHAIN_ID: ${{ vars.CHAIN_ID }}

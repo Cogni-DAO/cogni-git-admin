@@ -40,15 +40,15 @@ services:
   - key: EVM_RPC_URL
     scope: RUN_TIME
     value: ${EVM_RPC_URL}
-  - key: COGNI_SIGNAL_CONTRACT
+  - key: SIGNAL_CONTRACT
     scope: RUN_TIME
-    value: ${COGNI_SIGNAL_CONTRACT}
-  - key: COGNI_ALLOWED_DAO
+    value: ${SIGNAL_CONTRACT}
+  - key: ALLOWED_DAO
     scope: RUN_TIME
-    value: ${COGNI_ALLOWED_DAO}
-  - key: COGNI_CHAIN_ID
+    value: ${ALLOWED_DAO}
+  - key: CHAIN_ID
     scope: RUN_TIME
-    value: ${COGNI_CHAIN_ID}
+    value: ${CHAIN_ID}
 
   github:
     branch: main

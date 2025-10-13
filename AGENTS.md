@@ -102,10 +102,10 @@ e2e/
 ```bash
 # Required
 EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
-COGNI_CHAIN_ID=11155111
-COGNI_SIGNAL_CONTRACT=0x<contract_address>
-COGNI_ALLOWED_DAO=0x<dao_address>
-COGNI_ALLOWED_REPO=owner/repo
+CHAIN_ID=11155111
+SIGNAL_CONTRACT=0x<contract_address>
+ALLOWED_DAO=0x<dao_address>
+ALLOWED_REPO=owner/repo
 
 # Optional (provider-specific)
 ALCHEMY_SIGNING_KEY=<hmac_key>
