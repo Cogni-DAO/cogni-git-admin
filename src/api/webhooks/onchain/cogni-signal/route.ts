@@ -6,8 +6,9 @@ import { getInstallationId } from '../../../../core/auth/github';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
-import { RequestWithRawBody } from '../../../../utils/hmac';
 import { environment } from '../../../../utils/env';
+import { RequestWithRawBody } from '../../../../utils/hmac';
+
 
 export async function handleCogniSignal(req: RequestWithRawBody, res: Response, logger: Application['log'], app: Application) {
   try {
