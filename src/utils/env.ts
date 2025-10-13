@@ -41,29 +41,9 @@ const devSchema = z.object({
   FIXTURE_CAPTURE_DIR: z.string().default("./test/fixtures"),
 });
 
-/** test/E2E-only. Required only when NODE_ENV=test or E2E_ENABLED=1 */
-const e2eSchema = z.object({
-  // infra targets
-  E2E_APP_DEPLOYMENT_URL: z.string().url(),
-  E2E_TEST_REPO: z.string().regex(/^[^/]+\/[^/]+$/, 'format "owner/repo"'),
-  E2E_TEST_REPO_GITHUB_PAT: z.string().min(1),
-
-  // chain bits used by tests, not by app boot
-  ARAGON_ADMIN_PLUGIN_CONTRACT: z.string().regex(isEthAddr, "invalid EVM address"),
-  WALLET_PRIVATE_KEY: z.string().min(1),
-
-  // timings
-  E2E_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(120000),
-  E2E_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
-  E2E_TEST_ADMIN_USERNAME: z.string().default("cogni-test-user"),
-});
 
 /** build conditional schema */
-const wantsE2E = process.env.NODE_ENV === "test" || process.env.E2E_ENABLED === "1";
-
-const schema = wantsE2E
-  ? baseSchema.merge(devSchema).merge(e2eSchema)
-  : baseSchema.merge(devSchema);
+const schema = baseSchema.merge(devSchema);
 
 /** validate once, on import */
 const parsed = schema.safeParse(process.env);
@@ -84,7 +64,6 @@ if (env.APP_ENV !== "prod") {
     CHAIN_ID: env.CHAIN_ID,
     SIGNAL_CONTRACT: env.SIGNAL_CONTRACT,
     DAO_ADDRESS: env.DAO_ADDRESS,
-    E2E_ENABLED: wantsE2E ? "1" : "0",
   });
 }
 
