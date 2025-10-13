@@ -101,7 +101,7 @@ e2e/
 ## Environment Variables
 ```bash
 # Required
-RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
+EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
 COGNI_CHAIN_ID=11155111
 COGNI_SIGNAL_CONTRACT=0x<contract_address>
 COGNI_ALLOWED_DAO=0x<dao_address>
@@ -114,7 +114,7 @@ ALCHEMY_SIGNING_KEY=<hmac_key>
 # See e2e/AGENTS.md for complete environment variable reference
 E2E_APP_DEPLOYMENT_URL=<deployment_url>       # Target deployment for E2E tests
 E2E_TEST_REPO_GITHUB_PAT=<github_token>       # GitHub PAT for API operations
-E2E_SEPOLIA_RPC_URL=<rpc_endpoint>            # Sepolia RPC for blockchain tests
+EVM_RPC_URL=<rpc_endpoint>            # Sepolia RPC for blockchain tests
 E2E_TEST_WALLET_PRIVATE_KEY=<private_key>     # Test wallet for transactions
 E2E_TEST_REPO=<owner/repo>                    # Target test repository
 

@@ -34,7 +34,7 @@ All environment variables are configured in `.env`:
 
 ```bash
 # Working Configuration. Giving keys away ONLY because it's purely test network
-E2E_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/...
+EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/...
 E2E_TEST_WALLET_PRIVATE_KEY=0x7e1cc7be1c6074585bab220cfec9cc2eec4484341be20a524eca5bc8a90bf58d
 E2E_COGNISIGNAL_CONTRACT=0x8f26cf7b9ca6790385e255e8ab63acc35e7b9fb1
 E2E_ADMIN_PLUGIN_CONTRACT=0x77BA7C0663b2f48F295E12e6a149F4882404B4ea

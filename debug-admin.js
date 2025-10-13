@@ -24,7 +24,7 @@ const adminPluginAbi = parseAbi([
 const config = {
   COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT,
   ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
-  RPC_URL: process.env.E2E_SEPOLIA_RPC_URL,
+  EVM_RPC_URL: process.env.EVM_RPC_URL,
   PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
   TEST_REPO: process.env.E2E_TEST_REPO
 };
@@ -35,13 +35,13 @@ async function debugAdminPlugin() {
   // Setup clients
   const publicClient = createPublicClient({
     chain: sepolia,
-    transport: http(config.RPC_URL),
+    transport: http(config.EVM_RPC_URL),
   });
 
   const account = privateKeyToAccount(config.PRIVATE_KEY);
   const walletClient = createWalletClient({
     chain: sepolia,
-    transport: http(config.RPC_URL),
+    transport: http(config.EVM_RPC_URL),
     account,
   });
 
@@ -59,7 +59,7 @@ async function debugAdminPlugin() {
     // 1. Check wallet balance
     const balance = await publicClient.getBalance({ address: account.address });
     console.log(`💰 Wallet balance: ${balance.toString()} wei`);
-    
+
     if (balance === BigInt(0)) {
       throw new Error('No ETH for gas');
     }

@@ -13,7 +13,7 @@ const requiredEnvSchema = z.object({
   COGNI_SIGNAL_CONTRACT: z.string().min(1),
   COGNI_ALLOWED_DAO: z.string().min(1),
   COGNI_ALLOWED_REPO: z.string().min(1),
-  RPC_URL: z.string().url(),
+  EVM_RPC_URL: z.string().url(),
 
   // Alchemy (for webhook verification)
   ALCHEMY_SIGNING_KEY: z.string().min(1),
@@ -24,14 +24,12 @@ const optionalEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(3000),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
-  
+
   // Optional GitHub
   WEBHOOK_PROXY_URL: z.string().url().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
   
-  // Legacy/Optional
-  EVM_RPC_URL: z.string().url().optional(),
 });
 
 const envSchema = requiredEnvSchema.merge(optionalEnvSchema);
@@ -45,7 +43,7 @@ if (!result.success) {
     console.error(`   - ${issue.path.join('.')}: ${issue.message}`);
   });
   console.error('\nPlease check your .env file and ensure all required variables are set.');
-  process.exit(1);
+  throw new Error('Environment validation failed');
 }
 
 console.log('✅ Environment validation passed');

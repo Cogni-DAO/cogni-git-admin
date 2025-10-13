@@ -1,7 +1,8 @@
+import './utils/env' // Import triggers validation, exports not used yet
+
 import { Application } from 'probot'
 
 import { createApiRoutes } from './routes'
-import './utils/env' // Import triggers validation, exports not used yet
 
 export default (app: Application) => {
   // Environment validation already ran during import - this will exit on missing required vars
