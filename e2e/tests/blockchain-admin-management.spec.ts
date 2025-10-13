@@ -14,6 +14,7 @@ import { createPublicClient, createWalletClient, http, parseAbi, getContract, en
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
+import { testConfig } from '../helpers/test-config';
 
 // Contract ABI from CogniSignal.sol
 const cogniSignalAbi = parseAbi([
@@ -28,29 +29,6 @@ const adminPluginAbi = parseAbi([
   'event Executed(uint256 indexed proposalId)'
 ]);
 
-// Test configuration from environment variables
-const TEST_CONFIG = {
-  // Blockchain Configuration
-  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
-  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
-  DAO_ADDRESS: process.env.DAO_ADDRESS!,
-  EVM_RPC_URL: process.env.EVM_RPC_URL!,
-  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
-
-  // GitHub Configuration
-  TEST_REPO: process.env.E2E_TEST_REPO!,
-  GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
-
-  // App Configuration
-  E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
-
-  // Test User to Add/Remove
-  TEST_USERNAME: process.env.E2E_TEST_ADMIN_USERNAME || 'cogni-test-user',
-
-  // Timeouts
-  WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),
-  POLL_INTERVAL_MS: parseInt(process.env.E2E_POLL_INTERVAL_MS || '5000'),
-};
 
 // Helper to run shell commands with GitHub token
 function sh(cmd: string, options: { env?: Record<string, string> } = {}) {
@@ -93,30 +71,30 @@ test.beforeAll(async () => {
   }
 
   console.log('✅ E2E Setup Complete');
-  console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
-  console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
-  console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
-  console.log(`- Test Username: ${TEST_CONFIG.TEST_USERNAME}`);
-  console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
+  console.log(`- Contract: ${testConfig.SIGNAL_CONTRACT}`);
+  console.log(`- DAO: ${testConfig.DAO_ADDRESS}`);
+  console.log(`- Test Repo: ${testConfig.TEST_REPO}`);
+  console.log(`- Test Username: ${testConfig.TEST_USERNAME}`);
+  console.log(`- App URL: ${testConfig.E2E_APP_URL}`);
 });
 
 test.describe('Complete E2E: DAO Admin Management', () => {
 
   test('should complete ADD_ADMIN → REMOVE_ADMIN workflow', async () => {
-    const envWithToken = { GITHUB_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
-    const [owner, repo] = TEST_CONFIG.TEST_REPO.split('/');
+    const envWithToken = { GITHUB_TOKEN: testConfig.GITHUB_TOKEN };
+    const [owner, repo] = testConfig.TEST_REPO.split('/');
 
     // Setup blockchain clients
-    const account = privateKeyToAccount(TEST_CONFIG.PRIVATE_KEY as `0x${string}`);
+    const account = privateKeyToAccount(testConfig.PRIVATE_KEY as `0x${string}`);
     const publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.EVM_RPC_URL)
+      transport: http(testConfig.EVM_RPC_URL)
     });
 
     const walletClient = createWalletClient({
       account,
       chain: sepolia,
-      transport: http(TEST_CONFIG.EVM_RPC_URL)
+      transport: http(testConfig.EVM_RPC_URL)
     });
 
     console.log(`✅ E2E Setup Complete`);
@@ -126,10 +104,10 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     // Step 1: Clean up any existing invitations for test user
     console.log('🧹 Cleaning up any existing invitations...');
     try {
-      sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations --jq '.[] | select(.invitee.login == "${TEST_CONFIG.TEST_USERNAME}") | .id' | head -1`, { env: envWithToken });
-      const invitationId = sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations --jq '.[] | select(.invitee.login == "${TEST_CONFIG.TEST_USERNAME}") | .id' | head -1`, { env: envWithToken });
+      sh(`gh api repos/${testConfig.TEST_REPO}/invitations --jq '.[] | select(.invitee.login == "${testConfig.TEST_USERNAME}") | .id' | head -1`, { env: envWithToken });
+      const invitationId = sh(`gh api repos/${testConfig.TEST_REPO}/invitations --jq '.[] | select(.invitee.login == "${testConfig.TEST_USERNAME}") | .id' | head -1`, { env: envWithToken });
       if (invitationId) {
-        sh(`gh api -X DELETE repos/${TEST_CONFIG.TEST_REPO}/invitations/${invitationId}`, { env: envWithToken });
+        sh(`gh api -X DELETE repos/${testConfig.TEST_REPO}/invitations/${invitationId}`, { env: envWithToken });
         console.log(`🗑️ Cancelled existing invitation ID ${invitationId}`);
       }
     } catch (error) {
@@ -140,15 +118,15 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     console.log('🗳️  Executing ADD_ADMIN DAO vote on Sepolia...');
 
     // Encode username as hex for extra parameter
-    const usernameHex = `0x${Buffer.from(TEST_CONFIG.TEST_USERNAME).toString('hex')}`;
-    console.log(`📝 Username "${TEST_CONFIG.TEST_USERNAME}" encoded as: ${usernameHex}`);
+    const usernameHex = `0x${Buffer.from(testConfig.TEST_USERNAME).toString('hex')}`;
+    console.log(`📝 Username "${testConfig.TEST_USERNAME}" encoded as: ${usernameHex}`);
 
     // Create DAO proposal for ADD_ADMIN action
     const addAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
-        TEST_CONFIG.TEST_REPO,          // repo
+        testConfig.TEST_REPO,          // repo
         'ADD_ADMIN',                     // action  
         'repository',                    // target
         0n,                             // pr (unused)
@@ -158,7 +136,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     });
 
     const adminPlugin = getContract({
-      address: TEST_CONFIG.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: { public: publicClient, wallet: walletClient }
     });
@@ -166,7 +144,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     const addAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
+        to: testConfig.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: addAdminCalldata
       }],
@@ -183,12 +161,12 @@ test.describe('Complete E2E: DAO Admin Management', () => {
 
     // Step 3: Verify user was invited as admin (pending invitation)
     console.log('🔍 Verifying ADD_ADMIN created pending invitation...');
-    const invitations = JSON.parse(sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations`, { env: envWithToken }));
-    const testUserInvite = invitations.find((inv: any) => inv.invitee?.login === TEST_CONFIG.TEST_USERNAME);
+    const invitations = JSON.parse(sh(`gh api repos/${testConfig.TEST_REPO}/invitations`, { env: envWithToken }));
+    const testUserInvite = invitations.find((inv: any) => inv.invitee?.login === testConfig.TEST_USERNAME);
 
     expect(testUserInvite).toBeTruthy();
     expect(testUserInvite.permissions).toBe('admin');
-    console.log(`✅ Confirmed pending admin invitation for ${TEST_CONFIG.TEST_USERNAME}`);
+    console.log(`✅ Confirmed pending admin invitation for ${testConfig.TEST_USERNAME}`);
     console.log(`📋 Invitation ID: ${testUserInvite.id}`);
 
     // Step 4: Execute REMOVE_ADMIN DAO vote
@@ -199,7 +177,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
-        TEST_CONFIG.TEST_REPO,          // repo
+        testConfig.TEST_REPO,          // repo
         'REMOVE_ADMIN',                 // action
         'repository',                   // target
         0n,                             // pr (unused)
@@ -211,7 +189,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     const removeAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
+        to: testConfig.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: removeAdminCalldata
       }],
@@ -228,11 +206,11 @@ test.describe('Complete E2E: DAO Admin Management', () => {
 
     // Step 5: Verify pending invitation was cancelled
     console.log('🔍 Verifying REMOVE_ADMIN cancelled pending invitation...');
-    const afterInvitations = JSON.parse(sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/invitations`, { env: envWithToken }));
-    const remainingInvite = afterInvitations.find((inv: any) => inv.invitee?.login === TEST_CONFIG.TEST_USERNAME);
+    const afterInvitations = JSON.parse(sh(`gh api repos/${testConfig.TEST_REPO}/invitations`, { env: envWithToken }));
+    const remainingInvite = afterInvitations.find((inv: any) => inv.invitee?.login === testConfig.TEST_USERNAME);
 
     expect(remainingInvite).toBeFalsy();
-    console.log(`✅ Confirmed pending invitation was cancelled for ${TEST_CONFIG.TEST_USERNAME}`);
+    console.log(`✅ Confirmed pending invitation was cancelled for ${testConfig.TEST_USERNAME}`);
 
     console.log('🎉 E2E Admin Management test completed successfully!');
   });

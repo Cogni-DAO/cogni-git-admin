@@ -15,6 +15,7 @@ import { execSync } from 'child_process';
 import { mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { testConfig } from '../helpers/test-config';
 
 // Contract ABI from CogniSignal.sol
 const cogniSignalAbi = parseAbi([
@@ -29,26 +30,6 @@ const adminPluginAbi = parseAbi([
   'event Executed(uint256 indexed proposalId)'
 ]);
 
-// Test configuration from environment variables
-const TEST_CONFIG = {
-  // Blockchain Configuration
-  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
-  ARAGON_ADMIN_PLUGIN_CONTRACT: process.env.ARAGON_ADMIN_PLUGIN_CONTRACT!,
-  DAO_ADDRESS: process.env.DAO_ADDRESS!,
-  EVM_RPC_URL: process.env.EVM_RPC_URL!,
-  PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
-
-  // GitHub Configuration
-  TEST_REPO: process.env.E2E_TEST_REPO!,
-  GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
-
-  // App Configuration
-  E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
-
-  // Timeouts
-  WEBHOOK_TIMEOUT_MS: parseInt(process.env.E2E_WEBHOOK_TIMEOUT_MS || '120000'),
-  POLL_INTERVAL_MS: parseInt(process.env.E2E_POLL_INTERVAL_MS || '5000'),
-};
 
 function sh(cmd: string, opts: any = {}) {
   return execSync(cmd, {
@@ -90,29 +71,29 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     // Setup blockchain clients
     publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.EVM_RPC_URL),
+      transport: http(testConfig.EVM_RPC_URL),
     });
 
-    const account = privateKeyToAccount(TEST_CONFIG.PRIVATE_KEY as `0x${string}`);
+    const account = privateKeyToAccount(testConfig.PRIVATE_KEY as `0x${string}`);
 
     walletClient = createWalletClient({
       chain: sepolia,
-      transport: http(TEST_CONFIG.EVM_RPC_URL),
+      transport: http(testConfig.EVM_RPC_URL),
       account,
     });
 
     // Setup admin plugin contract interface
     adminPlugin = getContract({
-      address: TEST_CONFIG.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: walletClient,
     });
 
     console.log(`✅ E2E Setup Complete`);
-    console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
-    console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
-    console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
-    console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
+    console.log(`- Contract: ${testConfig.SIGNAL_CONTRACT}`);
+    console.log(`- DAO: ${testConfig.DAO_ADDRESS}`);
+    console.log(`- Test Repo: ${testConfig.TEST_REPO}`);
+    console.log(`- App URL: ${testConfig.E2E_APP_URL}`);
   });
 
   test('should complete DAO vote → PR merge workflow', async () => {
@@ -125,10 +106,10 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       // === PHASE 1: Create Test PR ===
       console.log('📝 Creating test PR...');
 
-      const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
+      const envWithToken = { ...process.env, GH_TOKEN: testConfig.GITHUB_TOKEN };
 
       // Clone repo and create test change
-      sh(`gh repo clone ${TEST_CONFIG.TEST_REPO} ${tempDir}`, { env: envWithToken });
+      sh(`gh repo clone ${testConfig.TEST_REPO} ${tempDir}`, { env: envWithToken });
       sh(`git -C ${tempDir} switch -c ${branch}`);
 
       const testContent = `E2E test change ${new Date().toISOString()}`;
@@ -138,7 +119,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       sh(`git -C ${tempDir} push origin ${branch}`);
 
       // Create PR
-      const prUrl = sh(`gh pr create -R ${TEST_CONFIG.TEST_REPO} --title "E2E Test PR ${timestamp}" --body "Auto-created for E2E testing - will be merged by DAO vote" --base main --head ${branch}`, { env: envWithToken });
+      const prUrl = sh(`gh pr create -R ${testConfig.TEST_REPO} --title "E2E Test PR ${timestamp}" --body "Auto-created for E2E testing - will be merged by DAO vote" --base main --head ${branch}`, { env: envWithToken });
       prNumber = prUrl.split('/').pop()!;
 
       console.log(`✅ Created PR #${prNumber}: ${prUrl}`);
@@ -158,13 +139,13 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
       // Create proposal to execute signal() function
       const actions = [{
-        to: TEST_CONFIG.SIGNAL_CONTRACT,
+        to: testConfig.SIGNAL_CONTRACT,
         value: BigInt(0),
         data: encodeFunctionData({
           abi: cogniSignalAbi,
           functionName: 'signal',
           args: [
-            TEST_CONFIG.TEST_REPO,    // repo
+            testConfig.TEST_REPO,    // repo
             'PR_APPROVE',             // action  
             'pull_request',           // target
             BigInt(prNumber),         // pr number
@@ -190,7 +171,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
       // Verify CogniAction event was emitted (from the executed proposal)
       const cogniActionLog = receipt.logs.find((log: any) =>
-        log.address.toLowerCase() === TEST_CONFIG.SIGNAL_CONTRACT.toLowerCase()
+        log.address.toLowerCase() === testConfig.SIGNAL_CONTRACT.toLowerCase()
       );
 
       if (!cogniActionLog) {
@@ -205,9 +186,9 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       let merged = false;
       const startTime = Date.now();
 
-      while (!merged && (Date.now() - startTime) < TEST_CONFIG.WEBHOOK_TIMEOUT_MS) {
+      while (!merged && (Date.now() - startTime) < testConfig.WEBHOOK_TIMEOUT_MS) {
         // Check PR status
-        const prStatusJson = sh(`gh api repos/${TEST_CONFIG.TEST_REPO}/pulls/${prNumber}`, { env: envWithToken });
+        const prStatusJson = sh(`gh api repos/${testConfig.TEST_REPO}/pulls/${prNumber}`, { env: envWithToken });
         const prStatus = JSON.parse(prStatusJson);
 
         console.log(`PR #${prNumber} state: ${prStatus.state}, merged: ${prStatus.merged}`);
@@ -222,20 +203,20 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
           break;
         }
 
-        await sleep(TEST_CONFIG.POLL_INTERVAL_MS);
+        await sleep(testConfig.POLL_INTERVAL_MS);
       }
 
       // === PHASE 4: Validation ===
       if (!merged) {
         // Get logs for debugging
         try {
-          const logs = sh(`curl -s ${TEST_CONFIG.E2E_APP_URL}/api/v1/health`);
+          const logs = sh(`curl -s ${testConfig.E2E_APP_URL}/api/v1/health`);
           console.log('App health check:', logs);
         } catch (e) {
           console.log('Could not fetch app logs');
         }
 
-        throw new Error(`TIMEOUT: PR #${prNumber} was not merged within ${TEST_CONFIG.WEBHOOK_TIMEOUT_MS / 1000}s`);
+        throw new Error(`TIMEOUT: PR #${prNumber} was not merged within ${testConfig.WEBHOOK_TIMEOUT_MS / 1000}s`);
       }
 
       // Success! 🎉
@@ -243,10 +224,10 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
     } finally {
       // === CLEANUP ===
-      if (prNumber && TEST_CONFIG.GITHUB_TOKEN) {
+      if (prNumber && testConfig.GITHUB_TOKEN) {
         try {
           console.log('🧹 Cleaning up test branch...');
-          const envWithToken = { ...process.env, GH_TOKEN: TEST_CONFIG.GITHUB_TOKEN };
+          const envWithToken = { ...process.env, GH_TOKEN: testConfig.GITHUB_TOKEN };
 
           // Since PR was merged, just delete the branch
           sh(`git push origin --delete ${branch}`, {
