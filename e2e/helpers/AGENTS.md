@@ -7,6 +7,17 @@ Utilities and configuration for Playwright-based end-to-end tests.
 ### Global Setup (`global-setup.ts`)
 Playwright global setup that validates required environment variables before test execution.
 
+**Environment Validation:**
+- Base requirements: `E2E_APP_DEPLOYMENT_URL` (always required)
+- Fixture test requirements: `E2E_TEST_REPO_GITHUB_PAT` (optional but recommended)
+- Blockchain test requirements: `EVM_RPC_URL`, `WALLET_PRIVATE_KEY`, `SIGNAL_CONTRACT`, `ARAGON_ADMIN_PLUGIN_CONTRACT`, `DAO_ADDRESS`, `E2E_TEST_REPO`, `E2E_TEST_REPO_GITHUB_PAT`
+
+**Test Configuration:**
+- Exports `validateE2EEnvironment()` for centralized validation
+- Exports `getTestConfig()` for standardized configuration access
+- Creates `e2e/artifacts` directory for test outputs
+- Validates environment based on test type being run
+
 ### Playwright Setup (`playwright-setup.ts`)
 Test configuration helpers for Playwright test suite.
 

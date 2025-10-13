@@ -53,7 +53,7 @@ src/
 │  ├─ github.ts                  # GitHub API operations
 │  └─ logging.ts                 # Structured logging (planned)
 ├─ utils/                        # Stateless helpers
-│  ├─ env.ts                     # Environment validation
+│  ├─ env.ts                     # Three-tier environment validation (base/dev/e2e)
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/                    # Smart contract interfaces
@@ -99,29 +99,59 @@ e2e/
 - **Code Quality**: ESLint with TypeScript type checking and automatic import sorting enforced
 
 ## Environment Variables
+
+The application uses a three-tier validation system in `src/utils/env.ts` that validates environment variables on startup. The validation runs when `src/index.ts` imports the module, failing fast with clear error messages if required variables are missing or invalid:
+
+### Base Requirements (Production/Development)
 ```bash
-# Required
-EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
-CHAIN_ID=11155111
-SIGNAL_CONTRACT=0x<contract_address>
-DAO_ADDRESS=0x<dao_address>
+# Runtime Configuration
+NODE_ENV=development                   # development|test|production
+APP_ENV=dev                           # dev|preview|prod  
+PORT=3000                             # Server port
+LOG_LEVEL=info                        # trace|debug|info|warn|error|fatal
 
-# Optional (provider-specific)
-ALCHEMY_SIGNING_KEY=<hmac_key>
+# GitHub App Configuration
+APP_ID=<app_id>                      # GitHub App ID
+PRIVATE_KEY=<private_key>            # GitHub App private key (PEM format)
+WEBHOOK_SECRET=<secret>              # GitHub webhook verification secret
+GITHUB_CLIENT_ID=<client_id>         # GitHub OAuth client ID
+GITHUB_CLIENT_SECRET=<client_secret> # GitHub OAuth client secret
 
-# E2E Testing
-# See e2e/AGENTS.md for complete environment variable reference
-E2E_APP_DEPLOYMENT_URL=<deployment_url>       # Target deployment for E2E tests
-E2E_TEST_REPO_GITHUB_PAT=<github_token>       # GitHub PAT for API operations
-EVM_RPC_URL=<rpc_endpoint>            # Sepolia RPC for blockchain tests
-WALLET_PRIVATE_KEY=<private_key>     # Test wallet for transactions
-E2E_TEST_REPO=<owner/repo>                    # Target test repository
+# Blockchain Configuration
+CHAIN_ID=11155111                     # Chain ID (e.g., 11155111 for Sepolia)
+SIGNAL_CONTRACT=0x<address>          # CogniSignal contract address
+DAO_ADDRESS=0x<address>              # DAO contract address
+EVM_RPC_URL=https://...              # Ethereum RPC endpoint
 
-# Webhook Capture (development)
-CAPTURE_PORT=4001                      # Capture server port
-FIXTURE_CAPTURE_DIR=./fixtures         # Fixture storage directory
-ALCHEMY_PROXY_URL=<smee_url>          # Smee proxy for Alchemy webhooks
-WEBHOOK_PROXY_URL=<smee_url>          # Smee proxy for GitHub webhooks
+# Webhook Verification
+ALCHEMY_SIGNING_KEY=<key>            # Alchemy webhook HMAC key
+```
+
+### Development Options
+```bash
+# Optional development tools
+WEBHOOK_PROXY_URL=<smee_url>        # Smee proxy for GitHub webhooks
+ALCHEMY_PROXY_URL=<smee_url>        # Smee proxy for Alchemy webhooks  
+CAPTURE_PORT=4001                    # Webhook capture server port
+FIXTURE_CAPTURE_DIR=./test/fixtures  # Fixture storage directory
+```
+
+### E2E Testing Requirements
+Activated when `NODE_ENV=test` or `E2E_ENABLED=1`:
+```bash
+# Infrastructure Targets
+E2E_APP_DEPLOYMENT_URL=<url>         # Target deployment URL
+E2E_TEST_REPO=<owner/repo>           # GitHub repository for testing
+E2E_TEST_REPO_GITHUB_PAT=<token>     # GitHub PAT with repo permissions
+
+# Blockchain Test Configuration
+ARAGON_ADMIN_PLUGIN_CONTRACT=0x<address>  # Aragon Admin Plugin address
+WALLET_PRIVATE_KEY=<key>             # Test wallet private key
+
+# Test Timing Configuration
+E2E_WEBHOOK_TIMEOUT_MS=120000        # Webhook processing timeout
+E2E_POLL_INTERVAL_MS=5000            # Status check interval
+E2E_TEST_ADMIN_USERNAME=cogni-test-user  # Test admin username
 ```
 
 ## Development

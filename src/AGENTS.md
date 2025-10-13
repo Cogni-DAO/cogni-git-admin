@@ -6,7 +6,7 @@ Clean architecture with separation of concerns: API handlers, core domain logic,
 ## Key Components
 
 ### Entry Points
-- **`index.ts`**: Probot application bootstrap with route mounting
+- **`index.ts`**: Probot application bootstrap with environment validation and route mounting
 - **`routes.ts`**: Central route registration for versioned API
 
 ### API Layer (`api/`)
@@ -36,7 +36,7 @@ Clean architecture with separation of concerns: API handlers, core domain logic,
 - **`registry.ts`**: Provider adapter registry
 
 ### Utilities (`utils/`)
-- **`env.ts`**: Environment variable validation
+- **`env.ts`**: Three-tier environment variable validation system (base/dev/e2e schemas)
 - **`hmac.ts`**: HMAC signature verification
 - **`idempotency.ts`**: Deduplication logic
 
