@@ -7,6 +7,7 @@ import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
 import { RequestWithRawBody } from '../../../../utils/hmac';
+import { environment } from '../../../../utils/env';
 
 export async function handleCogniSignal(req: RequestWithRawBody, res: Response, logger: Application['log'], app: Application) {
   try {
@@ -37,17 +38,17 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     }
     logger.info('✅ [WEBHOOK] Transaction hashes parsed', { txHashes });
 
-    const chainId = process.env.CHAIN_ID;
-    if (!chainId) {
-      logger.error('❌ [WEBHOOK] CHAIN_ID environment variable is required');
+    if (!environment.CHAIN_ID || !environment.DAO_ADDRESS || !environment.SIGNAL_CONTRACT) {
+      logger.error('❌ [WEBHOOK] Required blockchain environment variables not configured');
       return res.status(500).send('Server configuration error');
     }
-    const allowChain = BigInt(chainId);
-    const allowDao = (process.env.DAO_ADDRESS || '').toLowerCase();
+    
+    const allowChain = BigInt(environment.CHAIN_ID);
+    const allowDao = environment.DAO_ADDRESS.toLowerCase();
     logger.info('🔧 [WEBHOOK] Environment validation config', {
       allowChain: allowChain.toString(),
       allowDao,
-      signalContract: process.env.SIGNAL_CONTRACT
+      signalContract: environment.SIGNAL_CONTRACT
     });
 
     let validEventsFound = 0;
@@ -56,7 +57,7 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
     for (const txHash of txHashes) {
       logger.info('🔍 [WEBHOOK] Processing transaction', { txHash });
 
-      const out = await fetchCogniFromTx(txHash as `0x${string}`, process.env.SIGNAL_CONTRACT as `0x${string}`);
+      const out = await fetchCogniFromTx(txHash as `0x${string}`, environment.SIGNAL_CONTRACT as `0x${string}`);
       if (!out) {
         logger.info('❌ [WEBHOOK] No CogniAction events found in transaction', { txHash });
         continue;

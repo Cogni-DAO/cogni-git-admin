@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import express, { Request } from 'express';
 
+import { environment } from './env';
+
 export interface RequestWithRawBody extends Request {
   rawBody: Buffer;
 }
@@ -15,7 +17,7 @@ export function rawJson() {
 }
 
 export function verifyAlchemyHmac(req: RequestWithRawBody) {
-  const key = process.env.ALCHEMY_SIGNING_KEY; 
+  const key = environment.ALCHEMY_SIGNING_KEY; 
   if (!key) return true;
   
   const sig = req.get('X-Alchemy-Signature') || '';

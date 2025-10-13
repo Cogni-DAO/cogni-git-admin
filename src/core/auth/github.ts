@@ -1,3 +1,5 @@
+import { environment } from '../../utils/env';
+
 export function getInstallationId(dao: string, repo: string): number {
   // TODO: Replace with database lookup mapping DAO+repo to GitHub App installation ID
   // TODO: Validate that DAO has permission for this repo
@@ -7,7 +9,7 @@ export function getInstallationId(dao: string, repo: string): number {
   if (dao.toLowerCase() === '0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5' && repo === 'derekg1729/test-repo') {
 
     // Still SUPER temporary glue code for testing purposes
-    if (process.env.NODE_ENV === 'production') {
+    if (environment.NODE_ENV === 'production') {
       // Preview app's installation ID on test-repo
       return 89353955;
     } else {
