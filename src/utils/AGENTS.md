@@ -10,17 +10,17 @@ Small, stateless helper functions used across the application.
 - Common data transformations
 
 ## Current Implementation
-- **env.ts**: Three-tier environment variable validation system with Zod schemas
-  - Base schema: Core requirements for all environments (GitHub App config, chain settings, webhook keys)
-  - Dev schema: Optional development tools (proxy URLs, capture settings)
-  - E2E schema: Test-specific configuration (activated when NODE_ENV=test or E2E_ENABLED=1)
+- **env.ts**: Two-tier environment variable validation system with Zod schemas
+  - Base schema: Core requirements with conditional validation - fields required in production, optional in development/test modes (NODE_ENV=development or test)
+  - Dev schema: Optional development tools (proxy URLs, capture settings, GitHub OAuth client credentials)
   - Validates on import, fails fast with clear error messages
   - Exports typed `environment` object for runtime access
+  - GitHub OAuth credentials moved to dev schema as dev-only configuration
 - **hmac.ts**: HMAC signature verification for webhook security
 - **idempotency.ts**: Transaction deduplication logic
 
 ## Structure
-- `env.ts` - Three-tier environment variable validation with conditional E2E requirements
+- `env.ts` - Two-tier environment variable validation with conditional requirements based on NODE_ENV
 - `hmac.ts` - HMAC signature verification utilities
 - `idempotency.ts` - Transaction deduplication logic
 

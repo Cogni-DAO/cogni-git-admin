@@ -53,7 +53,7 @@ src/
 │  ├─ github.ts                  # GitHub API operations
 │  └─ logging.ts                 # Structured logging (planned)
 ├─ utils/                        # Stateless helpers
-│  ├─ env.ts                     # Three-tier environment validation (base/dev/e2e)
+│  ├─ env.ts                     # Two-tier environment validation (base/dev with conditional requirements)
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/                    # Smart contract interfaces
@@ -100,7 +100,7 @@ e2e/
 
 ## Environment Variables
 
-The application uses a three-tier validation system in `src/utils/env.ts` that validates environment variables on startup. The validation runs when `src/index.ts` imports the module, failing fast with clear error messages if required variables are missing or invalid:
+The application uses a two-tier validation system in `src/utils/env.ts` that validates environment variables on startup. The validation runs when `src/index.ts` imports the module, failing fast with clear error messages if required variables are missing or invalid:
 
 ### Base Requirements (Production/Development)
 ```bash
@@ -110,20 +110,18 @@ APP_ENV=dev                           # dev|preview|prod
 PORT=3000                             # Server port
 LOG_LEVEL=info                        # trace|debug|info|warn|error|fatal
 
-# GitHub App Configuration
+# GitHub App Configuration (required in production, optional in dev/test)
 APP_ID=<app_id>                      # GitHub App ID
-PRIVATE_KEY=<private_key>            # GitHub App private key (PEM format)
+PRIVATE_KEY=<private_key>            # GitHub App private key (PEM format, handled by Probot)
 WEBHOOK_SECRET=<secret>              # GitHub webhook verification secret
-GITHUB_CLIENT_ID=<client_id>         # GitHub OAuth client ID
-GITHUB_CLIENT_SECRET=<client_secret> # GitHub OAuth client secret
 
-# Blockchain Configuration
+# Blockchain Configuration (required in production, optional in dev/test)
 CHAIN_ID=11155111                     # Chain ID (e.g., 11155111 for Sepolia)
 SIGNAL_CONTRACT=0x<address>          # CogniSignal contract address
 DAO_ADDRESS=0x<address>              # DAO contract address
 EVM_RPC_URL=https://...              # Ethereum RPC endpoint
 
-# Webhook Verification
+# Webhook Verification (required in production, optional in dev/test)
 ALCHEMY_SIGNING_KEY=<key>            # Alchemy webhook HMAC key
 ```
 
@@ -134,6 +132,10 @@ WEBHOOK_PROXY_URL=<smee_url>        # Smee proxy for GitHub webhooks
 ALCHEMY_PROXY_URL=<smee_url>        # Smee proxy for Alchemy webhooks  
 CAPTURE_PORT=4001                    # Webhook capture server port
 FIXTURE_CAPTURE_DIR=./test/fixtures  # Fixture storage directory
+
+# GitHub OAuth (dev-only, not used in production)
+GITHUB_CLIENT_ID=<client_id>         # GitHub OAuth client ID
+GITHUB_CLIENT_SECRET=<client_secret> # GitHub OAuth client secret
 ```
 
 ### E2E Testing Requirements

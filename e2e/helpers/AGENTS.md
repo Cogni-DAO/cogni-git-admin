@@ -18,6 +18,26 @@ Playwright global setup that validates required environment variables before tes
 - Creates `e2e/artifacts` directory for test outputs
 - Validates environment based on test type being run
 
+### Test Configuration (`test-config.ts`)
+Shared configuration object for all E2E tests that combines environment values with application environment.
+
+**Configuration Sources:**
+- Blockchain settings from `environment` object: `SIGNAL_CONTRACT`, `DAO_ADDRESS`, `EVM_RPC_URL`
+- E2E-specific values from `process.env`: `ARAGON_ADMIN_PLUGIN_CONTRACT`, `WALLET_PRIVATE_KEY`, `E2E_TEST_REPO`, `E2E_TEST_REPO_GITHUB_PAT`, `E2E_APP_DEPLOYMENT_URL`
+- Default values: `TEST_USERNAME` (defaults to 'cogni-test-user'), timeouts for webhook and polling intervals
+
+**Exported Configuration:**
+```typescript
+testConfig = {
+  // Blockchain from environment object
+  SIGNAL_CONTRACT, DAO_ADDRESS, EVM_RPC_URL,
+  // E2E-specific from process.env
+  ARAGON_ADMIN_PLUGIN_CONTRACT, PRIVATE_KEY, TEST_REPO, GITHUB_TOKEN, E2E_APP_URL,
+  // Defaults and timeouts
+  TEST_USERNAME, WEBHOOK_TIMEOUT_MS, POLL_INTERVAL_MS
+}
+```
+
 ### Playwright Setup (`playwright-setup.ts`)
 Test configuration helpers for Playwright test suite.
 
