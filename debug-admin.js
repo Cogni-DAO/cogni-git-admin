@@ -22,7 +22,7 @@ const adminPluginAbi = parseAbi([
 ]);
 
 const config = {
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT,
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
   ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
   EVM_RPC_URL: process.env.EVM_RPC_URL,
   PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
@@ -53,7 +53,7 @@ async function debugAdminPlugin() {
 
   console.log(`Wallet: ${account.address}`);
   console.log(`Admin Plugin: ${config.ADMIN_PLUGIN_CONTRACT}`);
-  console.log(`CogniSignal: ${config.COGNISIGNAL_CONTRACT}\n`);
+  console.log(`CogniSignal: ${config.SIGNAL_CONTRACT}\n`);
 
   try {
     // 1. Check wallet balance
@@ -81,7 +81,7 @@ async function debugAdminPlugin() {
     // 3. Prepare the same action as in test
     const testPrNumber = 999; // dummy PR for testing
     const actions = [{
-      to: config.COGNISIGNAL_CONTRACT,
+      to: config.SIGNAL_CONTRACT,
       value: BigInt(0),
       data: encodeFunctionData({
         abi: cogniSignalAbi,

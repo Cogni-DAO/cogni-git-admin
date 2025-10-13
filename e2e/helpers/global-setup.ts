@@ -36,7 +36,7 @@ export const validateE2EEnvironment = () => {
   const requiredBlockchain = [
     'EVM_RPC_URL',
     'E2E_TEST_WALLET_PRIVATE_KEY',
-    'E2E_COGNISIGNAL_CONTRACT',
+    'SIGNAL_CONTRACT',
     'E2E_ADMIN_PLUGIN_CONTRACT',
     'E2E_DAO_ADDRESS',
     'E2E_TEST_REPO',
@@ -63,7 +63,7 @@ export const validateE2EEnvironment = () => {
     console.log('✅ Blockchain environment validated');
     console.log(`- RPC: ${process.env.EVM_RPC_URL?.substring(0, 50)}...`);
     console.log(`- DAO: ${process.env.E2E_DAO_ADDRESS}`);
-    console.log(`- CogniSignal: ${process.env.E2E_COGNISIGNAL_CONTRACT}`);
+    console.log(`- CogniSignal: ${process.env.SIGNAL_CONTRACT}`);
     console.log(`- Admin Plugin: ${process.env.E2E_ADMIN_PLUGIN_CONTRACT}`);
   }
 
@@ -88,7 +88,7 @@ export const getTestConfig = () => {
     // Blockchain configuration (only if running blockchain tests)
     EVM_RPC_URL: process.env.EVM_RPC_URL,
     PRIVATE_KEY: process.env.E2E_TEST_WALLET_PRIVATE_KEY,
-    COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT,
+    SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT,
     ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT,
     DAO_ADDRESS: process.env.E2E_DAO_ADDRESS,
 

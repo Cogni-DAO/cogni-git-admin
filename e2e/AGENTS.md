@@ -41,7 +41,7 @@ E2E_TEST_ADMIN_USERNAME=cogni-test-user       # Test username for admin manageme
 # Blockchain Configuration (for blockchain integration tests)
 EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY  # Sepolia RPC endpoint
 E2E_TEST_WALLET_PRIVATE_KEY=0x...                                    # Test wallet private key
-E2E_COGNISIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
+SIGNAL_CONTRACT=0x...                                       # CogniSignal contract address
 E2E_ADMIN_PLUGIN_CONTRACT=0x...                                      # Aragon Admin Plugin address
 E2E_DAO_ADDRESS=0x...                                                # DAO address
 ```

@@ -27,7 +27,7 @@ jobs:
       E2E_TEST_WALLET_PRIVATE_KEY: ${{ secrets.E2E_TEST_WALLET_PRIVATE_KEY }}
       
       # Contract Addresses (Vars for public data)
-      E2E_COGNISIGNAL_CONTRACT: ${{ vars.E2E_COGNISIGNAL_CONTRACT }}
+      SIGNAL_CONTRACT: ${{ vars.SIGNAL_CONTRACT }}
       E2E_ADMIN_PLUGIN_CONTRACT: ${{ vars.E2E_ADMIN_PLUGIN_CONTRACT }}
       E2E_DAO_ADDRESS: ${{ vars.E2E_DAO_ADDRESS }}
       

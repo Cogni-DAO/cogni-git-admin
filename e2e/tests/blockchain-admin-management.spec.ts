@@ -31,7 +31,7 @@ const adminPluginAbi = parseAbi([
 // Test configuration from environment variables
 const TEST_CONFIG = {
   // Blockchain Configuration
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
   ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
   DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
   EVM_RPC_URL: process.env.EVM_RPC_URL!,
@@ -76,7 +76,7 @@ test.beforeAll(async () => {
 
   // Validate required environment variables
   const requiredEnvVars = [
-    'E2E_COGNISIGNAL_CONTRACT',
+    'SIGNAL_CONTRACT',
     'E2E_ADMIN_PLUGIN_CONTRACT',
     'E2E_DAO_ADDRESS',
     'EVM_RPC_URL',
@@ -93,7 +93,7 @@ test.beforeAll(async () => {
   }
 
   console.log('✅ E2E Setup Complete');
-  console.log(`- Contract: ${TEST_CONFIG.COGNISIGNAL_CONTRACT}`);
+  console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
   console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
   console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
   console.log(`- Test Username: ${TEST_CONFIG.TEST_USERNAME}`);
@@ -166,7 +166,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     const addAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
+        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: addAdminCalldata
       }],
@@ -211,7 +211,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     const removeAdminTx = await adminPlugin.write.createProposal([
       '0x', // metadata
       [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`,
+        to: TEST_CONFIG.SIGNAL_CONTRACT as `0x${string}`,
         value: 0n,
         data: removeAdminCalldata
       }],

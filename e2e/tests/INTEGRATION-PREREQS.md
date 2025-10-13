@@ -8,7 +8,7 @@
 |----------|---------------|---------|
 | `EVM_RPC_URL` | `https://eth-sepolia.g.alchemy.com/v2/d-5ZoOLWfQQSzyHMauO3D` | Sepolia testnet RPC endpoint for blockchain interactions |
 | `E2E_TEST_WALLET_PRIVATE_KEY` | `0x14788f1aa7e87f69ebb28d8a3369f1f55ffcfc3db349602f4041baaa0dde0ac1` | Test wallet private key (must have Sepolia ETH for gas) |
-| `E2E_COGNISIGNAL_CONTRACT` | `0x8f26cf7b9ca6790385e255e8ab63acc35e7b9fb1` | CogniSignal contract address on Sepolia |
+| `SIGNAL_CONTRACT` | `0x8f26cf7b9ca6790385e255e8ab63acc35e7b9fb1` | CogniSignal contract address on Sepolia |
 | `E2E_ADMIN_PLUGIN_CONTRACT` | `0x77BA7C0663b2f48F295E12e6a149F4882404B4ea` | Aragon Admin Plugin contract address |
 | `E2E_DAO_ADDRESS` | `0xB0FcB5Ae33DFB4829f663458798E5e3843B21839` | DAO address that owns the Admin Plugin |
 

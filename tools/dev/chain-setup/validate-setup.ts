@@ -32,7 +32,7 @@ const CONFIG = {
   // Required Environment Variables
   EVM_RPC_URL: requireEnv('EVM_RPC_URL'),
   PRIVATE_KEY: requireEnv('E2E_TEST_WALLET_PRIVATE_KEY'),
-  COGNISIGNAL_CONTRACT: requireEnv('E2E_COGNISIGNAL_CONTRACT'),
+  SIGNAL_CONTRACT: requireEnv('SIGNAL_CONTRACT'),
   ADMIN_PLUGIN_CONTRACT: requireEnv('E2E_ADMIN_PLUGIN_CONTRACT'),
   DAO_ADDRESS: requireEnv('E2E_DAO_ADDRESS'),
   TEST_REPO: requireEnv('E2E_TEST_REPO'),
@@ -119,9 +119,9 @@ class SetupValidator {
     }
 
     // Validate contract addresses format  
-    const contractAddresses = [CONFIG.COGNISIGNAL_CONTRACT, CONFIG.ADMIN_PLUGIN_CONTRACT, CONFIG.DAO_ADDRESS];
+    const contractAddresses = [CONFIG.SIGNAL_CONTRACT, CONFIG.ADMIN_PLUGIN_CONTRACT, CONFIG.DAO_ADDRESS];
     for (const [name, address] of [
-      ['CogniSignal Contract', CONFIG.COGNISIGNAL_CONTRACT],
+      ['CogniSignal Contract', CONFIG.SIGNAL_CONTRACT],
       ['Admin Plugin Contract', CONFIG.ADMIN_PLUGIN_CONTRACT],
       ['DAO Address', CONFIG.DAO_ADDRESS]
     ]) {
@@ -218,7 +218,7 @@ class SetupValidator {
     // Check CogniSignal contract
     try {
       const cogniSignalCode = await this.publicClient.getBytecode({
-        address: CONFIG.COGNISIGNAL_CONTRACT as `0x${string}`
+        address: CONFIG.SIGNAL_CONTRACT as `0x${string}`
       });
 
       if (cogniSignalCode && cogniSignalCode !== '0x') {

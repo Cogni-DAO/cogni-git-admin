@@ -32,7 +32,7 @@ const adminPluginAbi = parseAbi([
 // Test configuration from environment variables
 const TEST_CONFIG = {
   // Blockchain Configuration
-  COGNISIGNAL_CONTRACT: process.env.E2E_COGNISIGNAL_CONTRACT!,
+  SIGNAL_CONTRACT: process.env.SIGNAL_CONTRACT!,
   ADMIN_PLUGIN_CONTRACT: process.env.E2E_ADMIN_PLUGIN_CONTRACT!,
   DAO_ADDRESS: process.env.E2E_DAO_ADDRESS!,
   EVM_RPC_URL: process.env.EVM_RPC_URL!,
@@ -70,7 +70,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
   test.beforeAll(async () => {
     // Validate required environment variables
     const requiredEnvVars = [
-      'E2E_COGNISIGNAL_CONTRACT',
+      'SIGNAL_CONTRACT',
       'E2E_ADMIN_PLUGIN_CONTRACT',
       'E2E_DAO_ADDRESS',
       'EVM_RPC_URL',
@@ -109,7 +109,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     });
 
     console.log(`✅ E2E Setup Complete`);
-    console.log(`- Contract: ${TEST_CONFIG.COGNISIGNAL_CONTRACT}`);
+    console.log(`- Contract: ${TEST_CONFIG.SIGNAL_CONTRACT}`);
     console.log(`- DAO: ${TEST_CONFIG.DAO_ADDRESS}`);
     console.log(`- Test Repo: ${TEST_CONFIG.TEST_REPO}`);
     console.log(`- App URL: ${TEST_CONFIG.E2E_APP_URL}`);
@@ -158,7 +158,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
       // Create proposal to execute signal() function
       const actions = [{
-        to: TEST_CONFIG.COGNISIGNAL_CONTRACT,
+        to: TEST_CONFIG.SIGNAL_CONTRACT,
         value: BigInt(0),
         data: encodeFunctionData({
           abi: cogniSignalAbi,
@@ -190,7 +190,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
       // Verify CogniAction event was emitted (from the executed proposal)
       const cogniActionLog = receipt.logs.find((log: any) =>
-        log.address.toLowerCase() === TEST_CONFIG.COGNISIGNAL_CONTRACT.toLowerCase()
+        log.address.toLowerCase() === TEST_CONFIG.SIGNAL_CONTRACT.toLowerCase()
       );
 
       if (!cogniActionLog) {
