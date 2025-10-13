@@ -2,7 +2,11 @@ import { z } from "zod";
 
 /** helpers */
 const isEthAddr = /^0x[a-fA-F0-9]{40}$/;
-const redact = (v: string) => (v?.length > 8 ? `${v.slice(0,4)}…${v.slice(-4)}` : "set");
+
+// Check if we're in development/test mode (for CI/testing environments)
+// In development/test, make required fields optional to allow testing without production secrets
+// This prevents CI failures when imports trigger environment validation
+const isDevelopmentMode = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
 
 /** base required for app runtime (prod, preview, dev) */
 const baseSchema = z.object({
@@ -12,26 +16,21 @@ const baseSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(["trace","debug","info","warn","error","fatal"]).default("info"),
 
-  // GitHub App (all required)
-  APP_ID: z.coerce.number().int().positive(),
-  PRIVATE_KEY: z.string().min(1).transform((s) => {
-    const t = s.trim();
-    if (t.includes("BEGIN RSA")) return t; // already PEM
-    // allow single-line PK from env providers
-    return `-----BEGIN RSA PRIVATE KEY-----\n${t}\n-----END RSA PRIVATE KEY-----`;
-  }),
-  WEBHOOK_SECRET: z.string().min(1),
-  GITHUB_CLIENT_ID: z.string().min(1),
-  GITHUB_CLIENT_SECRET: z.string().min(1),
+  // GitHub App (required in production, optional in dev/test)
+  // Note: PRIVATE_KEY is handled entirely by Probot framework, not accessible via env.ts
+  APP_ID: isDevelopmentMode ? z.coerce.number().int().positive().optional() : z.coerce.number().int().positive(),
+  WEBHOOK_SECRET: isDevelopmentMode ? z.string().optional() : z.string().min(1),
+  GITHUB_CLIENT_ID: isDevelopmentMode ? z.string().optional() : z.string().min(1),
+  GITHUB_CLIENT_SECRET: isDevelopmentMode ? z.string().optional() : z.string().min(1),
 
-  // Chain core (app needs to parse and verify signals)
-  CHAIN_ID: z.coerce.number().int().positive(),
-  SIGNAL_CONTRACT: z.string().regex(isEthAddr, "invalid EVM address"),
-  DAO_ADDRESS: z.string().regex(isEthAddr, "invalid EVM address"),
-  EVM_RPC_URL: z.string().url(),
+  // Chain core (required in production, optional in dev/test)
+  CHAIN_ID: isDevelopmentMode ? z.coerce.number().int().positive().optional() : z.coerce.number().int().positive(),
+  SIGNAL_CONTRACT: isDevelopmentMode ? z.string().optional() : z.string().regex(isEthAddr, "invalid EVM address"),
+  DAO_ADDRESS: isDevelopmentMode ? z.string().optional() : z.string().regex(isEthAddr, "invalid EVM address"),
+  EVM_RPC_URL: isDevelopmentMode ? z.string().optional() : z.string().url(),
 
-  // Webhook verification
-  ALCHEMY_SIGNING_KEY: z.string().min(1),
+  // Webhook verification (required in production, optional in dev/test)
+  ALCHEMY_SIGNING_KEY: isDevelopmentMode ? z.string().optional() : z.string().min(1),
 });
 
 /** dev-only knobs (optional) */
@@ -76,23 +75,17 @@ if (!parsed.success) {
 
 const env = parsed.data;
 
-/** minimal redacted log in non-prod */
+/** safe log in non-prod */
 if (env.APP_ENV !== "prod") {
-  const summary = {
+  console.info("env ok:", {
     APP_ENV: env.APP_ENV,
     NODE_ENV: env.NODE_ENV,
     APP_ID: env.APP_ID,
+    CHAIN_ID: env.CHAIN_ID,
     SIGNAL_CONTRACT: env.SIGNAL_CONTRACT,
     DAO_ADDRESS: env.DAO_ADDRESS,
-    EVM_RPC_URL: env.EVM_RPC_URL,
-    GITHUB_CLIENT_ID: redact(env.GITHUB_CLIENT_ID),
-    PRIVATE_KEY: "loaded",
-    WEBHOOK_SECRET: "set",
-    ALCHEMY_SIGNING_KEY: "set",
     E2E_ENABLED: wantsE2E ? "1" : "0",
-  };
-  // eslint-disable-next-line no-console
-  console.info("env ok:", summary);
+  });
 }
 
 export type Env = z.infer<typeof schema>;
