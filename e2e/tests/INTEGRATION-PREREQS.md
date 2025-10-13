@@ -104,7 +104,7 @@
 ### 3. GitHub App Configuration
 - cogni-git-admin GitHub App must be installed on `derekg1729/test-repo`
 - App must have merge permissions and webhook processing enabled
-- Repository must match `E2E_TEST_REPO` and `ALLOWED_REPO` settings
+- Repository must match `E2E_TEST_REPO` setting
 
 ### 4. Network Connectivity
 - Test environment must reach Sepolia RPC endpoint

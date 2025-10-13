@@ -105,7 +105,6 @@ EVM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>
 CHAIN_ID=11155111
 SIGNAL_CONTRACT=0x<contract_address>
 ALLOWED_DAO=0x<dao_address>
-ALLOWED_REPO=owner/repo
 
 # Optional (provider-specific)
 ALCHEMY_SIGNING_KEY=<hmac_key>

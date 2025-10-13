@@ -12,7 +12,6 @@ const requiredEnvSchema = z.object({
   CHAIN_ID: z.coerce.number().min(1),
   SIGNAL_CONTRACT: z.string().min(1),
   ALLOWED_DAO: z.string().min(1),
-  ALLOWED_REPO: z.string().min(1),
   EVM_RPC_URL: z.string().url(),
 
   // Alchemy (for webhook verification)
