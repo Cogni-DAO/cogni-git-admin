@@ -136,7 +136,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     });
 
     const adminPlugin = getContract({
-      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: { public: publicClient, wallet: walletClient }
     });

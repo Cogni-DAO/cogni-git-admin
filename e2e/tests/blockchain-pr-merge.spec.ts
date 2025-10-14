@@ -84,7 +84,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
     // Setup admin plugin contract interface
     adminPlugin = getContract({
-      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: walletClient,
     });
