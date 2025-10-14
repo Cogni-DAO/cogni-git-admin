@@ -75,7 +75,7 @@ test.beforeAll(async () => {
   console.log(`- DAO: ${testConfig.DAO_ADDRESS}`);
   console.log(`- Test Repo: ${testConfig.TEST_REPO}`);
   console.log(`- Test Username: ${testConfig.TEST_USERNAME}`);
-  console.log(`- App URL: ${testConfig.E2E_APP_URL}`);
+  console.log(`- App URL: ${testConfig.E2E_APP_DEPLOYMENT_URL}`);
 });
 
 test.describe('Complete E2E: DAO Admin Management', () => {
@@ -136,7 +136,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     });
 
     const adminPlugin = getContract({
-      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: { public: publicClient, wallet: walletClient }
     });

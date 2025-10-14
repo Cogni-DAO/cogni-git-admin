@@ -66,7 +66,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
 
-    // E2E_APP_URL can be localhost for development or deployed URL for CI/production
+    // E2E_APP_DEPLOYMENT_URL can be localhost for development or deployed URL for CI/production
 
     // Setup blockchain clients
     publicClient = createPublicClient({
@@ -84,7 +84,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
 
     // Setup admin plugin contract interface
     adminPlugin = getContract({
-      address: testConfig.ADMIN_PLUGIN_CONTRACT as `0x${string}`,
+      address: testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT as `0x${string}`,
       abi: adminPluginAbi,
       client: walletClient,
     });
@@ -93,7 +93,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
     console.log(`- Contract: ${testConfig.SIGNAL_CONTRACT}`);
     console.log(`- DAO: ${testConfig.DAO_ADDRESS}`);
     console.log(`- Test Repo: ${testConfig.TEST_REPO}`);
-    console.log(`- App URL: ${testConfig.E2E_APP_URL}`);
+    console.log(`- App URL: ${testConfig.E2E_APP_DEPLOYMENT_URL}`);
   });
 
   test('should complete DAO vote → PR merge workflow', async () => {
@@ -210,7 +210,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       if (!merged) {
         // Get logs for debugging
         try {
-          const logs = sh(`curl -s ${testConfig.E2E_APP_URL}/api/v1/health`);
+          const logs = sh(`curl -s ${testConfig.E2E_APP_DEPLOYMENT_URL}/api/v1/health`);
           console.log('App health check:', logs);
         } catch (e) {
           console.log('Could not fetch app logs');

@@ -40,3 +40,12 @@ npm run e2e:blockchain    # Blockchain integration tests only
 - Configuration combines `environment` object values with E2E-specific `process.env` values
 - Eliminates duplicate TEST_CONFIG objects across test files
 - See `e2e/helpers/global-setup.ts` for centralized validation logic
+
+### Contract Integration
+- Tests access Aragon Admin Plugin via `testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT`
+- Uses `getContract()` with proper ABI including 5-parameter `createProposal` signature
+- Property naming: Use full `ARAGON_ADMIN_PLUGIN_CONTRACT` name, not shortened `ADMIN_PLUGIN_CONTRACT`
+
+### Recent Fixes
+- **Property Name Mismatch (Oct 2025)**: Fixed undefined contract address issue where tests referenced `testConfig.ADMIN_PLUGIN_CONTRACT` instead of correct `testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT`
+- **Error Resolution**: "EVM error: OpcodeNotFound" was caused by attempting contract calls on undefined address, not blockchain issues
