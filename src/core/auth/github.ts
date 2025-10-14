@@ -6,7 +6,7 @@ export function getInstallationId(dao: string, repo: string): number {
   // TODO: Support multiple installations per DAO
   
   // MVP: Hardcoded mapping
-  if (dao.toLowerCase() === '0xa38d03ea38c45c1b6a37472d8df78a47c1a31eb5' && repo === 'derekg1729/test-repo') {
+  if (dao.toLowerCase() === environment.DAO_ADDRESS?.toLowerCase() && repo === 'derekg1729/test-repo') {
 
     // Still SUPER temporary glue code for testing purposes
     if (environment.NODE_ENV === 'production') {

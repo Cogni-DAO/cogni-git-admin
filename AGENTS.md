@@ -156,6 +156,54 @@ E2E_POLL_INTERVAL_MS=5000            # Status check interval
 E2E_TEST_ADMIN_USERNAME=cogni-test-user  # Test admin username
 ```
 
+## AragonOSxProvider Integration (October 2025)
+
+### 🎉 Plug-and-Play Setup with cogni-gov-contracts
+
+The `cogni-gov-contracts` repository's AragonOSxProvider script generates **100% compatible** environment variables for cogni-git-admin e2e tests.
+
+#### Quick Setup Process
+
+1. **Deploy DAO** (in cogni-gov-contracts):
+   ```bash
+   cd /path/to/cogni-gov-contracts
+   # Deploy DAO with AragonOSxProvider
+   forge script script/SetupDevChain.s.sol --rpc-url $EVM_RPC_URL --broadcast
+   ```
+
+2. **Copy Generated Variables** (generated at `cogni-gov-contracts/script/.env.TOKEN`):
+   ```bash
+   # Copy/paste these variables directly into cogni-git-admin/.env:
+   WALLET_PRIVATE_KEY=0x...
+   EVM_RPC_URL=https://...
+   SIGNAL_CONTRACT=0x...
+   DAO_ADDRESS=0x...
+   ARAGON_ADMIN_PLUGIN_CONTRACT=0x...
+   CHAIN_ID=11155111
+   ```
+
+3. **Run E2E Tests**:
+   ```bash
+   cd /path/to/cogni-git-admin
+   npm run e2e:blockchain  # Should pass immediately
+   ```
+
+#### Key Features
+
+- **✅ Dynamic DAO Mapping**: GitHub installation automatically uses `environment.DAO_ADDRESS` 
+- **✅ Real Aragon Contracts**: Uses official Aragon OSx DAO with Admin Plugin v1.2
+- **✅ Complete Workflow**: DAO vote → blockchain event → webhook → GitHub action
+- **✅ Zero Manual Configuration**: All addresses generated and mapped automatically
+
+#### Current Limitations
+
+⚠️ **This is a brittle proof of concept**:
+
+- **Single Wallet**: Same wallet deploys AND executes all DAO operations (not true governance)
+- **Hardcoded Repository**: Only works with `derekg1729/test-repo`
+- **Immediate Execution**: Admin Plugin configured for instant execution (no voting period)
+- **Environment-Specific**: Requires manual GitHub App installation management
+
 ## Development
 ```bash
 npm run dev        # Start with nodemon
