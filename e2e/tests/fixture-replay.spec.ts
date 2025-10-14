@@ -179,7 +179,7 @@ async function runE2ETest(options: Partial<E2EOptions> = {}): Promise<E2EResult>
 }
 
 test.describe('Saved Webhook Redelivery E2E Tests', () => {
-  test('should process captured Alchemy webhook fixture successfully', async () => {
+  test.skip('should process captured Alchemy webhook fixture successfully', async () => {
     const options = parseE2EOptionsFromEnv();
     const result = await runE2ETest(options);
     

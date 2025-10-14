@@ -4,7 +4,7 @@
 Playwright test files for end-to-end validation of cogni-git-admin.
 
 ## Structure
-- `fixture-replay.spec.ts` - Fast webhook fixture replay tests (30s timeout)
+- `fixture-replay.spec.ts` - **SKIPPED** - Webhook fixture replay (signing key conflicts across environments)
 - `blockchain-pr-merge.spec.ts` - Complete DAO → blockchain → PR merge workflow (5min timeout)
 - `blockchain-admin-management.spec.ts` - Complete ADD_ADMIN → REMOVE_ADMIN workflow test (5min timeout)
 
@@ -46,6 +46,7 @@ npm run e2e:blockchain    # Blockchain integration tests only
 - Uses `getContract()` with proper ABI including 5-parameter `createProposal` signature
 - Property naming: Use full `ARAGON_ADMIN_PLUGIN_CONTRACT` name, not shortened `ADMIN_PLUGIN_CONTRACT`
 
-### Recent Fixes
+### Recent Changes
+- **Fixture Replay Test Skipped (Oct 2025)**: `fixture-replay.spec.ts` marked as `test.skip()` due to Alchemy signing key conflicts between local/preview/production environments
 - **Property Name Mismatch (Oct 2025)**: Fixed undefined contract address issue where tests referenced `testConfig.ADMIN_PLUGIN_CONTRACT` instead of correct `testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT`
 - **Error Resolution**: "EVM error: OpcodeNotFound" was caused by attempting contract calls on undefined address, not blockchain issues
