@@ -75,7 +75,7 @@ test.beforeAll(async () => {
   console.log(`- DAO: ${testConfig.DAO_ADDRESS}`);
   console.log(`- Test Repo: ${testConfig.TEST_REPO}`);
   console.log(`- Test Username: ${testConfig.TEST_USERNAME}`);
-  console.log(`- App URL: ${testConfig.E2E_APP_URL}`);
+  console.log(`- App URL: ${testConfig.E2E_APP_DEPLOYMENT_URL}`);
 });
 
 test.describe('Complete E2E: DAO Admin Management', () => {

@@ -11,7 +11,7 @@ export const testConfig = {
   PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY!,
   TEST_REPO: process.env.E2E_TEST_REPO!,
   GITHUB_TOKEN: process.env.E2E_TEST_REPO_GITHUB_PAT!,
-  E2E_APP_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
+  E2E_APP_DEPLOYMENT_URL: process.env.E2E_APP_DEPLOYMENT_URL!,
   TEST_USERNAME: process.env.E2E_TEST_ADMIN_USERNAME || 'cogni-test-user',
 
   // Timeouts
