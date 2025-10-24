@@ -5,9 +5,9 @@
  */
 
 // Import RepoRef from signal domain (single source of truth)
-import { RepoRef } from '../../core/signal/signal';
 // Import parameter types from action execution types
-import { MergeChangeParams, GrantCollaboratorParams, RevokeCollaboratorParams } from '../../core/action_execution/types';
+import { GrantCollaboratorParams, MergeChangeParams, RevokeCollaboratorParams } from '../../core/action_execution/types';
+import { RepoRef } from '../../core/signal/signal';
 
 // Re-export for convenience
 export { RepoRef };

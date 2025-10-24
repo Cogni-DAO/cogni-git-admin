@@ -33,7 +33,7 @@ describe('VCS Factory', () => {
   beforeEach(() => {
     mockApp = {
       auth: jest.fn().mockResolvedValue({})
-    } as jest.Mocked<Partial<Application>>;
+    } as unknown as jest.Mocked<Application>;
 
     mockRepoRef = {
       host: 'github.com',

@@ -47,7 +47,8 @@ export async function mergePR(octokit: Octokit, repo: string, prNumber: number, 
       success: true,
       sha: result.data.sha,
       merged: result.data.merged,
-      message: result.data.message
+      message: result.data.message,
+      status: result.status
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -38,7 +38,7 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 - **Endpoint**: `PUT /repos/{owner}/{repo}/pulls/{prNumber}/merge`
 - **Permissions Required**: `pull_requests: write`, `contents: write`
 - **Parameters**: Repository path, PR number, optional merge options (mergeMethod, commitTitle, commitMessage)
-- **Returns**: Success with SHA or failure with error details
+- **Returns**: Success with SHA, merged status, message, and HTTP status code; failure with error details and status code
 
 #### `addAdmin(octokit, repo, username, permission?)`  
 - **Endpoint**: `PUT /repos/{owner}/{repo}/collaborators/{username}`

@@ -1,20 +1,10 @@
 // Merge PR Action Tests
-import { Octokit } from 'octokit';
-
 import { mergePRAction } from '../../src/core/action_execution/actions/merge-pr';
 import { ExecContext } from '../../src/core/action_execution/context';
 import { Signal } from '../../src/core/signal/signal';
 
-// Mock external dependency
-jest.mock('../../src/services/github', () => ({
-  mergePR: jest.fn()
-}));
-
-import { mergePR } from '../../src/services/github';
-
 describe('Merge PR Action', () => {
   let mockContext: jest.Mocked<ExecContext>;
-  let mockOctokit: jest.Mocked<Octokit>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
@@ -33,7 +23,6 @@ describe('Merge PR Action', () => {
   });
 
   beforeEach(() => {
-    mockOctokit = {} as jest.Mocked<Octokit>;
     mockLogger = {
       info: jest.fn(),
       error: jest.fn()
@@ -44,11 +33,14 @@ describe('Merge PR Action', () => {
       repoRef: {
         host: 'github.com',
         owner: 'derekg1729',
-        name: 'test-repo',
-        fullName: 'derekg1729/test-repo'
+        repo: 'test-repo',
+        url: 'https://github.com/derekg1729/test-repo'
       },
-      provider: 'github',
-      octokit: mockOctokit,
+      provider: {
+        mergeChange: jest.fn(),
+        grantCollaborator: jest.fn(),
+        revokeCollaborator: jest.fn()
+      },
       logger: mockLogger,
       executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5',
       params: {}
@@ -59,7 +51,7 @@ describe('Merge PR Action', () => {
 
   describe('validation via run method', () => {
     test('validates valid merge request with PR number', async () => {
-      (mergePR as jest.Mock).mockResolvedValue({
+      (mockContext.provider.mergeChange as jest.Mock).mockResolvedValue({
         success: true,
         sha: 'abc123def456',
         status: 200
@@ -93,7 +85,7 @@ describe('Merge PR Action', () => {
 
   describe('execution via run method', () => {
     test('executes PR merge successfully', async () => {
-      (mergePR as jest.Mock).mockResolvedValue({
+      (mockContext.provider.mergeChange as jest.Mock).mockResolvedValue({
         success: true,
         sha: 'abc123def456',
         status: 200
@@ -108,11 +100,10 @@ describe('Merge PR Action', () => {
       expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
       expect(result.changeNumber).toBe(5);
       
-      expect(mergePR).toHaveBeenCalledWith(
-        mockOctokit,
-        'derekg1729/test-repo',
+      expect(mockContext.provider.mergeChange).toHaveBeenCalledWith(
+        mockContext.repoRef,
         5,
-        '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        {}
       );
 
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -125,7 +116,7 @@ describe('Merge PR Action', () => {
     });
 
     test('handles failed PR merge', async () => {
-      (mergePR as jest.Mock).mockResolvedValue({
+      (mockContext.provider.mergeChange as jest.Mock).mockResolvedValue({
         success: false,
         error: 'PR cannot be merged - conflicts detected',
         status: 409
@@ -140,11 +131,10 @@ describe('Merge PR Action', () => {
       expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
       expect(result.changeNumber).toBe(5);
       
-      expect(mergePR).toHaveBeenCalledWith(
-        mockOctokit,
-        'derekg1729/test-repo',
+      expect(mockContext.provider.mergeChange).toHaveBeenCalledWith(
+        mockContext.repoRef,
         5,
-        '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        {}
       );
 
       expect(mockLogger.error).toHaveBeenCalledWith(

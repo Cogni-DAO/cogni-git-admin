@@ -33,10 +33,10 @@ Fast, isolated tests for individual components following clean architecture prin
 - Test both successful execution and validation failures within single `run()` method
 
 ## Current Tests
-- `add-admin-simple.test.ts` - `grant:collaborator` action testing with Signal interface
-- `remove-admin-simple.test.ts` - `revoke:collaborator` action testing with comprehensive removal scenarios
-- `merge-pr-action.test.ts` - `merge:change` action testing for PR operations
-- `registry.test.ts` - Action registry with updated action:target key format
-- `vcs-github-provider.test.ts` - GitHub VCS provider implementation with typed parameters
-- `vcs-factory.test.ts` - VCS provider factory authentication and creation
-- `vcs-repo-ref.test.ts` - Repository URL parsing and reference extraction
+- `add-admin-simple.test.ts` - `grant:collaborator` action with VCS provider mocking
+- `remove-admin-simple.test.ts` - `revoke:collaborator` action with VCS provider interface testing
+- `merge-pr-action.test.ts` - `merge:change` action with VCS provider abstraction
+- `registry.test.ts` - Action registry with `action:target` key mapping
+- `vcs-github-provider.test.ts` - GitHub VCS provider service integration testing
+- `vcs-factory.test.ts` - VCS provider factory with GitHub App authentication
+- `vcs-repo-ref.test.ts` - Repository URL parsing and RepoRef structure validation
