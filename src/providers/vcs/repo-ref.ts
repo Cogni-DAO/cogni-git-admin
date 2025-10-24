@@ -4,6 +4,8 @@
  * Parses repository URLs into structured RepoRef objects
  */
 
+import { URL } from 'node:url';
+
 import { RepoRef as IRepoRef } from './types'
 
 /**

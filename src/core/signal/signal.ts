@@ -5,6 +5,8 @@
  * When ABI changes, only this file and parser.ts need updates.
  */
 
+import { URL } from 'node:url';
+
 export type Vcs = 'github' | 'gitlab' | 'radicle';
 export type Target = 'change' | 'collaborator';  
 export type Action = 'merge' | 'grant' | 'revoke';
