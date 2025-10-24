@@ -4,11 +4,10 @@ import { Application } from 'probot';
 export interface CogniActionParsed {
   dao: string;
   chainId: bigint;
-  repo: string;
+  repoUrl: string;
   action: string;
   target: string;
-  pr: number;
-  commit: string;
+  resource: string;
   extra: string;
   executor: string;
 }

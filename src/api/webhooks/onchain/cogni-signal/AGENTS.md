@@ -31,6 +31,8 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Configuration validation checks `environment.CHAIN_ID`, `environment.DAO_ADDRESS`, and `environment.SIGNAL_CONTRACT` presence before processing
 - Validation errors return detailed messages in response body for debugging
 - Each valid CogniAction event triggers GitHub action execution via action registry system
+- Currently assumes GitHub App installation ID directly from DAO+repo lookup
+- Uses new CogniSignal schema fields: `repoUrl`, `action`, `target`, `resource` instead of legacy `repo`, `pr`, `commit` fields
 
 ## Architecture
 route.ts → detectProvider() → getAdapter() → adapter.verifySignature() → adapter.parse() → RPC verify
@@ -41,13 +43,14 @@ route.ts → detectProvider() → getAdapter() → adapter.verifySignature() →
 3. `adapter.verifySignature()` validates HMAC → 401 if fails
 4. `adapter.parse()` extracts txHashes from webhook payload
 5. Return 204 if no transactions found
-6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events
+6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events with new schema
 7. Validate chainId and DAO address → collect validation errors if mismatches
-8. Execute GitHub action via action registry using `executeAction()` for each valid event
-9. Response logic:
-   - **200**: Valid events processed successfully
-   - **422**: Validation failures with detailed error messages
-   - **204**: No relevant events found
+8. Parse repository path from `repoUrl` for GitHub App installation ID lookup (currently assumes GitHub)
+9. Execute GitHub action via action registry using `executeAction()` with new schema fields for each valid event
+10. Response logic:
+    - **200**: Valid events processed successfully
+    - **422**: Validation failures with detailed error messages
+    - **204**: No relevant events found
 
 ## Provider Status
 - **Alchemy**: Implemented with HMAC signature verification

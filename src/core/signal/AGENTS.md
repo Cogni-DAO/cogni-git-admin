@@ -10,32 +10,31 @@ Domain logic for CogniAction blockchain events. Pure parsing and validation.
 - Zod schema definitions
 
 ## Current Implementation
-- **`parser.ts`**: CogniAction event ABI decoding and parsing
-  - Exports `abi` for event signature
-  - Exports `COGNI_TOPIC0` event topic hash
-  - `tryParseCogniLog()` decodes raw logs into structured CogniAction objects
+- **`parser.ts`**: CogniAction event ABI decoding and parsing with updated schema
+  - Exports `abi` for event signature (5-parameter CogniAction event)
+  - Exports `COGNI_TOPIC0` event topic hash for new schema
+  - `tryParseCogniLog()` decodes raw logs into structured CogniAction objects with repoUrl, action, target, resource fields
 - **`schema.ts`**: Zod validation schemas (if present)
 
-## Domain Model
+## Domain Model (Updated Schema)
 ```typescript
 CogniActionParsed {
   dao: string          // DAO address
   chainId: bigint      // Blockchain ID
-  repo: string         // GitHub repo (owner/name)
-  action: string       // Action type (PR_APPROVE, ADD_ADMIN, etc.)
-  target: string       // Target type (pull_request, repository, etc.)
-  pr: number          // PR number (0 if not applicable)
-  commit: string      // Commit hash
-  extra: string       // Additional data (hex encoded)
-  executor: string    // Executor address
+  repoUrl: string      // Full repository URL (e.g., "https://github.com/owner/repo")
+  action: string       // Canonical action name (merge, grant, revoke)
+  target: string       // Provider-agnostic target (change, collaborator)
+  resource: string     // Action-specific resource (PR number, username)
+  extra: string        // Additional data (hex encoded)
+  executor: string     // Executor address
 }
 ```
 
-## Supported Actions
-- **PR_APPROVE**: Approve and merge pull requests
-- **ADD_ADMIN**: Add repository administrators
-- **REMOVE_ADMIN**: Remove repository administrators
-- Additional actions can be added via the action_execution registry
+## Supported Actions (Canonical Naming)
+- **merge**: Merge pull requests (target: change, resource: PR number)
+- **grant**: Add repository administrators (target: collaborator, resource: username)
+- **revoke**: Remove repository administrators (target: collaborator, resource: username)
+- Additional actions can be added via the action_execution registry with provider-agnostic naming
 
 ## Guidelines
 - No blockchain RPC calls (delegate to services)

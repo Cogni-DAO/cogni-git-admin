@@ -9,7 +9,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
   // TODO: Add rate limiting per DAO/executor
   // TODO: Add audit logging to permanent storage
   
-  const { action, target, repo, executor } = parsed;
+  const { action, target, repoUrl, executor } = parsed;
   
   try {
     // Get action handler from registry
@@ -18,7 +18,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
     // Validate action parameters
     const validation = handler.validate(parsed);
     if (!validation.valid) {
-      logger.error(`Action validation failed: ${validation.error}`, { action, target, repo, executor });
+      logger.error(`Action validation failed: ${validation.error}`, { action, target, repoUrl, executor });
       return { 
         success: false, 
         action: 'validation_failed', 
@@ -27,7 +27,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
     }
     
     // Execute the action
-    logger.info(`Executing ${action}:${target} for repo=${repo}, executor=${executor}`);
+    logger.info(`Executing ${action}:${target} for repoUrl=${repoUrl}, executor=${executor}`);
     return await handler.execute(parsed, octokit, logger);
     
   } catch (error) {
@@ -43,7 +43,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
       };
     }
     
-    logger.error(`Action execution failed: ${errorMessage}`, { action, target, repo, executor });
+    logger.error(`Action execution failed: ${errorMessage}`, { action, target, repoUrl, executor });
     return { 
       success: false, 
       action: 'execution_failed', 

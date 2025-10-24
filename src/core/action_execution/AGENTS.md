@@ -17,12 +17,13 @@ Extensible action execution system for blockchain-initiated GitHub operations. I
 - **Type Safety**: Full TypeScript interfaces for actions, validation, and results
 
 ### Components
-- **types.ts**: Core interfaces (`ActionHandler`, `CogniActionParsed`, `ValidationResult`, `ActionResult`)
-- **registry.ts**: Central action registry with lookup and metadata functions
-- **executor.ts**: Orchestrates validation and execution through registered handlers
+- **types.ts**: Core interfaces (`ActionHandler`, `CogniActionParsed`, `ValidationResult`, `ActionResult`) with updated schema support
+- **registry.ts**: Central action registry with lookup and metadata functions using canonical action:target mappings
+- **executor.ts**: Orchestrates validation and execution through registered handlers with new schema fields
 - **actions/**: Individual action handler implementations
-  - `merge-pr.ts`: PR_APPROVE handler for merging pull requests
-  - `add-admin.ts`: ADD_ADMIN handler for adding repository administrators
+  - `merge-pr.ts`: Merge handler for merging pull requests (`merge:change`)
+  - `add-admin.ts`: Grant collaborator handler for adding repository administrators (`grant:collaborator`)
+  - `remove-admin.ts`: Revoke collaborator handler for removing repository administrators (`revoke:collaborator`)
 
 ## Interfaces
 
@@ -34,8 +35,8 @@ executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['
 ### Action Handler Interface
 ```typescript
 interface ActionHandler {
-  readonly action: string;        // Action name (e.g., "PR_APPROVE")
-  readonly target: string;        // Target type (e.g., "pull_request")
+  readonly action: string;        // Action name (e.g., "merge")
+  readonly target: string;        // Target type (e.g., "change")
   readonly description: string;   // Human readable description
   
   validate(parsed: CogniActionParsed): Promise<ValidationResult>;
@@ -53,9 +54,9 @@ interface ActionHandler {
 ## Registered Actions
 
 ### Current Actions
-- **PR_APPROVE:pull_request** → Merge pull request via DAO vote
-- **ADD_ADMIN:repository** → Add user as repository admin via DAO vote
-- **REMOVE_ADMIN:repository** → Remove user as repository admin via DAO vote
+- **merge:change** → Merge pull request via DAO vote (canonical naming)
+- **grant:collaborator** → Add user as repository admin via DAO vote (canonical naming)
+- **revoke:collaborator** → Remove user as repository admin via DAO vote (canonical naming)
 
 ### Adding New Actions
 1. Create handler file in `actions/` implementing `ActionHandler` interface
@@ -65,47 +66,39 @@ interface ActionHandler {
 
 ## Action Details
 
-### 1. `PR_APPROVE:pull_request`
+### 1. `merge:change`
+- **Handler**: `actions/merge-pr.ts`
 - **Bypass Requirement**: Merges PRs **overriding failed required status checks** and **bypassing branch protection rules**
 - **GitHub Permissions**: `pull_requests: write` + `contents: write` + **bypass actor status** for protected branches
 - **Current Limitation**: App must be configured as bypass actor in repository rulesets/branch protection settings
+- **Schema**: Uses `resource` field for PR number (string), parses repo from `repoUrl` field
 - **Justification**: Merges a PR when explicitly authorized by a DAO decision. Requires repository ruleset configuration that lists the Cogni Admin app as a bypass actor for selected branches. At runtime the app uses pull_requests:write and contents:write; no global admin token is used. This action is high risk and is gated by on-chain authorization, branch scoping, and audit logging.
 - **Risk Level**: High - bypasses repository safety controls designed to prevent broken deployments
 - **Use Case**: Critical fixes approved by DAO that cannot wait for CI fixes or emergency deployments overriding protection policies
 - **Next Implementation Step**: Admin action to configure this app as bypass actor for protected branches in target repositories
 
-### 2. `ADD_ADMIN:repository`
+### 2. `grant:collaborator`
 - **Handler**: `actions/add-admin.ts`
 - **GitHub Operation**: Adds user as repository collaborator with admin permissions
-- **Parameters**: 
-  - `repo`: Repository in `owner/repo` format  
-  - `extra`: ABI-encoded string containing GitHub username
-  - `target`: Must be "repository"
-  - `pr`: Unused (set to 0)
-  - `commit`: Unused (set to bytes32(0))
-- **Validation**: Validates repo format and decodes/validates GitHub username
+- **Schema**: Uses `resource` field for username directly, parses repo from `repoUrl` field
+- **Validation**: Validates repo format and validates GitHub username from resource field
 - **Permissions Required**: `administration: write` on repository
 - **Risk Level**: High - grants full administrative access to repository
 - **Use Case**: DAO-approved administrative access for trusted contributors
 
-### 3. `REMOVE_ADMIN:repository`
+### 3. `revoke:collaborator`
 - **Handler**: `actions/remove-admin.ts`
 - **GitHub Operations**: 
   - Removes active repository collaborator
   - Cancels pending repository invitations
-- **Parameters**: 
-  - `repo`: Repository in `owner/repo` format  
-  - `extra`: ABI-encoded string containing GitHub username
-  - `target`: Must be "repository"
-  - `pr`: Unused (set to 0)
-  - `commit`: Unused (set to bytes32(0))
-- **Validation**: Validates repo format and decodes/validates GitHub username
+- **Schema**: Uses `resource` field for username directly, parses repo from `repoUrl` field
+- **Validation**: Validates repo format and validates GitHub username from resource field
 - **Permissions Required**: `administration: write` on repository
 - **Risk Level**: Medium - removes administrative access from repository
 - **Use Case**: DAO-approved removal of administrative access
 - **Functionality**: Handles both active collaborators and pending invitations. Returns success if either operation succeeds.
 
-Note: Bypass capability for PR_APPROVE can be granted to specific apps/users without full admin permissions through GitHub's branch protection rules and repository rulesets.
+Note: Bypass capability for merge actions can be granted to specific apps/users without full admin permissions through GitHub's branch protection rules and repository rulesets.
 
 ## Guidelines
 - All actions must implement the `ActionHandler` interface

@@ -5,46 +5,52 @@ import { mergePR } from '../../../services/github';
 import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
 
 export const mergePRAction: ActionHandler = {
-  action: "PR_APPROVE",
-  target: "pull_request",
-  description: "Merge a pull request via DAO vote",
+  action: "merge",
+  target: "change",
+  description: "Merge a change request (PR/MR/patch) via DAO vote",
 
   validate(parsed: CogniActionParsed): ValidationResult {
-    if (parsed.pr <= 0) {
-      return { valid: false, error: 'PR number must be greater than 0' };
+    const changeNumber = parseInt(parsed.resource, 10);
+    if (isNaN(changeNumber) || changeNumber <= 0) {
+      return { valid: false, error: 'Resource must be a valid change number greater than 0' };
     }
     
-    if (!parsed.repo.includes('/')) {
-      return { valid: false, error: 'Repo must be in format "owner/repo"' };
+    if (!parsed.repoUrl) {
+      return { valid: false, error: 'repoUrl is required' };
     }
     
     return { valid: true };
   },
 
   async execute(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
-    const { repo, pr, executor } = parsed;
+    const changeNumber = parseInt(parsed.resource, 10);
+    const { repoUrl, executor } = parsed;
     
-    logger.info(`Executing ${this.action} for repo=${repo}, pr=${pr}, executor=${executor}`);
+    // Parse repo from URL
+    const url = new URL(repoUrl);
+    const repo = url.pathname.slice(1).replace(/\.git$/, '');
     
-    const result = await mergePR(octokit, repo, pr, executor);
+    logger.info(`Executing ${this.action} for repoUrl=${repoUrl}, change=${changeNumber}, executor=${executor}`);
+    
+    const result = await mergePR(octokit, repo, changeNumber, executor);
     
     if (result.success) {
-      logger.info(`Successfully merged PR #${pr} in ${repo}`, { sha: result.sha });
+      logger.info(`Successfully merged change #${changeNumber} in ${repo}`, { sha: result.sha });
       return { 
         success: true, 
         action: 'merge_completed', 
         sha: result.sha,
-        repo,
-        pr
+        repoUrl,
+        changeNumber
       };
     } else {
-      logger.error(`Failed to merge PR #${pr} in ${repo}`, { error: result.error, status: result.status });
+      logger.error(`Failed to merge change #${changeNumber} in ${repo}`, { error: result.error, status: result.status });
       return { 
         success: false, 
         action: 'merge_failed', 
         error: result.error,
-        repo,
-        pr
+        repoUrl,
+        changeNumber
       };
     }
   }

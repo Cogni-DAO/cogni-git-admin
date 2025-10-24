@@ -37,15 +37,16 @@ src/
 │  └─ (future: quicknode.ts)     # Other providers
 ├─ core/                         # Pure domain logic
 │  ├─ signal/                    # CogniAction parsing
-│  │  ├─ parser.ts               # ABI decoding and validation
+│  │  ├─ parser.ts               # ABI decoding
 │  │  └─ schema.ts               # Zod validation schemas
 │  ├─ action_execution/          # Extensible action system
 │  │  ├─ types.ts                # Core interfaces
-│  │  ├─ registry.ts             # Action registration
+│  │  ├─ registry.ts             # Action registration (canonical naming)
 │  │  ├─ executor.ts             # Execution orchestrator
 │  │  └─ actions/                # Action handlers
-│  │     ├─ merge-pr.ts          # PR_APPROVE handler
-│  │     └─ add-admin.ts         # ADD_ADMIN handler
+│  │     ├─ merge-pr.ts          # merge:change handler
+│  │     ├─ add-admin.ts         # grant:collaborator handler
+│  │     └─ remove-admin.ts      # revoke:collaborator handler
 │  └─ auth/                      # Authentication helpers
 │     └─ github.ts               # Installation ID mapping
 ├─ services/                     # External system integrations
@@ -85,11 +86,12 @@ e2e/
 ```
 
 ## Current Implementation
-- **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events, executes GitHub operations
-- **Action Execution**: Extensible registry-based system supporting multiple action types
-  - `PR_APPROVE`: Merges pull requests with bypass capabilities
-  - `ADD_ADMIN`: Adds users as repository administrators
-  - `REMOVE_ADMIN`: Removes users as repository administrators or cancels pending invitations
+- **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events with updated 5-parameter schema, executes GitHub operations
+- **Action Execution**: Extensible registry-based system supporting multiple action types with canonical naming
+  - `merge:change`: Merges pull requests with bypass capabilities (resource: PR number)
+  - `grant:collaborator`: Adds users as repository administrators (resource: username)
+  - `revoke:collaborator`: Removes users as repository administrators or cancels pending invitations (resource: username)
+- **Updated Schema**: Uses `repoUrl`, `action`, `target`, `resource` fields instead of legacy `repo`, `pr`, `commit` with hex-encoded data
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
 - **Testing**: Comprehensive test coverage with Jest unit tests and Playwright E2E tests
   - **Unit Tests**: Core action logic and registry functionality with mocked dependencies
