@@ -18,8 +18,8 @@ import { testConfig } from '../helpers/test-config';
 
 // Contract ABI from CogniSignal.sol
 const cogniSignalAbi = parseAbi([
-  'function signal(string calldata repoUrl, string calldata action, string calldata target, string calldata resource, bytes calldata extra) external',
-  'event CogniAction(address indexed dao, uint256 indexed chainId, string repoUrl, string action, string target, string resource, bytes extra, address indexed executor)'
+  'function signal(string calldata vcs, string calldata repoUrl, string calldata action, string calldata target, string calldata resource, bytes calldata extra) external',
+  'event CogniAction(address indexed dao, uint256 indexed chainId, string vcs, string repoUrl, string action, string target, string resource, bytes extra, address indexed executor)'
 ]);
 
 // Admin Plugin ABI from Aragon (matching successful transaction)
@@ -137,6 +137,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
+        'github',                       // vcs (VCS provider)
         `https://github.com/${testConfig.TEST_REPO}`,  // repoUrl (full URL)
         'grant',                        // action (new canonical name)
         'collaborator',                 // target (provider-agnostic)
@@ -200,6 +201,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
+        'github',                       // vcs (VCS provider)
         `https://github.com/${testConfig.TEST_REPO}`,  // repoUrl (full URL)
         'revoke',                       // action (new canonical name)
         'collaborator',                 // target (provider-agnostic)

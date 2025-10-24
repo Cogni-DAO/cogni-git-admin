@@ -11,12 +11,14 @@ Signal parsing and type definitions for CogniAction blockchain events.
 ## Components
 - **`signal.ts`**: Core `Signal` type and utilities
   - `Signal` interface with all parsed fields
+  - `VCS` constant array and `Vcs` type with validation function
   - `RepoRef` parser for repository URL handling
   - `signalToLog()` for BigInt-safe logging
 - **`parser.ts`**: Raw blockchain event parsing
   - `parseCogniAction()` converts blockchain logs to `Signal`
-  - Validates action/target enums at parse time
+  - Validates vcs/action/target enums at parse time, normalizes VCS to lowercase
   - Returns null for invalid or unmatched events
+  - Uses updated event signature with vcs field
 - **`params.ts`**: Parameter validation and freshness checks  
   - `ensureFresh()` validates nonce and deadline
   - `parseMergeParams()`, `parseGrantParams()`, `parseRevokeParams()` - discriminated parameter parsing
@@ -36,6 +38,13 @@ interface Signal {
   paramsJson: string;  // Currently unused ("")
   executor: string;    // Transaction executor address
 }
+```
+
+## VCS Type System
+```typescript
+export const VCS = ['github', 'gitlab', 'radicle'] as const;
+export type Vcs = typeof VCS[number];
+export function isValidVcs(x: unknown): x is Vcs
 ```
 
 ## Current Actions

@@ -7,7 +7,12 @@
 
 import { URL } from 'node:url';
 
-export type Vcs = 'github' | 'gitlab' | 'radicle';
+export const VCS = ['github', 'gitlab', 'radicle'] as const;
+export type Vcs = typeof VCS[number];
+
+export function isValidVcs(x: unknown): x is Vcs {
+  return typeof x === 'string' && (VCS as readonly string[]).includes(x.toLowerCase());
+}
 export type Target = 'change' | 'collaborator';  
 export type Action = 'merge' | 'grant' | 'revoke';
 

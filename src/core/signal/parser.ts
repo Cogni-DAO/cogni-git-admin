@@ -1,6 +1,6 @@
-import { Address, decodeAbiParameters,decodeEventLog, Hex, parseAbi } from 'viem';
+import { Address, decodeAbiParameters, decodeEventLog, Hex, parseAbi } from 'viem';
 
-import { Action, Signal, Target } from './signal';
+import { Action, isValidVcs,Signal, Target, Vcs } from './signal';
 
 function isValidAction(value: string): value is Action {
   return ['merge', 'grant', 'revoke'].includes(value);
@@ -11,10 +11,10 @@ function isValidTarget(value: string): value is Target {
 }
 
 export const abi = parseAbi([
-  'event CogniAction(address indexed dao,uint256 indexed chainId,string repoUrl,string action,string target,string resource,bytes extra,address indexed executor)'
+  'event CogniAction(address indexed dao,uint256 indexed chainId,string vcs,string repoUrl,string action,string target,string resource,bytes extra,address indexed executor)'
 ]);
 
-export const COGNI_TOPIC0 = '0x4f096f86866ffcbacfb2579a69658044a6c255f9249da70c34ef3e57c3226083';
+export const COGNI_TOPIC0 = '0x7a3cb36f100df6ecbe1f567f9c30dc11d02d5c42851e8fd534675bb303566a03';
 
 /**
  * Parse CogniAction event log into Signal
@@ -54,10 +54,15 @@ export function parseCogniAction(log: { address: Address; topics: Hex[]; data: H
       console.warn('Empty extra field detected, setting deadline to 24 hours from now');
     }
     
+    const vcsRaw = args.vcs;
     const action = args.action;
     const target = args.target;
     
-    // Validate enum values
+    // Validate enum values (normalize vcs to lowercase)
+    if (!isValidVcs(vcsRaw)) {
+      throw new Error(`Invalid vcs: ${vcsRaw}. Expected: github, gitlab, radicle`);
+    }
+    
     if (!isValidAction(action)) {
       throw new Error(`Invalid action: ${action}. Expected: merge, grant, revoke`);
     }
@@ -68,7 +73,7 @@ export function parseCogniAction(log: { address: Address; topics: Hex[]; data: H
     return {
       dao: args.dao,
       chainId: BigInt(args.chainId as unknown as string),
-      vcs: 'github', // V1: hardcode to github, add vcs field later
+      vcs: vcsRaw.toLowerCase() as Vcs,
       repoUrl: args.repoUrl,
       action,
       target,

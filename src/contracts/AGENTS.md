@@ -11,8 +11,21 @@ Contract ABI definitions and type-safe interfaces for blockchain interactions.
 ## Current Implementation
 
 ### ABI Files
-- `abi/CogniSignal.json` - Complete CogniSignal contract ABI with signal() function and CogniAction event
+- `abi/CogniSignal.json` - CogniSignal contract ABI with 6-parameter signal() function and CogniAction event including vcs field
 - `abi/AdminPlugin.json` - Aragon Admin Plugin ABI for DAO proposal execution
+
+### CogniSignal Function Signature
+```solidity
+function signal(string vcs, string repoUrl, string action, string target, string resource, bytes extra)
+```
+
+Parameters:
+- `vcs`: VCS provider (github, gitlab, radicle)
+- `repoUrl`: Repository URL  
+- `action`: Operation type (merge, grant, revoke)
+- `target`: Target resource (change, collaborator)
+- `resource`: Specific resource (PR number, username)
+- `extra`: ABI-encoded parameters (nonce, deadline, paramsJson)
 
 ### ABI Usage Pattern
 - **Production**: `src/core/signal/parser.ts` uses inline `parseAbi()` definitions

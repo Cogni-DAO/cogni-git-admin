@@ -4,6 +4,11 @@
     "name": "signal",
     "inputs": [
       {
+        "name": "vcs",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
         "name": "repoUrl",
         "type": "string",
         "internalType": "string"
@@ -47,6 +52,12 @@
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
+      },
+      {
+        "name": "vcs",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       },
       {
         "name": "repoUrl",
