@@ -7,7 +7,7 @@
 import { Octokit } from 'octokit'
 
 import * as githubService from '../../services/github'
-import { RepoRef, VcsProvider, MergeResult, GrantCollaboratorResult, RevokeCollaboratorResult } from './types'
+import { GrantCollaboratorResult, MergeResult, RepoRef, RevokeCollaboratorResult,VcsProvider } from './types'
 
 /**
  * GitHub VCS Provider Implementation

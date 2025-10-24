@@ -1,4 +1,4 @@
-import { Address, decodeEventLog, Hex, parseAbi, decodeAbiParameters } from 'viem';
+import { Address, decodeAbiParameters,decodeEventLog, Hex, parseAbi } from 'viem';
 
 import { Action, Signal, Target } from './signal';
 
@@ -39,7 +39,7 @@ export function parseCogniAction(log: { address: Address; topics: Hex[]; data: H
             { name: 'deadline', type: 'uint64' },
             { name: 'paramsJson', type: 'string' }
           ],
-          args.extra as Hex
+          args.extra
         );
         nonce = decoded[0];
         deadline = Number(decoded[1]);

@@ -6,8 +6,8 @@
 
 import { Application } from 'probot';
 
-import { RepoRef } from '../signal/signal';
 import { VcsProvider } from '../../providers/vcs/types';
+import { RepoRef } from '../signal/signal';
 
 /**
  * Execution context for action handlers

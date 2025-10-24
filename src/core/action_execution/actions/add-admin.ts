@@ -1,4 +1,4 @@
-import { Signal, fullName } from '../../signal/signal';
+import { fullName,Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
 import { ActionHandler, ActionResult } from '../types';
 

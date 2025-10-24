@@ -8,9 +8,9 @@
 import { Application } from 'probot';
 
 import { getInstallationId } from '../core/auth/github';
+import { RepoRef, Vcs } from '../core/signal/signal';
 import { GitHubVcsProvider } from '../providers/vcs/github';
 import { VcsProvider } from '../providers/vcs/types';
-import { RepoRef, Vcs } from '../core/signal/signal';
 
 /**
  * Create authenticated VCS provider for the given VCS type and repository

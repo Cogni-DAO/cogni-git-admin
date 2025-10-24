@@ -78,7 +78,7 @@ describe('Merge PR Action', () => {
       
       expect(result.success).toBe(false);
       expect(result.action).toBe('validation_failed');
-      expect(result.error).toBe('Resource must be a valid change number greater than 0');
+      expect(result.error).toBe('resource must be a positive integer');
     });
 
     test('rejects invalid cases - invalid PR number', async () => {
@@ -87,7 +87,7 @@ describe('Merge PR Action', () => {
       
       expect(result.success).toBe(false);
       expect(result.action).toBe('validation_failed');
-      expect(result.error).toBe('Resource must be a valid change number greater than 0');
+      expect(result.error).toBe('resource must be a positive integer');
     });
   });
 

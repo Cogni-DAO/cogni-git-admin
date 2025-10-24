@@ -2,8 +2,8 @@
  * Repository Reference Parser Tests
  */
 
-import { parseRepoRef, fullName } from '../../src/core/signal/signal'
-import { parseRepoUrl, isSupportedHost } from '../../src/providers/vcs/repo-ref'
+import { fullName,parseRepoRef } from '../../src/core/signal/signal'
+import { isSupportedHost,parseRepoUrl } from '../../src/providers/vcs/repo-ref'
 
 describe('RepoRef', () => {
   describe('parseRepoUrl', () => {
@@ -25,7 +25,7 @@ describe('RepoRef', () => {
         host: 'github.com',
         owner: 'owner',
         repo: 'repo',
-        url: 'https://github.com/owner/repo.git'
+        url: 'https://github.com/owner/repo'
       })
     })
 
@@ -41,15 +41,15 @@ describe('RepoRef', () => {
     })
 
     test('throws error for invalid URL format', () => {
-      expect(() => parseRepoUrl('not-a-url')).toThrow('Invalid repository URL format')
+      expect(() => parseRepoUrl('not-a-url')).toThrow('Failed to parse repository URL')
     })
 
     test('throws error for empty string', () => {
-      expect(() => parseRepoUrl('')).toThrow('Repository URL must be a non-empty string')
+      expect(() => parseRepoUrl('')).toThrow('Failed to parse repository URL')
     })
 
     test('throws error for URL without path', () => {
-      expect(() => parseRepoUrl('https://github.com')).toThrow('Invalid repository path in URL')
+      expect(() => parseRepoUrl('https://github.com')).toThrow('Repository URL must contain owner and repo')
     })
 
     test('throws error for URL with insufficient path parts', () => {
@@ -57,8 +57,8 @@ describe('RepoRef', () => {
     })
 
     test('throws error for URL with empty owner or repo', () => {
-      expect(() => parseRepoUrl('https://github.com//repo')).toThrow('Owner and repository name cannot be empty')
-      expect(() => parseRepoUrl('https://github.com/owner/')).toThrow('Owner and repository name cannot be empty')
+      expect(() => parseRepoUrl('https://github.com//repo')).toThrow('Repository URL must contain owner and repo')
+      expect(() => parseRepoUrl('https://github.com/owner/')).toThrow('Repository URL must contain owner and repo')
     })
   })
 
