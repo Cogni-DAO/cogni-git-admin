@@ -14,9 +14,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          # Auto-caching is enabled when package.json has "packageManager"
-          # Otherwise: cache: 'npm'
+          node-version-file: '.nvmrc'
+          cache: 'npm'
       - name: Repository policy check
         run: |
           npm install -g repolinter
