@@ -2,7 +2,8 @@
 import { Octokit } from 'octokit';
 
 import { removeAdminAction } from '../../src/core/action_execution/actions/remove-admin';
-import { CogniActionParsed } from '../../src/core/action_execution/types';
+import { ExecContext } from '../../src/core/action_execution/context';
+import { Signal } from '../../src/core/signal/signal';
 
 // Mock external dependencies
 jest.mock('../../src/services/github', () => ({
@@ -14,19 +15,22 @@ jest.mock('../../src/services/github', () => ({
 import { cancelInvitation,listInvitations, removeCollaborator } from '../../src/services/github';
 
 describe('REMOVE_ADMIN Core Logic', () => {
+  let mockContext: jest.Mocked<ExecContext>;
   let mockOctokit: jest.Mocked<Octokit>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
-  const createValidParsed = (): CogniActionParsed => ({
+  const createValidSignal = (): Signal => ({
     dao: '0x123',
     chainId: BigInt(11155111),
-    repo: 'derekg1729/test-repo',
-    action: 'REMOVE_ADMIN',
-    target: 'repository',
-    pr: 0,
-    commit: '0x0000000000000000000000000000000000000000000000000000000000000000',
-    extra: Buffer.from('cogni-test-user').toString('hex'), // hex encoding of "cogni-test-user"
+    vcs: 'github',
+    repoUrl: 'https://github.com/derekg1729/test-repo',
+    action: 'revoke',
+    target: 'collaborator',
+    resource: 'cogni-test-user', // username in resource field
+    nonce: BigInt(1),
+    deadline: Date.now() + 300000, // 5 minutes from now
+    paramsJson: '{}',
     executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
   });
 
@@ -38,44 +42,69 @@ describe('REMOVE_ADMIN Core Logic', () => {
       warn: jest.fn()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
+    
+    mockContext = {
+      repoRef: {
+        host: 'github.com',
+        owner: 'derekg1729',
+        name: 'test-repo',
+        fullName: 'derekg1729/test-repo'
+      },
+      provider: 'github',
+      octokit: mockOctokit,
+      logger: mockLogger,
+      executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5',
+      params: {}
+    } as jest.Mocked<ExecContext>;
+    
     jest.clearAllMocks();
   });
 
   test('validates valid REMOVE_ADMIN request', async () => {
-    const parsed = createValidParsed();
-    const result = await removeAdminAction.validate(parsed);
+    // Mock successful collaborator removal
+    (removeCollaborator as jest.Mock).mockResolvedValue({
+      success: true,
+      status: 204
+    });
+    (listInvitations as jest.Mock).mockResolvedValue({
+      success: true,
+      invitations: []
+    });
 
-    expect(result.valid).toBe(true);
-    expect(result.error).toBeUndefined();
+    const signal = createValidSignal();
+    const result = await removeAdminAction.run(signal, mockContext);
+
+    expect(result.success).toBe(true);
+    expect(result.action).toBe('admin_removed');
   });
 
-  test('validates invalid repo format', async () => {
-    const parsed = createValidParsed();
-    parsed.repo = 'invalid-repo';
+  test('validates invalid username', async () => {
+    const signal = { ...createValidSignal(), resource: '' }; // empty username
 
-    const result = await removeAdminAction.validate(parsed);
+    const result = await removeAdminAction.run(signal, mockContext);
 
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe('Repo must be in format "owner/repo"');
+    expect(result.success).toBe(false);
+    expect(result.action).toBe('validation_failed');
+    expect(result.error).toBe('Username required in resource field');
   });
 
-  test('validates missing username in extra data', async () => {
-    const parsed = createValidParsed();
-    parsed.extra = '';
+  test('validates missing username in resource data', async () => {
+    const signal = { ...createValidSignal(), resource: '' };
 
-    const result = await removeAdminAction.validate(parsed);
+    const result = await removeAdminAction.run(signal, mockContext);
 
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe('Username required in extra data');
+    expect(result.success).toBe(false);
+    expect(result.action).toBe('validation_failed');
+    expect(result.error).toBe('Username required in resource field');
   });
 
   test('validates invalid GitHub username format', async () => {
-    const parsed = createValidParsed();
-    parsed.extra = Buffer.from('invalid_user@name!').toString('hex');
+    const signal = { ...createValidSignal(), resource: 'invalid_user@name!' };
 
-    const result = await removeAdminAction.validate(parsed);
+    const result = await removeAdminAction.run(signal, mockContext);
 
-    expect(result.valid).toBe(false);
+    expect(result.success).toBe(false);
+    expect(result.action).toBe('validation_failed');
     expect(result.error).toBe('Invalid GitHub username format: invalid_user@name!');
   });
 
@@ -92,13 +121,13 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitations: [] // No pending invitations
     });
 
-    const parsed = createValidParsed();
-    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+    const signal = createValidSignal();
+    const result = await removeAdminAction.run(signal, mockContext);
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-test-user');
-    expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(true);
     expect(result.invitationCancelled).toBe(false);
 
@@ -136,13 +165,13 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitationId: 123
     });
 
-    const parsed = createValidParsed();
-    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+    const signal = createValidSignal();
+    const result = await removeAdminAction.run(signal, mockContext);
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-test-user');
-    expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(false);
     expect(result.invitationCancelled).toBe(true);
 
@@ -177,13 +206,13 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitationId: 456
     });
 
-    const parsed = createValidParsed();
-    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+    const signal = createValidSignal();
+    const result = await removeAdminAction.run(signal, mockContext);
 
     expect(result.success).toBe(true);
     expect(result.action).toBe('admin_removed');
     expect(result.username).toBe('cogni-test-user');
-    expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
     expect(result.collaboratorRemoved).toBe(true);
     expect(result.invitationCancelled).toBe(true);
   });
@@ -201,14 +230,14 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitations: [] // No invitations found
     });
 
-    const parsed = createValidParsed();
-    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+    const signal = createValidSignal();
+    const result = await removeAdminAction.run(signal, mockContext);
 
     expect(result.success).toBe(false);
     expect(result.action).toBe('admin_remove_failed');
     expect(result.error).toBe('User cogni-test-user not found as active collaborator or pending invitation');
     expect(result.username).toBe('cogni-test-user');
-    expect(result.repo).toBe('derekg1729/test-repo');
+    expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
   });
 
   test('handles username decoding failure (empty result)', async () => {
@@ -224,13 +253,12 @@ describe('REMOVE_ADMIN Core Logic', () => {
       invitations: [] // No invitations found
     });
 
-    const parsed = createValidParsed();
-    parsed.extra = 'invalid-hex-data'; // Results in empty string after decoding
+    const signal = { ...createValidSignal(), resource: '' }; // empty resource results in validation failure
 
-    const result = await removeAdminAction.execute(parsed, mockOctokit, mockLogger);
+    const result = await removeAdminAction.run(signal, mockContext);
 
     expect(result.success).toBe(false);
-    expect(result.action).toBe('admin_remove_failed');
-    expect(result.error).toBe('User  not found as active collaborator or pending invitation');
+    expect(result.action).toBe('validation_failed');
+    expect(result.error).toBe('Username required in resource field');
   });
 });

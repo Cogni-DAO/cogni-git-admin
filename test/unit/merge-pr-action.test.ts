@@ -2,7 +2,8 @@
 import { Octokit } from 'octokit';
 
 import { mergePRAction } from '../../src/core/action_execution/actions/merge-pr';
-import { CogniActionParsed } from '../../src/core/action_execution/types';
+import { ExecContext } from '../../src/core/action_execution/context';
+import { Signal } from '../../src/core/signal/signal';
 
 // Mock external dependency
 jest.mock('../../src/services/github', () => ({
@@ -12,19 +13,22 @@ jest.mock('../../src/services/github', () => ({
 import { mergePR } from '../../src/services/github';
 
 describe('Merge PR Action', () => {
+  let mockContext: jest.Mocked<ExecContext>;
   let mockOctokit: jest.Mocked<Octokit>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockLogger: any;
 
-  const createValidParsed = (): CogniActionParsed => ({
+  const createValidSignal = (): Signal => ({
     dao: '0x123',
     chainId: BigInt(11155111),
-    repo: 'derekg1729/test-repo',
-    action: 'PR_APPROVE',
-    target: 'pull_request',
-    pr: 5,
-    commit: '0x0000000000000000000000000000000000000000000000000000000000000000',
-    extra: Buffer.from('').toString('hex'),
+    vcs: 'github',
+    repoUrl: 'https://github.com/derekg1729/test-repo',
+    action: 'merge',
+    target: 'change',
+    resource: '5', // PR number as string in resource field
+    nonce: BigInt(1),
+    deadline: Date.now() + 300000, // 5 minutes from now
+    paramsJson: '{}',
     executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
   });
 
@@ -35,44 +39,59 @@ describe('Merge PR Action', () => {
       error: jest.fn()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
+    
+    mockContext = {
+      repoRef: {
+        host: 'github.com',
+        owner: 'derekg1729',
+        name: 'test-repo',
+        fullName: 'derekg1729/test-repo'
+      },
+      provider: 'github',
+      octokit: mockOctokit,
+      logger: mockLogger,
+      executor: '0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5',
+      params: {}
+    } as jest.Mocked<ExecContext>;
+    
     jest.clearAllMocks();
   });
 
-  describe('validate', () => {
-    test('validates valid PR_APPROVE request with PR number', async () => {
-      const parsed = createValidParsed();
-      const result = await mergePRAction.validate(parsed);
+  describe('validation via run method', () => {
+    test('validates valid merge request with PR number', async () => {
+      (mergePR as jest.Mock).mockResolvedValue({
+        success: true,
+        sha: 'abc123def456',
+        status: 200
+      });
+
+      const signal = createValidSignal();
+      const result = await mergePRAction.run(signal, mockContext);
       
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
+      expect(result.success).toBe(true);
+      expect(result.action).toBe('merge_completed');
     });
 
     test('rejects invalid cases - missing PR number', async () => {
-      const parsed = { ...createValidParsed(), pr: 0 };
-      const result = await mergePRAction.validate(parsed);
+      const signal = { ...createValidSignal(), resource: '0' };
+      const result = await mergePRAction.run(signal, mockContext);
       
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('PR number must be greater than 0');
+      expect(result.success).toBe(false);
+      expect(result.action).toBe('validation_failed');
+      expect(result.error).toBe('Resource must be a valid change number greater than 0');
     });
 
-    test('rejects invalid cases - negative PR number', async () => {
-      const parsed = { ...createValidParsed(), pr: -1 };
-      const result = await mergePRAction.validate(parsed);
+    test('rejects invalid cases - invalid PR number', async () => {
+      const signal = { ...createValidSignal(), resource: 'invalid' };
+      const result = await mergePRAction.run(signal, mockContext);
       
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('PR number must be greater than 0');
-    });
-
-    test('rejects invalid cases - invalid repo format', async () => {
-      const parsed = { ...createValidParsed(), repo: 'invalid-repo-format' };
-      const result = await mergePRAction.validate(parsed);
-      
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('Repo must be in format "owner/repo"');
+      expect(result.success).toBe(false);
+      expect(result.action).toBe('validation_failed');
+      expect(result.error).toBe('Resource must be a valid change number greater than 0');
     });
   });
 
-  describe('execute', () => {
+  describe('execution via run method', () => {
     test('executes PR merge successfully', async () => {
       (mergePR as jest.Mock).mockResolvedValue({
         success: true,
@@ -80,14 +99,14 @@ describe('Merge PR Action', () => {
         status: 200
       });
 
-      const parsed = createValidParsed();
-      const result = await mergePRAction.execute(parsed, mockOctokit, mockLogger);
+      const signal = createValidSignal();
+      const result = await mergePRAction.run(signal, mockContext);
 
       expect(result.success).toBe(true);
       expect(result.action).toBe('merge_completed');
       expect(result.sha).toBe('abc123def456');
-      expect(result.repo).toBe('derekg1729/test-repo');
-      expect(result.pr).toBe(5);
+      expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
+      expect(result.changeNumber).toBe(5);
       
       expect(mergePR).toHaveBeenCalledWith(
         mockOctokit,
@@ -97,10 +116,10 @@ describe('Merge PR Action', () => {
       );
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Executing PR_APPROVE for repo=derekg1729/test-repo, pr=5, executor=0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
+        'Executing merge for repoUrl=https://github.com/derekg1729/test-repo, change=5, executor=0xa38d03Ea38c45C1B6a37472d8Df78a47C1A31EB5'
       );
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Successfully merged PR #5 in derekg1729/test-repo',
+        'Successfully merged change #5 in derekg1729/test-repo',
         { sha: 'abc123def456' }
       );
     });
@@ -112,14 +131,14 @@ describe('Merge PR Action', () => {
         status: 409
       });
 
-      const parsed = createValidParsed();
-      const result = await mergePRAction.execute(parsed, mockOctokit, mockLogger);
+      const signal = createValidSignal();
+      const result = await mergePRAction.run(signal, mockContext);
 
       expect(result.success).toBe(false);
       expect(result.action).toBe('merge_failed');
       expect(result.error).toBe('PR cannot be merged - conflicts detected');
-      expect(result.repo).toBe('derekg1729/test-repo');
-      expect(result.pr).toBe(5);
+      expect(result.repoUrl).toBe('https://github.com/derekg1729/test-repo');
+      expect(result.changeNumber).toBe(5);
       
       expect(mergePR).toHaveBeenCalledWith(
         mockOctokit,
@@ -129,7 +148,7 @@ describe('Merge PR Action', () => {
       );
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to merge PR #5 in derekg1729/test-repo',
+        'Failed to merge change #5 in derekg1729/test-repo',
         { error: 'PR cannot be merged - conflicts detected', status: 409 }
       );
     });

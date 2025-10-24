@@ -2,7 +2,7 @@
  * Repository Reference Parser Tests
  */
 
-import { RepoRef, parseRepoUrl } from '../../src/providers/vcs/repo-ref'
+import { parseRepoUrl,RepoRef } from '../../src/providers/vcs/repo-ref'
 
 describe('RepoRef', () => {
   describe('parseRepoUrl', () => {
