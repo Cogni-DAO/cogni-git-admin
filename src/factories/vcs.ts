@@ -47,6 +47,6 @@ export async function createVcsProvider(vcs: Vcs, app: Application, repoRef: Rep
     }
     
     default:
-      throw new Error(`Unsupported VCS: ${vcs}`);
+      throw new Error(`Unsupported VCS: ${String(vcs)}`);
   }
 }

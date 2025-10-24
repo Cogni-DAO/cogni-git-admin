@@ -134,8 +134,9 @@ function validateGrantParams(params: Record<string, unknown>): GrantCollaborator
 /**
  * Validate revoke collaborator parameters
  */
-function validateRevokeParams(params: Record<string, unknown>): RevokeCollaboratorParams {
-  // No additional parameters needed for revoke
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function validateRevokeParams(_params: Record<string, unknown>): RevokeCollaboratorParams {
+  // No additional parameters needed for revoke - params ignored but kept for consistency
   return {};
 }
 

@@ -6,9 +6,9 @@
 
 import { Octokit } from 'octokit'
 
+import { GrantCollaboratorParams, MergeChangeParams, RevokeCollaboratorParams } from '../../core/action_execution/types'
 import * as githubService from '../../services/github'
 import { GrantCollaboratorResult, MergeResult, RepoRef, RevokeCollaboratorResult, VcsProvider } from './types'
-import { MergeChangeParams, GrantCollaboratorParams, RevokeCollaboratorParams } from '../../core/action_execution/types'
 
 /**
  * GitHub VCS Provider Implementation
@@ -70,6 +70,7 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Remove user as repository administrator
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async revokeCollaborator(repoRef: RepoRef, username: string, _params: RevokeCollaboratorParams): Promise<RevokeCollaboratorResult> {
     try {
       const repo = `${repoRef.owner}/${repoRef.repo}`
@@ -98,7 +99,7 @@ export class GitHubVcsProvider implements VcsProvider {
       }
       
       // Find invitation for the username
-      const invitation = listResult.invitations.find((inv: any) => 
+      const invitation = listResult.invitations.find((inv: { invitee?: { login?: string }; id: number }) => 
         inv.invitee && inv.invitee.login === username
       )
       

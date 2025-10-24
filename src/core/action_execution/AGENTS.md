@@ -48,7 +48,7 @@ interface ExecContext {
   provider: VcsProvider;      // Authenticated VCS provider  
   logger: Application['log']; // Logger instance
   executor: string;           // Executor address
-  params: any;               // Parsed parameters
+  params: MergeChangeParams | GrantCollaboratorParams | RevokeCollaboratorParams; // Typed parameters
 }
 ```
 

@@ -56,11 +56,11 @@ interface ActionHandler {
 - **Provider Abstraction**: Handlers don't know implementation details
 
 ## Signal Schema Usage
-- **repoUrl**: Full repository URL for VCS provider resolution
-- **resource**: Action-specific data (PR number, username)
+- **repoUrl**: Full repository URL for VCS provider resolution  
+- **resource**: Core action data (PR number, username)
 - **action/target**: Provider-agnostic operation identifiers
 - **executor**: Blockchain transaction executor address
-- **params**: Additional parameters from signal.paramsJson
+- **params**: Optional enhancement parameters (mergeMethod, permission, etc.)
 
 ## Error Handling
 - **Validation Errors**: Return `validation_failed` action with descriptive message

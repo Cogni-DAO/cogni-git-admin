@@ -14,11 +14,11 @@ Fast, isolated tests for individual components following clean architecture prin
 ### Signal-Based Action Execution
 - **ActionHandler Interface**: Single `run(signal: Signal, ctx: ExecContext)` method replaces separate `validate`/`execute`
 - **Signal Interface**: Blockchain event structure (`dao`, `chainId`, `vcs`, `repoUrl`, `action`, `target`, `resource`, `nonce`, `deadline`, `paramsJson`, `executor`)
-- **ExecContext**: Resolved context with `repoRef`, `provider`, `octokit`, `logger`, `executor`, `params`
+- **ExecContext**: Resolved context with `repoRef`, `provider`, `logger`, `executor`, `params`
 - **Action Keys**: Updated format - `grant:collaborator`, `revoke:collaborator`, `merge:change`
 
 ### Test Patterns
-- Mock `ExecContext` with `repoRef`, `octokit`, `logger` 
+- Mock `ExecContext` with `repoRef`, `provider`, `logger` 
 - Create `Signal` objects with proper blockchain event structure
 - Assert on `ActionResult` properties: `success`, `action`, `repoUrl` (not `repo`)
 - Validation happens within `run()` method, not separate validation step
@@ -37,6 +37,6 @@ Fast, isolated tests for individual components following clean architecture prin
 - `remove-admin-simple.test.ts` - `revoke:collaborator` action testing with comprehensive removal scenarios
 - `merge-pr-action.test.ts` - `merge:change` action testing for PR operations
 - `registry.test.ts` - Action registry with updated action:target key format
-- `vcs-github-provider.test.ts` - GitHub VCS provider implementation
-- `vcs-registry.test.ts` - VCS provider registry for multi-platform support  
+- `vcs-github-provider.test.ts` - GitHub VCS provider implementation with typed parameters
+- `vcs-factory.test.ts` - VCS provider factory authentication and creation
 - `vcs-repo-ref.test.ts` - Repository URL parsing and reference extraction
