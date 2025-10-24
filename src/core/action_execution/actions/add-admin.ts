@@ -1,6 +1,6 @@
-import { fullName,Signal } from '../../signal/signal';
+import { fullName, Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
-import { ActionHandler, ActionResult } from '../types';
+import { ActionHandler, ActionResult, GrantCollaboratorParams } from '../types';
 
 export const addAdminAction: ActionHandler = {
   action: "grant",
@@ -29,8 +29,7 @@ export const addAdminAction: ActionHandler = {
     
     ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, username=${username}, executor=${signal.executor}`);
     
-    const params = { ...(ctx.params as Record<string, unknown>), executor: signal.executor };
-    const result = await ctx.provider.grantCollaborator(ctx.repoRef, username, params);
+    const result = await ctx.provider.grantCollaborator(ctx.repoRef, username, ctx.params as GrantCollaboratorParams);
     
     if (result.success) {
       ctx.logger.info(`Successfully added ${username} as admin to ${fullName(ctx.repoRef)}`, { username, status: result.status });

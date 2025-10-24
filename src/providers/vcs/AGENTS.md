@@ -11,9 +11,9 @@ Provide authenticated VCS providers through factory pattern for blockchain-initi
 ## Architecture
 ```typescript
 interface VcsProvider {
-  mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult>
-  grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult>
-  revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult>
+  mergeChange(repoRef: RepoRef, prNumber: number, params: MergeChangeParams): Promise<MergeResult>
+  grantCollaborator(repoRef: RepoRef, username: string, params: GrantCollaboratorParams): Promise<GrantCollaboratorResult>  
+  revokeCollaborator(repoRef: RepoRef, username: string, params: RevokeCollaboratorParams): Promise<RevokeCollaboratorResult>
 }
 ```
 
@@ -25,9 +25,10 @@ interface VcsProvider {
 
 ## Data Flow
 1. **Signal Processing** → Extract `vcs`, `repoRef` from CogniSignal
-2. **VCS Factory** → `createVcsProvider(vcs, app, repoRef, dao)` creates authenticated provider
-3. **Provider Operation** → Execute through clean interface (no tokens, no executor params)
-4. **Result** → Structured response with success/error details
+2. **Parameter Parsing** → `parseParams(action, target, paramsJson)` creates typed parameters  
+3. **VCS Factory** → `createVcsProvider(vcs, app, repoRef, dao)` creates authenticated provider
+4. **Provider Operation** → Execute through clean interface with typed parameters (no tokens, no executor coupling)
+5. **Result** → Structured response with success/error details
 
 ## Current Implementation
 

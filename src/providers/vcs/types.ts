@@ -6,6 +6,8 @@
 
 // Import RepoRef from signal domain (single source of truth)
 import { RepoRef } from '../../core/signal/signal';
+// Import parameter types from action execution types
+import { MergeChangeParams, GrantCollaboratorParams, RevokeCollaboratorParams } from '../../core/action_execution/types';
 
 // Re-export for convenience
 export { RepoRef };
@@ -68,7 +70,7 @@ export interface VcsProvider {
    * @param params Provider-specific merge parameters
    * @returns Operation result with merge details
    */
-  mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult>
+  mergeChange(repoRef: RepoRef, prNumber: number, params: MergeChangeParams): Promise<MergeResult>
   
   /**
    * Add user as repository administrator
@@ -77,15 +79,16 @@ export interface VcsProvider {
    * @param params Provider-specific grant parameters
    * @returns Operation result with admin assignment details
    */
-  grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult>
+  grantCollaborator(repoRef: RepoRef, username: string, params: GrantCollaboratorParams): Promise<GrantCollaboratorResult>
   
   /**
    * Remove user as repository administrator
    * @param repoRef Repository reference
    * @param username Username to remove as admin
+   * @param params Provider-specific revoke parameters
    * @returns Operation result with admin removal details
    */
-  revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult>
+  revokeCollaborator(repoRef: RepoRef, username: string, params: RevokeCollaboratorParams): Promise<RevokeCollaboratorResult>
 }
 
 /**

@@ -19,8 +19,8 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 ## Structure
 - `rpc.ts` - Blockchain RPC client (Viem) for fetching CogniAction events
 - `github.ts` - GitHub repository operations:
-  - `mergePR(octokit, repo, prNumber, executor)` - Merge pull request
-  - `addAdmin(octokit, repo, username, executor)` - Add repository admin
+  - `mergePR(octokit, repo, prNumber, options?)` - Merge pull request with optional parameters
+  - `addAdmin(octokit, repo, username, permission?)` - Add repository admin with permission level
   - `removeCollaborator(octokit, repo, username)` - Remove repository collaborator
   - `listInvitations(octokit, repo)` - List pending repository invitations
   - `cancelInvitation(octokit, repo, invitationId)` - Cancel repository invitation
@@ -34,16 +34,16 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 
 ### Operations
 
-#### `mergePR(octokit, repo, prNumber, executor)`
+#### `mergePR(octokit, repo, prNumber, options?)`
 - **Endpoint**: `PUT /repos/{owner}/{repo}/pulls/{prNumber}/merge`
 - **Permissions Required**: `pull_requests: write`, `contents: write`
-- **Parameters**: Repository path, PR number, executor identity
+- **Parameters**: Repository path, PR number, optional merge options (mergeMethod, commitTitle, commitMessage)
 - **Returns**: Success with SHA or failure with error details
 
-#### `addAdmin(octokit, repo, username, executor)`  
+#### `addAdmin(octokit, repo, username, permission?)`  
 - **Endpoint**: `PUT /repos/{owner}/{repo}/collaborators/{username}`
 - **Permissions Required**: `administration: write`
-- **Parameters**: Repository path, GitHub username, executor identity
+- **Parameters**: Repository path, GitHub username, permission level ('admin'|'maintain'|'write', defaults to 'admin')
 - **Validation**: Username format and non-empty checks
 - **Returns**: Success with status or failure with error details
 

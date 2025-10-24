@@ -1,6 +1,6 @@
-import { fullName,Signal } from '../../signal/signal';
+import { fullName, Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
-import { ActionHandler, ActionResult } from '../types';
+import { ActionHandler, ActionResult, RevokeCollaboratorParams } from '../types';
 
 export const removeAdminAction: ActionHandler = {
   action: "revoke",
@@ -29,7 +29,7 @@ export const removeAdminAction: ActionHandler = {
     
     ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, username=${username}, executor=${signal.executor}`);
     
-    const result = await ctx.provider.revokeCollaborator(ctx.repoRef, username);
+    const result = await ctx.provider.revokeCollaborator(ctx.repoRef, username, ctx.params as RevokeCollaboratorParams);
     
     if (result.success) {
       ctx.logger.info(`Successfully removed ${username} as admin from ${fullName(ctx.repoRef)}`, { username });

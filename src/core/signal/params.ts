@@ -4,7 +4,8 @@
  * VCS-aware parameter parsing and nonce/deadline validation
  */
 
-import { Action, Target, Vcs } from './signal';
+import { GrantCollaboratorParams, MergeChangeParams, RevokeCollaboratorParams } from '../action_execution/types';
+import { Action, Target } from './signal';
 
 /**
  * Validate signal freshness using nonce and deadline
@@ -36,53 +37,124 @@ export function ensureFresh(nonce: bigint, deadline: number): void {
 }
 
 /**
- * Parse and validate parameters with VCS/action context
- * @param vcs - VCS provider type
- * @param target - Action target
- * @param action - Action type
- * @param paramsJson - JSON parameters string
- * @returns Parsed and validated parameters
+ * Parse merge change parameters
  */
-export function parseParams(vcs: Vcs, target: Target, action: Action, paramsJson: string): any {
+export function parseMergeParams(paramsJson: string): MergeChangeParams {
   if (!paramsJson || paramsJson.trim() === '') {
     return {};
   }
   
-  let params: any;
-  try {
-    params = JSON.parse(paramsJson);
-  } catch (error) {
-    throw new Error(`Invalid JSON in paramsJson: ${paramsJson}`);
-  }
-  
-  // VCS-specific parameter validation
-  if (vcs === 'github') {
-    return validateGitHubParams(target, action, params);
-  }
-  
-  // Add other VCS providers as needed
-  return params;
+  const rawParams = parseJsonParams(paramsJson);
+  return validateMergeParams(rawParams);
 }
 
 /**
- * Validate GitHub-specific parameters
+ * Parse grant collaborator parameters  
  */
-function validateGitHubParams(target: Target, action: Action, params: any): any {
-  if (target === 'change' && action === 'merge') {
-    // PR merge parameters
-    if (params.prNumber !== undefined && typeof params.prNumber !== 'number') {
-      throw new Error(`Invalid prNumber: expected number, got ${typeof params.prNumber}`);
+export function parseGrantParams(paramsJson: string): GrantCollaboratorParams {
+  if (!paramsJson || paramsJson.trim() === '') {
+    return {};
+  }
+  
+  const rawParams = parseJsonParams(paramsJson);
+  return validateGrantParams(rawParams);
+}
+
+/**
+ * Parse revoke collaborator parameters
+ */
+export function parseRevokeParams(paramsJson: string): RevokeCollaboratorParams {
+  if (!paramsJson || paramsJson.trim() === '') {
+    return {};
+  }
+  
+  const rawParams = parseJsonParams(paramsJson);
+  return validateRevokeParams(rawParams);
+}
+
+/**
+ * Helper: Parse JSON parameters with validation
+ */
+function parseJsonParams(paramsJson: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(paramsJson);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error('Parameters must be a JSON object');
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    throw new Error(`Invalid JSON in paramsJson: ${paramsJson}`);
+  }
+}
+
+/**
+ * Validate merge change parameters
+ */
+function validateMergeParams(params: Record<string, unknown>): MergeChangeParams {
+  const result: MergeChangeParams = {};
+  
+  if ('mergeMethod' in params) {
+    const method = params.mergeMethod;
+    if (typeof method === 'string' && ['merge', 'squash', 'rebase'].includes(method)) {
+      result.mergeMethod = method as 'merge' | 'squash' | 'rebase';
+    } else {
+      throw new Error(`Invalid mergeMethod: must be 'merge', 'squash', or 'rebase'`);
     }
   }
   
-  if (target === 'collaborator' && (action === 'grant' || action === 'revoke')) {
-    // Admin operations parameters
-    if (params.username !== undefined && typeof params.username !== 'string') {
-      throw new Error(`Invalid username: expected string, got ${typeof params.username}`);
+  if ('commitTitle' in params && typeof params.commitTitle === 'string') {
+    result.commitTitle = params.commitTitle;
+  }
+  
+  if ('commitMessage' in params && typeof params.commitMessage === 'string') {
+    result.commitMessage = params.commitMessage;
+  }
+  
+  return result;
+}
+
+/**
+ * Validate grant collaborator parameters
+ */
+function validateGrantParams(params: Record<string, unknown>): GrantCollaboratorParams {
+  const result: GrantCollaboratorParams = {};
+  
+  if ('permission' in params) {
+    const perm = params.permission;
+    if (typeof perm === 'string' && ['admin', 'maintain', 'write'].includes(perm)) {
+      result.permission = perm as 'admin' | 'maintain' | 'write';
+    } else {
+      throw new Error(`Invalid permission: must be 'admin', 'maintain', or 'write'`);
     }
   }
   
-  return params;
+  return result;
+}
+
+/**
+ * Validate revoke collaborator parameters
+ */
+function validateRevokeParams(params: Record<string, unknown>): RevokeCollaboratorParams {
+  // No additional parameters needed for revoke
+  return {};
+}
+
+/**
+ * Generic parameter parsing function that dispatches to specific parsers
+ */
+export function parseParams(action: Action, target: Target, paramsJson: string): MergeChangeParams | GrantCollaboratorParams | RevokeCollaboratorParams {
+  const key = `${action}:${target}`;
+  
+  switch (key) {
+    case 'merge:change':
+      return parseMergeParams(paramsJson);
+    case 'grant:collaborator':  
+      return parseGrantParams(paramsJson);
+    case 'revoke:collaborator':
+      return parseRevokeParams(paramsJson);
+    default:
+      throw new Error(`Unknown action:target combination: ${key}`);
+  }
 }
 
 /**

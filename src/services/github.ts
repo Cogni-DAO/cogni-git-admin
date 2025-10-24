@@ -10,9 +10,12 @@
  */
 import { Octokit } from 'octokit';
 
-export async function mergePR(octokit: Octokit, repo: string, prNumber: number, executor: string) {
+export async function mergePR(octokit: Octokit, repo: string, prNumber: number, options?: {
+  mergeMethod?: 'merge' | 'squash' | 'rebase';
+  commitTitle?: string;
+  commitMessage?: string;
+}) {
   // TODO: Validate repo permissions - check if DAO has access to this repo
-  // TODO: Validate executor permissions - check if executor is authorized in DAO
   // TODO: Add idempotency - check if PR already merged to avoid double-merge
   
   if (!repo.includes('/')) {
@@ -22,15 +25,14 @@ export async function mergePR(octokit: Octokit, repo: string, prNumber: number, 
   const [owner, repoName] = repo.split('/');
   
   console.log(`Attempting PR Merge: /repos/${owner}/${repoName}/pulls/${prNumber}/merge`);
-  console.log(`Executor: ${executor}`);
   
   try {
     const result = await octokit.request({
       method: "PUT",
       url: `/repos/${owner}/${repoName}/pulls/${Number(prNumber)}/merge`,
-      merge_method: "merge",
-      commit_title: `Merge PR #${prNumber} via CogniAction`,
-      commit_message: `Executed by: ${executor}`
+      merge_method: options?.mergeMethod || "merge",
+      commit_title: options?.commitTitle || `Merge PR #${prNumber} via CogniAction`,
+      commit_message: options?.commitMessage || `Executed via CogniAction`
     });
     
     console.log(`PR Merge SUCCESS:`, {
@@ -66,7 +68,7 @@ export async function mergePR(octokit: Octokit, repo: string, prNumber: number, 
   }
 }
 
-export async function addAdmin(octokit: Octokit, repo: string, username: string, executor: string) {
+export async function addAdmin(octokit: Octokit, repo: string, username: string, permission: 'admin' | 'maintain' | 'write' = 'admin') {
   if (!repo.includes('/')) {
     throw new Error(`Invalid repo format: ${repo}. Expected "owner/repo"`);
   }
@@ -83,26 +85,24 @@ export async function addAdmin(octokit: Octokit, repo: string, username: string,
   const [owner, repoName] = repo.split('/');
   
   console.log(`Attempting Add Admin: /repos/${owner}/${repoName}/collaborators/${username}`);
-  console.log(`Executor: ${executor}`);
   
   try {
     const result = await octokit.request({
       method: "PUT",
       url: `/repos/${owner}/${repoName}/collaborators/${username}`,
-      permission: "admin"
+      permission
     });
     
     console.log(`Add Admin SUCCESS:`, {
       repo: `${owner}/${repoName}`,
       username,
-      status: result.status,
-      executor
+      status: result.status
     });
     
     return {
       success: true,
       username,
-      permission: "admin",
+      permission,
       status: result.status
     };
   } catch (error: unknown) {
@@ -113,8 +113,7 @@ export async function addAdmin(octokit: Octokit, repo: string, username: string,
       repo: `${owner}/${repoName}`,
       username,
       error: errorMessage,
-      status: errorStatus,
-      executor
+      status: errorStatus
     });
     
     return {

@@ -1,6 +1,6 @@
-import { fullName,Signal } from '../../signal/signal';
+import { fullName, Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
-import { ActionHandler, ActionResult } from '../types';
+import { ActionHandler, ActionResult, MergeChangeParams } from '../types';
 
 export const mergePRAction: ActionHandler = {
   action: "merge",
@@ -19,8 +19,7 @@ export const mergePRAction: ActionHandler = {
     
     ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, change=${pr}, executor=${signal.executor}`);
     
-    const params = { ...(ctx.params as Record<string, unknown>), executor: signal.executor };
-    const result = await ctx.provider.mergeChange(ctx.repoRef, pr, params);
+    const result = await ctx.provider.mergeChange(ctx.repoRef, pr, ctx.params as MergeChangeParams);
     
     if (result.success) {
       ctx.logger.info(`Successfully merged change #${pr} in ${fullName(ctx.repoRef)}`, { sha: result.sha });

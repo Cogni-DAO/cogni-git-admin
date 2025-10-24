@@ -7,7 +7,8 @@
 import { Octokit } from 'octokit'
 
 import * as githubService from '../../services/github'
-import { GrantCollaboratorResult, MergeResult, RepoRef, RevokeCollaboratorResult,VcsProvider } from './types'
+import { GrantCollaboratorResult, MergeResult, RepoRef, RevokeCollaboratorResult, VcsProvider } from './types'
+import { MergeChangeParams, GrantCollaboratorParams, RevokeCollaboratorParams } from '../../core/action_execution/types'
 
 /**
  * GitHub VCS Provider Implementation
@@ -18,11 +19,11 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Merge pull request via GitHub API
    */
-  async mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult> {
+  async mergeChange(repoRef: RepoRef, prNumber: number, params: MergeChangeParams): Promise<MergeResult> {
     try {
       const repo = `${repoRef.owner}/${repoRef.repo}`
       
-      const result = await githubService.mergePR(this.octokit, repo, prNumber, params.executor)
+      const result = await githubService.mergePR(this.octokit, repo, prNumber, params)
       
       return {
         success: result.success,
@@ -44,11 +45,11 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Add user as repository administrator
    */
-  async grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult> {
+  async grantCollaborator(repoRef: RepoRef, username: string, params: GrantCollaboratorParams): Promise<GrantCollaboratorResult> {
     try {
       const repo = `${repoRef.owner}/${repoRef.repo}`
       
-      const result = await githubService.addAdmin(this.octokit, repo, username, params.executor)
+      const result = await githubService.addAdmin(this.octokit, repo, username, params.permission)
       
       return {
         success: result.success,
@@ -69,7 +70,7 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Remove user as repository administrator
    */
-  async revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult> {
+  async revokeCollaborator(repoRef: RepoRef, username: string, _params: RevokeCollaboratorParams): Promise<RevokeCollaboratorResult> {
     try {
       const repo = `${repoRef.owner}/${repoRef.repo}`
       

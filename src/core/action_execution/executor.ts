@@ -1,11 +1,11 @@
 import { Application } from 'probot';
 
+import { createVcsProvider } from '../../factories/vcs';
+import { parseParams, signalToLog } from '../signal/params';
 import { parseRepoRef, Signal } from '../signal/signal';
 import { ExecContext } from './context';
 import { getAction, getAvailableActions } from './registry';
 import { ActionResult } from './types';
-import { createVcsProvider } from '../../factories/vcs';
-import { parseParams, ensureFresh, signalToLog } from '../signal/params';
 
 export async function executeAction(signal: Signal, app: Application, logger: Application['log']): Promise<ActionResult> {
   const { action, target, repoUrl, executor, vcs } = signal;
@@ -18,7 +18,7 @@ export async function executeAction(signal: Signal, app: Application, logger: Ap
     const provider = await createVcsProvider(vcs, app, repoRef, signal.dao);
     
     // Parse and validate parameters with context
-    const params = parseParams(vcs, target, action, signal.paramsJson);
+    const params = parseParams(action, target, signal.paramsJson);
     
     // Build execution context with authenticated provider
     const ctx: ExecContext = {

@@ -8,6 +8,7 @@ import { Application } from 'probot';
 
 import { VcsProvider } from '../../providers/vcs/types';
 import { RepoRef } from '../signal/signal';
+import { GrantCollaboratorParams, MergeChangeParams, RevokeCollaboratorParams } from './types';
 
 /**
  * Execution context for action handlers
@@ -18,5 +19,5 @@ export interface ExecContext {
   provider: VcsProvider;      // VCS provider with authenticated client
   logger: Application['log']; // Logger instance
   executor: string;           // Executor address from blockchain
-  params: any;                // Parsed and validated parameters
+  params: MergeChangeParams | GrantCollaboratorParams | RevokeCollaboratorParams; // Action-specific parameters
 }
