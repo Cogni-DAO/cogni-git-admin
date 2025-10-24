@@ -6,6 +6,7 @@
  */
 
 import { Application } from 'probot';
+
 import { RepoRef, Vcs } from '../signal/signal';
 
 /**

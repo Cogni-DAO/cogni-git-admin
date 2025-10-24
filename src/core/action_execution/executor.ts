@@ -1,10 +1,10 @@
 import { Octokit } from 'octokit';
 import { Application } from 'probot';
 
+import { RepoRef,Signal } from '../signal/signal';
+import { ExecContext, safeParseParams } from './context';
 import { getAction, getAvailableActions } from './registry';
 import { ActionResult } from './types';
-import { Signal, RepoRef } from '../signal/signal';
-import { ExecContext, safeParseParams } from './context';
 
 export async function executeAction(signal: Signal, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
   const { action, target, repoUrl, executor } = signal;

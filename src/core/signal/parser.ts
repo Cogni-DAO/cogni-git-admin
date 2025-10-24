@@ -1,5 +1,6 @@
 import { Address, decodeEventLog, Hex, parseAbi } from 'viem';
-import { Signal, Action, Target } from './signal';
+
+import { Action, Signal, Target } from './signal';
 
 function isValidAction(value: string): value is Action {
   return ['merge', 'grant', 'revoke'].includes(value);

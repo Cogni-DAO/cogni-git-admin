@@ -4,8 +4,8 @@
  * Central registry for VCS providers keyed by host
  */
 
-import { VcsProvider, VcsProviderRegistry } from './types'
 import { gitHubVcsProvider } from './github'
+import { VcsProvider, VcsProviderRegistry } from './types'
 
 /**
  * VCS Provider Registry Implementation

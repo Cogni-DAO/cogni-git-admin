@@ -1,7 +1,7 @@
 import { addAdmin } from '../../../services/github';
-import { ActionHandler, ActionResult } from '../types';
 import { Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
+import { ActionHandler, ActionResult } from '../types';
 
 export const addAdminAction: ActionHandler = {
   action: "grant",

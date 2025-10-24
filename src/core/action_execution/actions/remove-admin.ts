@@ -1,7 +1,7 @@
 import { cancelInvitation,listInvitations, removeCollaborator } from '../../../services/github';
-import { ActionHandler, ActionResult } from '../types';
 import { Signal } from '../../signal/signal';
 import { ExecContext } from '../context';
+import { ActionHandler, ActionResult } from '../types';
 
 export const removeAdminAction: ActionHandler = {
   action: "revoke",
