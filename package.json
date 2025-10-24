@@ -63,7 +63,7 @@
     "mkdirp": "^3.0.1",
     "nanoid": "^5.1.6",
     "nock": "^14.0.10",
-    "nodemon": "^1.17.2",
+    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "smee-client": "^1.0.2",
     "supertest": "^7.1.4",
