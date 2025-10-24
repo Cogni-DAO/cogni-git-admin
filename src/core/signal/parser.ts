@@ -1,25 +1,95 @@
-import { Address,decodeEventLog, Hex, parseAbi } from 'viem';
+import { Address, decodeAbiParameters, decodeEventLog, Hex, parseAbi } from 'viem';
+
+import { Action, isValidVcs,Signal, Target, Vcs } from './signal';
+
+function isValidAction(value: string): value is Action {
+  return ['merge', 'grant', 'revoke'].includes(value);
+}
+
+function isValidTarget(value: string): value is Target {
+  return ['change', 'collaborator'].includes(value);
+}
 
 export const abi = parseAbi([
-  'event CogniAction(address indexed dao,uint256 indexed chainId,string repo,string action,string target,uint256 pr,bytes32 commit,bytes extra,address indexed executor)'
+  'event CogniAction(address indexed dao,uint256 indexed chainId,string vcs,string repoUrl,string action,string target,string resource,bytes extra,address indexed executor)'
 ]);
 
-export const COGNI_TOPIC0 = '0xfd9a8ea95d56c7bd709823c6589c50386a2e5833892ef0e93c7bf63fee30bde1';
+export const COGNI_TOPIC0 = '0x7a3cb36f100df6ecbe1f567f9c30dc11d02d5c42851e8fd534675bb303566a03';
 
-export function tryParseCogniLog(log: { address: Address; topics: Hex[]; data: Hex }) {
+/**
+ * Parse CogniAction event log into Signal
+ * This is the only function that knows about the raw blockchain event structure
+ */
+export function parseCogniAction(log: { address: Address; topics: Hex[]; data: Hex }): Signal | null {
   if (!log?.topics?.[0] || log.topics[0].toLowerCase() !== COGNI_TOPIC0) return null;
   
-  const { args } = decodeEventLog({ abi, data: log.data, topics: log.topics as [Hex, ...Hex[]] });
-  
-  return {
-    dao: args.dao,
-    chainId: BigInt(args.chainId as unknown as string),
-    repo: args.repo,
-    action: args.action,
-    target: args.target,
-    pr: Number(args.pr),
-    commit: args.commit,
-    extra: args.extra,
-    executor: args.executor
-  };
+  try {
+    const { args } = decodeEventLog({ abi, data: log.data, topics: log.topics as [Hex, ...Hex[]] });
+    
+    // Parse extra field which contains abi.encode(nonce, deadline, paramsJson)
+    let nonce = BigInt(0);
+    let deadline = 0;
+    let paramsJson = '';
+    
+    if (args.extra && args.extra !== '0x' && args.extra.length > 2) {
+      try {
+        const decoded = decodeAbiParameters(
+          [
+            { name: 'nonce', type: 'uint256' },
+            { name: 'deadline', type: 'uint64' },
+            { name: 'paramsJson', type: 'string' }
+          ],
+          args.extra
+        );
+        nonce = decoded[0];
+        deadline = Number(decoded[1]);
+        paramsJson = decoded[2];
+      } catch (error) {
+        console.warn('Failed to decode extra field, using defaults:', error);
+        // Fall back to defaults - this handles legacy events with empty extra
+      }
+    } else {
+      // Handle empty extra field: set a generous deadline for MVP
+      deadline = Math.floor(Date.now() / 1000) + 86400; // 24 hours from now
+      console.warn('Empty extra field detected, setting deadline to 24 hours from now');
+    }
+    
+    const vcsRaw = args.vcs;
+    const action = args.action;
+    const target = args.target;
+    
+    // Validate enum values (normalize vcs to lowercase)
+    if (!isValidVcs(vcsRaw)) {
+      throw new Error(`Invalid vcs: ${vcsRaw}. Expected: github, gitlab, radicle`);
+    }
+    
+    if (!isValidAction(action)) {
+      throw new Error(`Invalid action: ${action}. Expected: merge, grant, revoke`);
+    }
+    if (!isValidTarget(target)) {
+      throw new Error(`Invalid target: ${target}. Expected: change, collaborator`);
+    }
+    
+    return {
+      dao: args.dao,
+      chainId: BigInt(args.chainId as unknown as string),
+      vcs: vcsRaw.toLowerCase() as Vcs,
+      repoUrl: args.repoUrl,
+      action,
+      target,
+      resource: args.resource,
+      nonce,
+      deadline,
+      paramsJson,
+      executor: args.executor
+    };
+  } catch (error) {
+    console.error('Failed to parse CogniAction log:', error);
+    return null;
+  }
+}
+
+// Legacy function for backward compatibility - remove after refactor complete
+export function tryParseCogniLog(log: { address: Address; topics: Hex[]; data: Hex }) {
+  return parseCogniAction(log);
 }

@@ -4,7 +4,12 @@
     "name": "signal",
     "inputs": [
       {
-        "name": "repo",
+        "name": "vcs",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "repoUrl",
         "type": "string",
         "internalType": "string"
       },
@@ -19,14 +24,9 @@
         "internalType": "string"
       },
       {
-        "name": "pr",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "commit",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "resource",
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "extra",
@@ -54,7 +54,13 @@
         "internalType": "uint256"
       },
       {
-        "name": "repo",
+        "name": "vcs",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "repoUrl",
         "type": "string",
         "indexed": false,
         "internalType": "string"
@@ -72,16 +78,10 @@
         "internalType": "string"
       },
       {
-        "name": "pr",
-        "type": "uint256",
+        "name": "resource",
+        "type": "string",
         "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "commit",
-        "type": "bytes32",
-        "indexed": false,
-        "internalType": "bytes32"
+        "internalType": "string"
       },
       {
         "name": "extra",

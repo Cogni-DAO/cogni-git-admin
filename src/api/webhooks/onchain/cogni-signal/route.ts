@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { Application } from 'probot';
 
 import { executeAction } from '../../../../core/action_execution/executor';
-import { getInstallationId } from '../../../../core/auth/github';
+import { signalToLog } from '../../../../core/signal/signal';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
@@ -85,36 +85,21 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
       logger.info('✅ [WEBHOOK] Event validation passed', { txHash });
 
       validEventsFound++;
-      logger.info({ kind: 'CogniAction', txHash: out.txHash, logIndex: out.logIndex, ...out.parsed, chainId: out.parsed.chainId.toString() });
-
-      // Get GitHub App installation ID for this DAO+repo
-      logger.info('🔧 [WEBHOOK] Getting GitHub installation ID', { dao: out.parsed.dao, repo: out.parsed.repo });
-      const installationId = getInstallationId(out.parsed.dao, out.parsed.repo);
-      logger.info('✅ [WEBHOOK] Installation ID retrieved', { installationId });
-
-      // Get authenticated GitHub client from Probot app
-      logger.info('🔧 [WEBHOOK] Authenticating GitHub client');
-      const github = await app.auth(installationId);
-      logger.info('✅ [WEBHOOK] GitHub client authenticated');
+      logger.info({ 
+        kind: 'CogniAction', 
+        txHash: out.txHash, 
+        logIndex: out.logIndex, 
+        ...signalToLog(out.parsed)
+      });
 
       // Execute the action
       logger.info('🚀 [WEBHOOK] Executing action', {
         action: out.parsed.action,
         target: out.parsed.target,
-        repo: out.parsed.repo,
-        pr: out.parsed.pr
+        "repoUrl": out.parsed.repoUrl,
+        resource: out.parsed.resource
       });
-      const actionResult = await executeAction({
-        dao: out.parsed.dao,
-        chainId: out.parsed.chainId,
-        repo: out.parsed.repo,
-        action: out.parsed.action,
-        target: out.parsed.target,
-        pr: out.parsed.pr,
-        commit: out.parsed.commit,
-        extra: out.parsed.extra,
-        executor: out.parsed.executor
-      }, github, logger);
+      const actionResult = await executeAction(out.parsed, app, logger);
 
       logger.info('✅ [WEBHOOK] Action executed', { kind: 'ActionResult', txHash: out.txHash, ...actionResult });
     }

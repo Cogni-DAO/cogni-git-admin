@@ -8,7 +8,7 @@
  * 4. Verify PR gets merged by cogni-git-admin
  */
 import { test, expect } from '@playwright/test';
-import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData, encodeAbiParameters } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
@@ -19,8 +19,8 @@ import { testConfig } from '../helpers/test-config';
 
 // Contract ABI from CogniSignal.sol
 const cogniSignalAbi = parseAbi([
-  'function signal(string calldata repo, string calldata action, string calldata target, uint256 pr, bytes32 commit, bytes calldata extra) external',
-  'event CogniAction(address indexed dao, uint256 indexed chainId, string repo, string action, string target, uint256 pr, bytes32 commit, bytes extra, address indexed executor)'
+  'function signal(string calldata vcs, string calldata repoUrl, string calldata action, string calldata target, string calldata resource, bytes calldata extra) external',
+  'event CogniAction(address indexed dao, uint256 indexed chainId, string vcs, string repoUrl, string action, string target, string resource, bytes extra, address indexed executor)'
 ]);
 
 // Admin Plugin ABI from Aragon (matching successful transaction)
@@ -138,6 +138,19 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       }
 
       // Create proposal to execute signal() function
+      const mergeExtra = encodeAbiParameters(
+        [
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint64' }, 
+          { name: 'paramsJson', type: 'string' }
+        ],
+        [
+          BigInt(0), // nonce (MVP: no replay protection yet)
+          BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+          '' // paramsJson (empty for now)
+        ]
+      );
+
       const actions = [{
         to: testConfig.SIGNAL_CONTRACT,
         value: BigInt(0),
@@ -145,12 +158,12 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
           abi: cogniSignalAbi,
           functionName: 'signal',
           args: [
-            testConfig.TEST_REPO,    // repo
-            'PR_APPROVE',             // action  
-            'pull_request',           // target
-            BigInt(prNumber),         // pr number
-            ('0x' + '0'.repeat(64)) as `0x${string}`,    // commit (placeholder)
-            '0x'                      // extra data
+            'github',                 // vcs (VCS provider)
+            `https://github.com/${testConfig.TEST_REPO}`,  // repoUrl (full URL)
+            'merge',                  // action (new canonical name)
+            'change',                 // target (provider-agnostic)  
+            prNumber.toString(),      // resource (PR number as string)
+            mergeExtra                // extra (encoded nonce, deadline, paramsJson)
           ]
         })
       }];

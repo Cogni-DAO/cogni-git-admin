@@ -50,3 +50,9 @@ npm run e2e:blockchain    # Blockchain integration tests only
 - **Fixture Replay Test Skipped (Oct 2025)**: `fixture-replay.spec.ts` marked as `test.skip()` due to Alchemy signing key conflicts between local/preview/production environments
 - **Property Name Mismatch (Oct 2025)**: Fixed undefined contract address issue where tests referenced `testConfig.ADMIN_PLUGIN_CONTRACT` instead of correct `testConfig.ARAGON_ADMIN_PLUGIN_CONTRACT`
 - **Error Resolution**: "EVM error: OpcodeNotFound" was caused by attempting contract calls on undefined address, not blockchain issues
+- **Admin Management Test Updates (Oct 2025)**: 
+  - `blockchain-admin-management.spec.ts` now uses CogniSignal v6 format with `signal()` function
+  - Uses canonical action names: `grant`/`revoke` instead of `ADD_ADMIN`/`REMOVE_ADMIN`
+  - Tests full workflow: CREATE invitation → CANCEL invitation via DAO votes
+  - Includes automatic cleanup of existing invitations before test execution
+  - Uses `encodeAbiParameters` for structured extra data with nonce, deadline, paramsJson

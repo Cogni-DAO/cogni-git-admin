@@ -10,7 +10,7 @@
  * 6. Verify pending invitation gets cancelled
  */
 import { test, expect } from '@playwright/test';
-import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData, encodeAbiParameters } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
@@ -18,8 +18,8 @@ import { testConfig } from '../helpers/test-config';
 
 // Contract ABI from CogniSignal.sol
 const cogniSignalAbi = parseAbi([
-  'function signal(string calldata repo, string calldata action, string calldata target, uint256 pr, bytes32 commit, bytes calldata extra) external',
-  'event CogniAction(address indexed dao, uint256 indexed chainId, string repo, string action, string target, uint256 pr, bytes32 commit, bytes extra, address indexed executor)'
+  'function signal(string calldata vcs, string calldata repoUrl, string calldata action, string calldata target, string calldata resource, bytes calldata extra) external',
+  'event CogniAction(address indexed dao, uint256 indexed chainId, string vcs, string repoUrl, string action, string target, string resource, bytes extra, address indexed executor)'
 ]);
 
 // Admin Plugin ABI from Aragon (matching successful transaction)
@@ -117,21 +117,32 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     // Step 2: Execute ADD_ADMIN DAO vote  
     console.log('🗳️  Executing ADD_ADMIN DAO vote on Sepolia...');
 
-    // Encode username as hex for extra parameter
-    const usernameHex = `0x${Buffer.from(testConfig.TEST_USERNAME).toString('hex')}`;
-    console.log(`📝 Username "${testConfig.TEST_USERNAME}" encoded as: ${usernameHex}`);
+    console.log(`📝 Username for admin operations: ${testConfig.TEST_USERNAME}`);
 
-    // Create DAO proposal for ADD_ADMIN action
+    // Create DAO proposal for grant admin action
+    const addAdminExtra = encodeAbiParameters(
+      [
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint64' }, 
+        { name: 'paramsJson', type: 'string' }
+      ],
+      [
+        BigInt(0), // nonce (MVP: no replay protection yet)
+        BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+        '' // paramsJson (empty for now)
+      ]
+    );
+
     const addAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
-        testConfig.TEST_REPO,          // repo
-        'ADD_ADMIN',                     // action  
-        'repository',                    // target
-        0n,                             // pr (unused)
-        '0x0000000000000000000000000000000000000000000000000000000000000000', // commit (unused)
-        usernameHex                     // extra (username)
+        'github',                       // vcs (VCS provider)
+        `https://github.com/${testConfig.TEST_REPO}`,  // repoUrl (full URL)
+        'grant',                        // action (new canonical name)
+        'collaborator',                 // target (provider-agnostic)
+        testConfig.TEST_USERNAME,       // resource (username directly)
+        addAdminExtra                   // extra (encoded nonce, deadline, paramsJson)
       ]
     });
 
@@ -172,17 +183,30 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     // Step 4: Execute REMOVE_ADMIN DAO vote
     console.log('🗳️  Executing REMOVE_ADMIN DAO vote on Sepolia...');
 
-    // Create DAO proposal for REMOVE_ADMIN action  
+    // Create DAO proposal for revoke admin action  
+    const removeAdminExtra = encodeAbiParameters(
+      [
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint64' }, 
+        { name: 'paramsJson', type: 'string' }
+      ],
+      [
+        BigInt(0), // nonce (MVP: no replay protection yet)
+        BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+        '' // paramsJson (empty for now)
+      ]
+    );
+
     const removeAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
       functionName: 'signal',
       args: [
-        testConfig.TEST_REPO,          // repo
-        'REMOVE_ADMIN',                 // action
-        'repository',                   // target
-        0n,                             // pr (unused)
-        '0x0000000000000000000000000000000000000000000000000000000000000000', // commit (unused)
-        usernameHex                     // extra (username)
+        'github',                       // vcs (VCS provider)
+        `https://github.com/${testConfig.TEST_REPO}`,  // repoUrl (full URL)
+        'revoke',                       // action (new canonical name)
+        'collaborator',                 // target (provider-agnostic)
+        testConfig.TEST_USERNAME,       // resource (username directly)
+        removeAdminExtra               // extra (encoded nonce, deadline, paramsJson)
       ]
     });
 

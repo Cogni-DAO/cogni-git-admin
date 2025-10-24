@@ -80,9 +80,10 @@ export default tseslint.config(
       'n/no-missing-import': 'off', // TypeScript handles this
       'n/no-unpublished-import': 'off', // Allow dev dependencies in tests
       'n/no-extraneous-import': 'off', // TypeScript handles this better
-      // Update for modern Node.js features (adjust based on actual deployment target)
-      'n/no-unsupported-features/es-syntax': ['error', { version: '>=14.0.0' }],
-      'n/no-unsupported-features/es-builtins': ['error', { version: '>=14.0.0' }],
+      // Update for modern Node.js features (Node 20+)
+      'n/no-unsupported-features/es-syntax': ['error', { version: '>=20.0.0' }],
+      'n/no-unsupported-features/es-builtins': ['error', { version: '>=20.0.0' }],
+      'n/no-unsupported-features/node-builtins': ['error', { version: '>=20.0.0' }],
     }
   },
 

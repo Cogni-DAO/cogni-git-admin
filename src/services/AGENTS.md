@@ -19,51 +19,51 @@ Integration with external systems (blockchain, GitHub, logging, etc.).
 ## Structure
 - `rpc.ts` - Blockchain RPC client (Viem) for fetching CogniAction events
 - `github.ts` - GitHub repository operations:
-  - `mergePR(octokit, repo, prNumber, executor)` - Merge pull request
-  - `addAdmin(octokit, repo, username, executor)` - Add repository admin
-  - `removeCollaborator(octokit, repo, username, executor)` - Remove repository collaborator
-  - `listInvitations(octokit, repo, executor)` - List pending repository invitations
-  - `cancelInvitation(octokit, repo, invitationId, executor)` - Cancel repository invitation
+  - `mergePR(octokit, repo, prNumber, options?)` - Merge pull request with optional parameters
+  - `addAdmin(octokit, repo, username, permission?)` - Add repository admin with permission level
+  - `removeCollaborator(octokit, repo, username)` - Remove repository collaborator
+  - `listInvitations(octokit, repo)` - List pending repository invitations
+  - `cancelInvitation(octokit, repo, invitationId)` - Cancel repository invitation
 - `logging.ts` - Planned: Structured logging service
 
 ## GitHub Service Details
 
 ### Authentication
-- Uses Probot app's `app.auth(installationId)` for repository-scoped tokens
-- Installation mapping in `core/auth/github.ts` (environment-aware)
+- Uses authenticated Octokit instances provided by VCS factory pattern
+- Token management handled at VCS provider level, not in service functions
 
 ### Operations
 
-#### `mergePR(octokit, repo, prNumber, executor)`
+#### `mergePR(octokit, repo, prNumber, options?)`
 - **Endpoint**: `PUT /repos/{owner}/{repo}/pulls/{prNumber}/merge`
 - **Permissions Required**: `pull_requests: write`, `contents: write`
-- **Parameters**: Repository path, PR number, executor identity
-- **Returns**: Success with SHA or failure with error details
+- **Parameters**: Repository path, PR number, optional merge options (mergeMethod, commitTitle, commitMessage)
+- **Returns**: Success with SHA, merged status, message, and HTTP status code; failure with error details and status code
 
-#### `addAdmin(octokit, repo, username, executor)`  
+#### `addAdmin(octokit, repo, username, permission?)`  
 - **Endpoint**: `PUT /repos/{owner}/{repo}/collaborators/{username}`
 - **Permissions Required**: `administration: write`
-- **Parameters**: Repository path, GitHub username, executor identity
+- **Parameters**: Repository path, GitHub username, permission level ('admin'|'maintain'|'write', defaults to 'admin')
 - **Validation**: Username format and non-empty checks
 - **Returns**: Success with status or failure with error details
 
-#### `removeCollaborator(octokit, repo, username, executor)`  
+#### `removeCollaborator(octokit, repo, username)`  
 - **Endpoint**: `DELETE /repos/{owner}/{repo}/collaborators/{username}`
 - **Permissions Required**: `administration: write`
-- **Parameters**: Repository path, GitHub username, executor identity
+- **Parameters**: Repository path, GitHub username
 - **Validation**: Username format and non-empty checks
 - **Returns**: Success with status or failure with error details
 
-#### `listInvitations(octokit, repo, executor)`  
+#### `listInvitations(octokit, repo)`  
 - **Endpoint**: `GET /repos/{owner}/{repo}/invitations`
 - **Permissions Required**: `administration: read`
-- **Parameters**: Repository path, executor identity
+- **Parameters**: Repository path
 - **Returns**: Success with invitations array or failure with error details
 
-#### `cancelInvitation(octokit, repo, invitationId, executor)`  
+#### `cancelInvitation(octokit, repo, invitationId)`  
 - **Endpoint**: `DELETE /repos/{owner}/{repo}/invitations/{invitation_id}`
 - **Permissions Required**: `administration: write`
-- **Parameters**: Repository path, invitation ID, executor identity
+- **Parameters**: Repository path, invitation ID
 - **Validation**: Invitation ID must be positive number
 - **Returns**: Success with status or failure with error details
 

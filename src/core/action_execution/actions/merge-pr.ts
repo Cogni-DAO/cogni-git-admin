@@ -1,50 +1,43 @@
-import { Octokit } from 'octokit';
-import { Application } from 'probot';
-
-import { mergePR } from '../../../services/github';
-import { ActionHandler, ActionResult,CogniActionParsed, ValidationResult } from '../types';
+import { fullName, Signal } from '../../signal/signal';
+import { ExecContext } from '../context';
+import { ActionHandler, ActionResult, MergeChangeParams } from '../types';
 
 export const mergePRAction: ActionHandler = {
-  action: "PR_APPROVE",
-  target: "pull_request",
-  description: "Merge a pull request via DAO vote",
+  action: "merge",
+  target: "change",
+  description: "Merge a change request (PR/MR/patch) via DAO vote",
 
-  validate(parsed: CogniActionParsed): ValidationResult {
-    if (parsed.pr <= 0) {
-      return { valid: false, error: 'PR number must be greater than 0' };
+  async run(signal: Signal, ctx: ExecContext): Promise<ActionResult> {
+    const pr = Number(signal.resource);
+    if (!Number.isInteger(pr) || pr <= 0) {
+      return { 
+        success: false, 
+        action: 'validation_failed', 
+        error: 'resource must be a positive integer' 
+      };
     }
     
-    if (!parsed.repo.includes('/')) {
-      return { valid: false, error: 'Repo must be in format "owner/repo"' };
-    }
+    ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, change=${pr}, executor=${signal.executor}`);
     
-    return { valid: true };
-  },
-
-  async execute(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
-    const { repo, pr, executor } = parsed;
-    
-    logger.info(`Executing ${this.action} for repo=${repo}, pr=${pr}, executor=${executor}`);
-    
-    const result = await mergePR(octokit, repo, pr, executor);
+    const result = await ctx.provider.mergeChange(ctx.repoRef, pr, ctx.params as MergeChangeParams);
     
     if (result.success) {
-      logger.info(`Successfully merged PR #${pr} in ${repo}`, { sha: result.sha });
+      ctx.logger.info(`Successfully merged change #${pr} in ${fullName(ctx.repoRef)}`, { sha: result.sha });
       return { 
         success: true, 
         action: 'merge_completed', 
         sha: result.sha,
-        repo,
-        pr
+        repoUrl: signal.repoUrl,
+        changeNumber: pr
       };
     } else {
-      logger.error(`Failed to merge PR #${pr} in ${repo}`, { error: result.error, status: result.status });
+      ctx.logger.error(`Failed to merge change #${pr} in ${fullName(ctx.repoRef)}`, { error: result.error, status: result.status });
       return { 
         success: false, 
         action: 'merge_failed', 
         error: result.error,
-        repo,
-        pr
+        repoUrl: signal.repoUrl,
+        changeNumber: pr
       };
     }
   }

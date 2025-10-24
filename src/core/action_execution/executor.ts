@@ -1,34 +1,40 @@
-import { Octokit } from 'octokit';
 import { Application } from 'probot';
 
+import { createVcsProvider } from '../../factories/vcs';
+import { parseParams, signalToLog } from '../signal/params';
+import { parseRepoRef, Signal } from '../signal/signal';
+import { ExecContext } from './context';
 import { getAction, getAvailableActions } from './registry';
-import { ActionResult,CogniActionParsed } from './types';
+import { ActionResult } from './types';
 
-export async function executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
-  // TODO: Add database lookup to validate DAO has permission for this repo
-  // TODO: Add rate limiting per DAO/executor
-  // TODO: Add audit logging to permanent storage
-  
-  const { action, target, repo, executor } = parsed;
+export async function executeAction(signal: Signal, app: Application, logger: Application['log']): Promise<ActionResult> {
+  const { action, target, repoUrl, executor, vcs } = signal;
   
   try {
+    // Parse repository reference
+    const repoRef = parseRepoRef(repoUrl);
+    
+    // Create authenticated VCS provider
+    const provider = await createVcsProvider(vcs, app, repoRef, signal.dao);
+    
+    // Parse and validate parameters with context
+    const params = parseParams(action, target, signal.paramsJson);
+    
+    // Build execution context with authenticated provider
+    const ctx: ExecContext = {
+      repoRef,
+      provider,
+      logger,
+      executor,
+      params
+    };
+    
     // Get action handler from registry
     const handler = getAction(action, target);
     
-    // Validate action parameters
-    const validation = handler.validate(parsed);
-    if (!validation.valid) {
-      logger.error(`Action validation failed: ${validation.error}`, { action, target, repo, executor });
-      return { 
-        success: false, 
-        action: 'validation_failed', 
-        error: validation.error 
-      };
-    }
-    
-    // Execute the action
-    logger.info(`Executing ${action}:${target} for repo=${repo}, executor=${executor}`);
-    return await handler.execute(parsed, octokit, logger);
+    // Execute the action with signal and context
+    logger.info({ signal: signalToLog(signal) }, `exec ${action}:${target}`);
+    return await handler.run(signal, ctx);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -43,7 +49,7 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
       };
     }
     
-    logger.error(`Action execution failed: ${errorMessage}`, { action, target, repo, executor });
+    logger.error(`Action execution failed: ${errorMessage}`, { action, target, repoUrl, executor });
     return { 
       success: false, 
       action: 'execution_failed', 
@@ -52,5 +58,4 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
   }
 }
 
-// Re-export types for backward compatibility
-export type { ActionResult,CogniActionParsed } from './types';
+export type { ActionResult } from './types';

@@ -51,7 +51,7 @@ E2E_APP_DEPLOYMENT_URL=http://localhost:3000
 - ✅ **GitHub Integration**: PR creation/cleanup via API  
 - ✅ **Blockchain Client**: Viem-based Sepolia interaction
 - ✅ **Environment Configuration**: Comprehensive .env setup
-- ✅ **Admin Plugin**: Correct ABI with 5 parameters
+- ✅ **Admin Plugin**: Correct ABI with 6 parameters including vcs field
 - ✅ **Event Emission**: CogniAction events with proper parameters
 
 ## Test Execution
@@ -84,7 +84,7 @@ const actions = [{
   data: encodeFunctionData({
     abi: cogniSignalAbi,
     functionName: 'signal',
-    args: [repo, action, target, prNumber, commit, extra]
+    args: [vcs, repoUrl, action, target, resource, extra]
   })
 }];
 ```

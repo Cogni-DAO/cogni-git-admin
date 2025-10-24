@@ -1,44 +1,65 @@
-# CogniAction Signal Domain
+# Signal Domain
 
 ## Purpose
-Domain logic for CogniAction blockchain events. Pure parsing and validation.
+Signal parsing and type definitions for CogniAction blockchain events.
 
-## Scope
-- CogniAction event ABI decoding
-- Domain object creation and validation
-- Event data transformation
-- Zod schema definitions
+## Architecture
+- **Single Source of Truth**: Only `parser.ts` knows raw blockchain event structure
+- **Clean Abstractions**: `Signal` type provides typed interface for app code
+- **Minimal Surface Area**: ABI changes only affect `parser.ts` and `CogniSignal.json`
 
-## Current Implementation
-- **`parser.ts`**: CogniAction event ABI decoding and parsing
-  - Exports `abi` for event signature
-  - Exports `COGNI_TOPIC0` event topic hash
-  - `tryParseCogniLog()` decodes raw logs into structured CogniAction objects
-- **`schema.ts`**: Zod validation schemas (if present)
+## Components
+- **`signal.ts`**: Core `Signal` type and utilities
+  - `Signal` interface with all parsed fields
+  - `VCS` constant array and `Vcs` type with validation function
+  - `RepoRef` parser for repository URL handling
+  - `signalToLog()` for BigInt-safe logging
+- **`parser.ts`**: Raw blockchain event parsing
+  - `parseCogniAction()` converts blockchain logs to `Signal`
+  - Validates vcs/action/target enums at parse time, normalizes VCS to lowercase
+  - Returns null for invalid or unmatched events
+  - Uses updated event signature with vcs field
+- **`params.ts`**: Parameter validation and freshness checks  
+  - `ensureFresh()` validates nonce and deadline
+  - `parseMergeParams()`, `parseGrantParams()`, `parseRevokeParams()` - discriminated parameter parsing
 
-## Domain Model
+## Signal Interface
 ```typescript
-CogniActionParsed {
-  dao: string          // DAO address
-  chainId: bigint      // Blockchain ID
-  repo: string         // GitHub repo (owner/name)
-  action: string       // Action type (PR_APPROVE, ADD_ADMIN, etc.)
-  target: string       // Target type (pull_request, repository, etc.)
-  pr: number          // PR number (0 if not applicable)
-  commit: string      // Commit hash
-  extra: string       // Additional data (hex encoded)
-  executor: string    // Executor address
+interface Signal {
+  dao: string;         // DAO contract address
+  chainId: bigint;     // Chain ID (11155111 for Sepolia)
+  vcs: Vcs;           // "github" | "gitlab" | "radicle" 
+  repoUrl: string;     // Full repository URL
+  action: Action;      // "merge" | "grant" | "revoke"
+  target: Target;      // "change" | "collaborator"
+  resource: string;    // PR number or username
+  nonce: bigint;       // Currently unused (0)
+  deadline: number;    // Currently unused (0)
+  paramsJson: string;  // Currently unused ("")
+  executor: string;    // Transaction executor address
 }
 ```
 
-## Supported Actions
-- **PR_APPROVE**: Approve and merge pull requests
-- **ADD_ADMIN**: Add repository administrators
-- **REMOVE_ADMIN**: Remove repository administrators
-- Additional actions can be added via the action_execution registry
+## VCS Type System
+```typescript
+export const VCS = ['github', 'gitlab', 'radicle'] as const;
+export type Vcs = typeof VCS[number];
+export function isValidVcs(x: unknown): x is Vcs
+```
 
-## Guidelines
-- No blockchain RPC calls (delegate to services)
-- Pure event log parsing only
-- Strong typing with Zod validation
-- Immutable domain objects
+## Current Actions
+- `merge:change` → Merge pull requests (resource: PR number)
+- `grant:collaborator` → Add admins (resource: username)
+- `revoke:collaborator` → Remove admins (resource: username)
+
+## Usage Pattern
+1. `parseCogniAction(log)` → `Signal | null`
+2. `ensureFresh(signal.nonce, signal.deadline)` validates signal freshness
+3. `parseParams(action, target, paramsJson)` dispatches to discriminated parsers
+4. Action handlers receive `run(signal: Signal, ctx: ExecContext)`
+5. Use `signalToLog(signal)` for safe JSON logging
+
+## Parameter Handling  
+- **Nonce**: Replay protection (MVP: accepts any nonce >= 0)
+- **Deadline**: Unix timestamp validation (rejects expired signals)
+- **ParamsJson**: Action-specific parameter types (MergeChangeParams, GrantCollaboratorParams, RevokeCollaboratorParams)

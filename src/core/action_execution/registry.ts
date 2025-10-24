@@ -13,15 +13,15 @@ import { removeAdminAction } from './actions/remove-admin';
 import { ActionHandler } from './types';
 
 export const ACTIONS: Record<string, ActionHandler> = Object.freeze({
-  "PR_APPROVE:pull_request": mergePRAction,
-  "ADD_ADMIN:repository": addAdminAction,
-  "REMOVE_ADMIN:repository": removeAdminAction,
+  "merge:change": mergePRAction,
+  "grant:collaborator": addAdminAction,
+  "revoke:collaborator": removeAdminAction,
 });
 
 /**
  * Get action handler by action name and target
- * @param action - Action name (e.g., "PR_APPROVE")
- * @param target - Target type (e.g., "pull_request")  
+ * @param action - Action name (e.g., "merge")
+ * @param target - Target type (e.g., "change")  
  * @returns ActionHandler for the specified action:target combination
  * @throws Error if action:target combination not found
  */
