@@ -22,6 +22,8 @@ interface VcsProvider {
 - **Per-Execution Auth**: Fresh authenticated provider created for each execution
 - **Clean Interfaces**: Business logic depends on interfaces, not concrete SDK clients
 - **Single Auth Boundary**: All VCS authentication confined to factory creation
+- **Dependency Inversion**: High-level code depends on interfaces, not concrete SDK implementations
+- **Least Privilege**: Handlers see only minimal interface needed, no direct SDK access
 
 ## Data Flow
 1. **Signal Processing** → Extract `vcs`, `repoRef` from CogniSignal
