@@ -17,13 +17,14 @@ Extensible action execution system for blockchain-initiated GitHub operations. I
 - **Type Safety**: Full TypeScript interfaces for actions, validation, and results
 
 ### Components
-- **types.ts**: Core interfaces (`ActionHandler`, `CogniActionParsed`, `ValidationResult`, `ActionResult`) with updated schema support
-- **registry.ts**: Central action registry with lookup and metadata functions using canonical action:target mappings
-- **executor.ts**: Orchestrates validation and execution through registered handlers with new schema fields
-- **actions/**: Individual action handler implementations
-  - `merge-pr.ts`: Merge handler for merging pull requests (`merge:change`)
-  - `add-admin.ts`: Grant collaborator handler for adding repository administrators (`grant:collaborator`)
-  - `remove-admin.ts`: Revoke collaborator handler for removing repository administrators (`revoke:collaborator`)
+- **types.ts**: `ActionHandler` interface with `run(signal, ctx)` signature and `ActionResult`
+- **context.ts**: `ExecContext` with parsed repo info, auth, and execution metadata
+- **registry.ts**: Central action registry with `action:target` mappings
+- **executor.ts**: Builds `ExecContext` and routes to handlers
+- **actions/**: Action handler implementations
+  - `merge-pr.ts`: `merge:change` handler
+  - `add-admin.ts`: `grant:collaborator` handler  
+  - `remove-admin.ts`: `revoke:collaborator` handler
 
 ## Interfaces
 

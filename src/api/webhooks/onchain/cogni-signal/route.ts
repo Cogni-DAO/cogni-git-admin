@@ -3,6 +3,7 @@ import { Application } from 'probot';
 
 import { executeAction } from '../../../../core/action_execution/executor';
 import { getInstallationId } from '../../../../core/auth/github';
+import { signalToLog } from '../../../../core/signal/signal';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
 import { fetchCogniFromTx } from '../../../../services/rpc';
@@ -85,7 +86,12 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
       logger.info('✅ [WEBHOOK] Event validation passed', { txHash });
 
       validEventsFound++;
-      logger.info({ kind: 'CogniAction', txHash: out.txHash, logIndex: out.logIndex, ...out.parsed, chainId: out.parsed.chainId.toString() });
+      logger.info({ 
+        kind: 'CogniAction', 
+        txHash: out.txHash, 
+        logIndex: out.logIndex, 
+        ...signalToLog(out.parsed)
+      });
 
       // Parse repo from repoUrl for installation ID lookup
       const repoUrl = new URL(out.parsed.repoUrl);
@@ -105,19 +111,10 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
       logger.info('🚀 [WEBHOOK] Executing action', {
         action: out.parsed.action,
         target: out.parsed.target,
-        repoUrl: out.parsed.repoUrl,
+        "repoUrl": out.parsed.repoUrl,
         resource: out.parsed.resource
       });
-      const actionResult = await executeAction({
-        dao: out.parsed.dao,
-        chainId: out.parsed.chainId,
-        repoUrl: out.parsed.repoUrl,
-        action: out.parsed.action,
-        target: out.parsed.target,
-        resource: out.parsed.resource,
-        extra: out.parsed.extra,
-        executor: out.parsed.executor
-      }, github, logger);
+      const actionResult = await executeAction(out.parsed, github, logger);
 
       logger.info('✅ [WEBHOOK] Action executed', { kind: 'ActionResult', txHash: out.txHash, ...actionResult });
     }

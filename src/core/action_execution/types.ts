@@ -1,21 +1,5 @@
-import { Octokit } from 'octokit';
-import { Application } from 'probot';
-
-export interface CogniActionParsed {
-  dao: string;
-  chainId: bigint;
-  repoUrl: string;
-  action: string;
-  target: string;
-  resource: string;
-  extra: string;
-  executor: string;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  error?: string;
-}
+import { Signal } from '../signal/signal';
+import { ExecContext } from './context';
 
 export interface ActionResult {
   success: boolean;
@@ -36,13 +20,10 @@ export interface ActionResult {
 
 export interface ActionHandler {
   // Action metadata
-  readonly action: string;        // "PR_APPROVE"
-  readonly target: string;        // "pull_request" 
+  readonly action: string;        // "merge"
+  readonly target: string;        // "change" 
   readonly description: string;   // Human readable description
   
-  // Validation
-  validate(parsed: CogniActionParsed): ValidationResult;
-  
-  // Execution  
-  execute(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult>;
+  // Signal-based execution
+  run(signal: Signal, ctx: ExecContext): Promise<ActionResult>;
 }

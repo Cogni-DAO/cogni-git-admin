@@ -11,29 +11,26 @@ Individual action handler implementations for the extensible action registry sys
 
 ## Current Implementations
 
-### merge-pr.ts - Merge Handler
+### merge-pr.ts
 - **Action**: `merge:change`
 - **Purpose**: Merge pull requests via DAO vote with bypass capabilities
-- **Validation**: Validates PR number > 0 and parses repository from repoUrl
-- **Execution**: Merges pull request using GitHub API with bypass permissions
-- **Schema**: Uses `resource` field for PR number (string), parses repo from `repoUrl`
-- **Returns**: Success with SHA or failure with error details
+- **Signature**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Validates PR number from `signal.resource`, calls GitHub merge API
+- **Returns**: Success with SHA or validation/execution failure
 
-### add-admin.ts - Grant Collaborator Handler  
+### add-admin.ts
 - **Action**: `grant:collaborator`
-- **Purpose**: Add users as repository administrators via DAO vote
-- **Validation**: Validates repository format and extracts username from resource field
-- **Execution**: Adds user as repository collaborator with admin permissions
-- **Schema**: Uses `resource` field for username directly (no hex decoding)
-- **Returns**: Success with user details or failure with error details
+- **Purpose**: Grant admin access via DAO vote
+- **Signature**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Validates username from `signal.resource`, invites as admin
+- **Returns**: Success with user details or failure
 
-### remove-admin.ts - Revoke Collaborator Handler
+### remove-admin.ts
 - **Action**: `revoke:collaborator`
-- **Purpose**: Remove users as repository administrators via DAO vote
-- **Validation**: Validates repository format and extracts username from resource field
-- **Execution**: Removes active collaborator or cancels pending invitation
-- **Schema**: Uses `resource` field for username directly (no hex decoding)
-- **Returns**: Success with user details and operation flags (`collaboratorRemoved`, `invitationCancelled`) or failure with error details
+- **Purpose**: Remove admin access via DAO vote
+- **Signature**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Removes collaborator AND cancels pending invitations
+- **Returns**: Success with operation flags or failure
 
 ## Handler Interface
 All handlers implement the `ActionHandler` interface:

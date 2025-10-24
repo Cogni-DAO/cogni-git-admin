@@ -36,17 +36,18 @@ src/
 │  ├─ detect.ts                  # Provider detection
 │  └─ (future: quicknode.ts)     # Other providers
 ├─ core/                         # Pure domain logic
-│  ├─ signal/                    # CogniAction parsing
-│  │  ├─ parser.ts               # ABI decoding
-│  │  └─ schema.ts               # Zod validation schemas
-│  ├─ action_execution/          # Extensible action system
-│  │  ├─ types.ts                # Core interfaces
-│  │  ├─ registry.ts             # Action registration (canonical naming)
-│  │  ├─ executor.ts             # Execution orchestrator
+│  ├─ signal/                    # Signal parsing (minimal surface area)
+│  │  ├─ signal.ts               # Signal types, RepoRef parser, logging utils
+│  │  └─ parser.ts               # parseCogniAction() - only knows raw ABI
+│  ├─ action_execution/          # Signal + Context execution pattern
+│  │  ├─ types.ts                # ActionHandler with run(signal, ctx)
+│  │  ├─ context.ts              # ExecContext with resolved auth/repo
+│  │  ├─ registry.ts             # Action registration (action:target keys)
+│  │  ├─ executor.ts             # Builds context, routes to handlers
 │  │  └─ actions/                # Action handlers
-│  │     ├─ merge-pr.ts          # merge:change handler
-│  │     ├─ add-admin.ts         # grant:collaborator handler
-│  │     └─ remove-admin.ts      # revoke:collaborator handler
+│  │     ├─ merge-pr.ts          # merge:change
+│  │     ├─ add-admin.ts         # grant:collaborator
+│  │     └─ remove-admin.ts      # revoke:collaborator
 │  └─ auth/                      # Authentication helpers
 │     └─ github.ts               # Installation ID mapping
 ├─ services/                     # External system integrations
@@ -86,12 +87,13 @@ e2e/
 ```
 
 ## Current Implementation
-- **Webhook Processing**: Receives and validates CogniSignal events from Alchemy provider, parses CogniAction events with updated 5-parameter schema, executes GitHub operations
-- **Action Execution**: Extensible registry-based system supporting multiple action types with canonical naming
-  - `merge:change`: Merges pull requests with bypass capabilities (resource: PR number)
-  - `grant:collaborator`: Adds users as repository administrators (resource: username)
-  - `revoke:collaborator`: Removes users as repository administrators or cancels pending invitations (resource: username)
-- **Updated Schema**: Uses `repoUrl`, `action`, `target`, `resource` fields instead of legacy `repo`, `pr`, `commit` with hex-encoded data
+- **Signal Architecture**: Minimal surface area design where only `parser.ts` knows raw blockchain structure
+- **Webhook Processing**: Alchemy provider → `parseCogniAction()` → `Signal` → `executeAction(signal, ctx)`
+- **Action Execution**: Registry routes `action:target` to handlers with `run(signal, ctx)` signature
+  - `merge:change`: PR merge with bypass capabilities
+  - `grant:collaborator`: Add repository administrators  
+  - `revoke:collaborator`: Remove administrators or cancel invitations
+- **Context Pattern**: `ExecContext` provides resolved repo info, auth, logging to handlers
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
 - **Testing**: Comprehensive test coverage with Jest unit tests and Playwright E2E tests
   - **Unit Tests**: Core action logic and registry functionality with mocked dependencies

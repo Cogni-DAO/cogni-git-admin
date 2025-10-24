@@ -2,33 +2,32 @@ import { Octokit } from 'octokit';
 import { Application } from 'probot';
 
 import { getAction, getAvailableActions } from './registry';
-import { ActionResult,CogniActionParsed } from './types';
+import { ActionResult } from './types';
+import { Signal, RepoRef } from '../signal/signal';
+import { ExecContext, safeParseParams } from './context';
 
-export async function executeAction(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
-  // TODO: Add database lookup to validate DAO has permission for this repo
-  // TODO: Add rate limiting per DAO/executor
-  // TODO: Add audit logging to permanent storage
-  
-  const { action, target, repoUrl, executor } = parsed;
+export async function executeAction(signal: Signal, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
+  const { action, target, repoUrl, executor } = signal;
   
   try {
+    // Build execution context
+    const repoRef = RepoRef.parse(repoUrl);
+    const params = safeParseParams(signal.paramsJson);
+    const ctx: ExecContext = {
+      repoRef,
+      provider: 'github', // V1: hardcode to github, V2: use signal.vcs
+      octokit,
+      logger,
+      executor,
+      params
+    };
+    
     // Get action handler from registry
     const handler = getAction(action, target);
     
-    // Validate action parameters
-    const validation = handler.validate(parsed);
-    if (!validation.valid) {
-      logger.error(`Action validation failed: ${validation.error}`, { action, target, repoUrl, executor });
-      return { 
-        success: false, 
-        action: 'validation_failed', 
-        error: validation.error 
-      };
-    }
-    
-    // Execute the action
+    // Execute the action with signal and context
     logger.info(`Executing ${action}:${target} for repoUrl=${repoUrl}, executor=${executor}`);
-    return await handler.execute(parsed, octokit, logger);
+    return await handler.run(signal, ctx);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -52,5 +51,4 @@ export async function executeAction(parsed: CogniActionParsed, octokit: Octokit,
   }
 }
 
-// Re-export types for backward compatibility
-export type { ActionResult,CogniActionParsed } from './types';
+export type { ActionResult } from './types';

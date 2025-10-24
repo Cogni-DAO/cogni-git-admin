@@ -1,43 +1,46 @@
-# CogniAction Signal Domain
+# Signal Domain
 
 ## Purpose
-Domain logic for CogniAction blockchain events. Pure parsing and validation.
+Signal parsing and type definitions for CogniAction blockchain events.
 
-## Scope
-- CogniAction event ABI decoding
-- Domain object creation and validation
-- Event data transformation
-- Zod schema definitions
+## Architecture
+- **Single Source of Truth**: Only `parser.ts` knows raw blockchain event structure
+- **Clean Abstractions**: `Signal` type provides typed interface for app code
+- **Minimal Surface Area**: ABI changes only affect `parser.ts` and `CogniSignal.json`
 
-## Current Implementation
-- **`parser.ts`**: CogniAction event ABI decoding and parsing with updated schema
-  - Exports `abi` for event signature (5-parameter CogniAction event)
-  - Exports `COGNI_TOPIC0` event topic hash for new schema
-  - `tryParseCogniLog()` decodes raw logs into structured CogniAction objects with repoUrl, action, target, resource fields
-- **`schema.ts`**: Zod validation schemas (if present)
+## Components
+- **`signal.ts`**: Core `Signal` type and utilities
+  - `Signal` interface with all parsed fields
+  - `RepoRef` parser for repository URL handling
+  - `signalToLog()` for BigInt-safe logging
+- **`parser.ts`**: Raw blockchain event parsing
+  - `parseCogniAction()` converts blockchain logs to `Signal`
+  - Validates action/target enums at parse time
+  - Returns null for invalid or unmatched events
 
-## Domain Model (Updated Schema)
+## Signal Interface
 ```typescript
-CogniActionParsed {
-  dao: string          // DAO address
-  chainId: bigint      // Blockchain ID
-  repoUrl: string      // Full repository URL (e.g., "https://github.com/owner/repo")
-  action: string       // Canonical action name (merge, grant, revoke)
-  target: string       // Provider-agnostic target (change, collaborator)
-  resource: string     // Action-specific resource (PR number, username)
-  extra: string        // Additional data (hex encoded)
-  executor: string     // Executor address
+interface Signal {
+  dao: string;         // DAO contract address
+  chainId: bigint;     // Chain ID (11155111 for Sepolia)
+  vcs: Vcs;           // "github" | "gitlab" | "radicle" 
+  repoUrl: string;     // Full repository URL
+  action: Action;      // "merge" | "grant" | "revoke"
+  target: Target;      // "change" | "collaborator"
+  resource: string;    // PR number or username
+  nonce: bigint;       // Currently unused (0)
+  deadline: number;    // Currently unused (0)
+  paramsJson: string;  // Currently unused ("")
+  executor: string;    // Transaction executor address
 }
 ```
 
-## Supported Actions (Canonical Naming)
-- **merge**: Merge pull requests (target: change, resource: PR number)
-- **grant**: Add repository administrators (target: collaborator, resource: username)
-- **revoke**: Remove repository administrators (target: collaborator, resource: username)
-- Additional actions can be added via the action_execution registry with provider-agnostic naming
+## Current Actions
+- `merge:change` → Merge pull requests (resource: PR number)
+- `grant:collaborator` → Add admins (resource: username)
+- `revoke:collaborator` → Remove admins (resource: username)
 
-## Guidelines
-- No blockchain RPC calls (delegate to services)
-- Pure event log parsing only
-- Strong typing with Zod validation
-- Immutable domain objects
+## Usage Pattern
+1. `parseCogniAction(log)` → `Signal | null`
+2. Action handlers receive `run(signal: Signal, ctx: ExecContext)`
+3. Use `signalToLog(signal)` for safe JSON logging

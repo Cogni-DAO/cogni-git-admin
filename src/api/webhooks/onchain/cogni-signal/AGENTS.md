@@ -32,7 +32,8 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Validation errors return detailed messages in response body for debugging
 - Each valid CogniAction event triggers GitHub action execution via action registry system
 - Currently assumes GitHub App installation ID directly from DAO+repo lookup
-- Uses new CogniSignal schema fields: `repoUrl`, `action`, `target`, `resource` instead of legacy `repo`, `pr`, `commit` fields
+- Uses `parseCogniAction()` to get `Signal` objects
+- Calls `executeAction(signal, octokit, logger)` with Signal pattern
 
 ## Architecture
 route.ts → detectProvider() → getAdapter() → adapter.verifySignature() → adapter.parse() → RPC verify
