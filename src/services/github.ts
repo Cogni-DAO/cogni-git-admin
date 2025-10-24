@@ -125,7 +125,7 @@ export async function addAdmin(octokit: Octokit, repo: string, username: string,
   }
 }
 
-export async function removeCollaborator(octokit: Octokit, repo: string, username: string, executor: string) {
+export async function removeCollaborator(octokit: Octokit, repo: string, username: string) {
   if (!repo.includes('/')) {
     throw new Error(`Invalid repo format: ${repo}. Expected "owner/repo"`);
   }
@@ -142,7 +142,6 @@ export async function removeCollaborator(octokit: Octokit, repo: string, usernam
   const [owner, repoName] = repo.split('/');
   
   console.log(`Attempting Remove Collaborator: /repos/${owner}/${repoName}/collaborators/${username}`);
-  console.log(`Executor: ${executor}`);
   
   try {
     const result = await octokit.request({
@@ -153,8 +152,7 @@ export async function removeCollaborator(octokit: Octokit, repo: string, usernam
     console.log(`Remove Collaborator SUCCESS:`, {
       repo: `${owner}/${repoName}`,
       username,
-      status: result.status,
-      executor
+      status: result.status
     });
     
     return {
@@ -170,8 +168,7 @@ export async function removeCollaborator(octokit: Octokit, repo: string, usernam
       repo: `${owner}/${repoName}`,
       username,
       error: errorMessage,
-      status: errorStatus,
-      executor
+      status: errorStatus
     });
     
     return {
@@ -182,7 +179,7 @@ export async function removeCollaborator(octokit: Octokit, repo: string, usernam
   }
 }
 
-export async function listInvitations(octokit: Octokit, repo: string, executor: string) {
+export async function listInvitations(octokit: Octokit, repo: string) {
   if (!repo.includes('/')) {
     throw new Error(`Invalid repo format: ${repo}. Expected "owner/repo"`);
   }
@@ -190,7 +187,6 @@ export async function listInvitations(octokit: Octokit, repo: string, executor: 
   const [owner, repoName] = repo.split('/');
   
   console.log(`List Invitations: /repos/${owner}/${repoName}/invitations`);
-  console.log(`Executor: ${executor}`);
   
   try {
     const result = await octokit.request({
@@ -200,8 +196,7 @@ export async function listInvitations(octokit: Octokit, repo: string, executor: 
     
     console.log(`List Invitations SUCCESS:`, {
       repo: `${owner}/${repoName}`,
-      count: result.data.length,
-      executor
+      count: result.data.length
     });
     
     return {
@@ -216,8 +211,7 @@ export async function listInvitations(octokit: Octokit, repo: string, executor: 
     console.log(`List Invitations FAILED:`, {
       repo: `${owner}/${repoName}`,
       error: errorMessage,
-      status: errorStatus,
-      executor
+      status: errorStatus
     });
     
     return {
@@ -228,7 +222,7 @@ export async function listInvitations(octokit: Octokit, repo: string, executor: 
   }
 }
 
-export async function cancelInvitation(octokit: Octokit, repo: string, invitationId: number, executor: string) {
+export async function cancelInvitation(octokit: Octokit, repo: string, invitationId: number) {
   if (!repo.includes('/')) {
     throw new Error(`Invalid repo format: ${repo}. Expected "owner/repo"`);
   }
@@ -240,7 +234,6 @@ export async function cancelInvitation(octokit: Octokit, repo: string, invitatio
   const [owner, repoName] = repo.split('/');
   
   console.log(`Cancel Invitation: /repos/${owner}/${repoName}/invitations/${invitationId}`);
-  console.log(`Executor: ${executor}`);
   
   try {
     const result = await octokit.request({
@@ -251,8 +244,7 @@ export async function cancelInvitation(octokit: Octokit, repo: string, invitatio
     console.log(`Cancel Invitation SUCCESS:`, {
       repo: `${owner}/${repoName}`,
       invitationId,
-      status: result.status,
-      executor
+      status: result.status
     });
     
     return {
@@ -268,8 +260,7 @@ export async function cancelInvitation(octokit: Octokit, repo: string, invitatio
       repo: `${owner}/${repoName}`,
       invitationId,
       error: errorMessage,
-      status: errorStatus,
-      executor
+      status: errorStatus
     });
     
     return {

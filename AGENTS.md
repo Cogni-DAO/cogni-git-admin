@@ -10,8 +10,9 @@ Blockchain-to-GitHub bridge that processes CogniSignal events from onchain webho
 ## Architecture
 - **Versioned API**: `/api/v1/*` endpoints for webhooks and health checks
 - **Provider Adapters**: Normalize different webhook providers (currently Alchemy hardcoded)
-- **Clean Layers**: API → Core domain logic → Services (RPC, GitHub)
-- **Probot Integration**: GitHub webhook handling via standard Probot patterns
+- **VCS Factory Pattern**: Per-execution authenticated VCS providers with clean interfaces
+- **Signal + Context Pattern**: Handlers receive parsed signals and execution context
+- **Clean Layers**: API → Core domain logic → VCS Factory → VCS Providers → Services
 
 ## Project Management
 - **Cogni MCP Epic**: All work items must accrue up to this parent Epic for cogni-git-admin: `0b132be5-4692-4266-9e30-10acf9e1f1ca`
@@ -31,19 +32,26 @@ src/
 │  └─ webhooks/
 │     ├─ github/                 # GitHub webhook routes
 │     └─ onchain/cogni-signal/   # CogniSignal webhook routes
-├─ providers/onchain/            # Webhook provider adapters
-│  ├─ alchemy.ts                 # Alchemy payload parser (MVP)
-│  ├─ detect.ts                  # Provider detection
-│  └─ (future: quicknode.ts)     # Other providers
+├─ factories/                    # Provider factory pattern
+│  └─ vcs.ts                     # createVcsProvider() - VCS auth boundary
+├─ providers/                    # External system adapters
+│  ├─ onchain/                   # Webhook provider adapters
+│  │  ├─ alchemy.ts              # Alchemy payload parser (MVP)
+│  │  ├─ detect.ts               # Provider detection
+│  │  └─ (future: quicknode.ts)  # Other providers
+│  └─ vcs/                       # VCS provider adapters
+│     ├─ types.ts                # VcsProvider interface, result types
+│     └─ github.ts               # GitHub VCS implementation
 ├─ core/                         # Pure domain logic
 │  ├─ signal/                    # Signal parsing (minimal surface area)
 │  │  ├─ signal.ts               # Signal types, RepoRef parser, logging utils
+│  │  ├─ params.ts               # Parameter validation, freshness checks
 │  │  └─ parser.ts               # parseCogniAction() - only knows raw ABI
 │  ├─ action_execution/          # Signal + Context execution pattern
 │  │  ├─ types.ts                # ActionHandler with run(signal, ctx)
-│  │  ├─ context.ts              # ExecContext with resolved auth/repo
+│  │  ├─ context.ts              # ExecContext with VCS provider
 │  │  ├─ registry.ts             # Action registration (action:target keys)
-│  │  ├─ executor.ts             # Builds context, routes to handlers
+│  │  ├─ executor.ts             # VCS factory integration, routes to handlers
 │  │  └─ actions/                # Action handlers
 │  │     ├─ merge-pr.ts          # merge:change
 │  │     ├─ add-admin.ts         # grant:collaborator
@@ -51,11 +59,11 @@ src/
 │  └─ auth/                      # Authentication helpers
 │     └─ github.ts               # Installation ID mapping
 ├─ services/                     # External system integrations
-│  ├─ rpc.ts                     # Blockchain RPC client
+│  ├─ rpc.ts                     # Blockchain RPC client, fetchCogniFromTx()
 │  ├─ github.ts                  # GitHub API operations
 │  └─ logging.ts                 # Structured logging (planned)
 ├─ utils/                        # Stateless helpers
-│  ├─ env.ts                     # Two-tier environment validation (base/dev with conditional requirements)
+│  ├─ env.ts                     # Two-tier environment validation
 │  ├─ hmac.ts                    # Signature verification
 │  └─ idempotency.ts             # Deduplication logic
 └─ contracts/                    # Smart contract interfaces
@@ -88,12 +96,14 @@ e2e/
 
 ## Current Implementation
 - **Signal Architecture**: Minimal surface area design where only `parser.ts` knows raw blockchain structure
-- **Webhook Processing**: Alchemy provider → `parseCogniAction()` → `Signal` → `executeAction(signal, ctx)`
+- **Webhook Processing**: Alchemy provider → `fetchCogniFromTx()` → `parseCogniAction()` → `Signal` → `executeAction(signal, app, logger)`
+- **VCS Factory Integration**: `createVcsProvider(vcs, app, repoRef, dao)` creates authenticated providers per execution
 - **Action Execution**: Registry routes `action:target` to handlers with `run(signal, ctx)` signature
   - `merge:change`: PR merge with bypass capabilities
   - `grant:collaborator`: Add repository administrators  
   - `revoke:collaborator`: Remove administrators or cancel invitations
-- **Context Pattern**: `ExecContext` provides resolved repo info, auth, logging to handlers
+- **Signal + Context Pattern**: `ExecContext` provides VCS provider, repo info, params, and logging to handlers
+- **Parameter Handling**: `parseParams()` and `ensureFresh()` validate signal parameters and freshness
 - **HTTP Response Codes**: Returns 200 for success, 400 for unknown providers, 401 for signature failures, 422 for validation errors, 204 for no relevant events
 - **Testing**: Comprehensive test coverage with Jest unit tests and Playwright E2E tests
   - **Unit Tests**: Core action logic and registry functionality with mocked dependencies

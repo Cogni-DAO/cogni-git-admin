@@ -4,28 +4,18 @@
  * Interfaces for blockchain-initiated repository administration across different VCS platforms
  */
 
-/**
- * Repository reference parsed from URL
- */
-export interface RepoRef {
-  /** VCS host (e.g., "github.com", "gitlab.com") */
-  host: string
-  /** Repository owner/organization */
-  owner: string  
-  /** Repository name */
-  repo: string
-  /** Full repository URL for reference */
-  url: string
-}
+// Import RepoRef from signal domain (single source of truth)
+import { RepoRef } from '../../core/signal/signal';
+
+// Re-export for convenience
+export { RepoRef };
 
 /**
- * Structured result from VCS operations
+ * Base result interface for VCS operations
  */
-export interface VcsResult {
+interface VcsResultBase {
   /** Operation success status */
   success: boolean
-  /** Operation-specific data (e.g., SHA for merge, status code for admin ops) */
-  data?: Record<string, any>
   /** Error message if operation failed */
   error?: string
   /** HTTP status code or provider-specific error code */
@@ -33,43 +23,69 @@ export interface VcsResult {
 }
 
 /**
+ * Result from merge operations
+ */
+export interface MergeResult extends VcsResultBase {
+  /** Merge commit SHA if successful */
+  sha?: string
+  /** Whether merge was completed */
+  merged?: boolean
+  /** Status message from VCS provider */
+  message?: string
+}
+
+/**
+ * Result from grant collaborator operations
+ */
+export interface GrantCollaboratorResult extends VcsResultBase {
+  /** Username that was granted access */
+  username?: string
+  /** Permission level granted */
+  permission?: string
+}
+
+/**
+ * Result from revoke collaborator operations
+ */
+export interface RevokeCollaboratorResult extends VcsResultBase {
+  /** Username that was revoked */
+  username?: string
+  /** Operation type (collaborator_removed, invitation_cancelled) */
+  operation?: string
+  /** Invitation ID for cancelled invitations */
+  invitationId?: number
+}
+
+/**
  * VCS provider interface for repository administration operations
+ * Clean, minimal interface with authenticated client encapsulated in provider
  */
 export interface VcsProvider {
-  /** Provider identifier */
-  readonly name: string
-  /** VCS host this provider handles */
-  readonly host: string
-  
   /**
    * Merge pull request/merge request
    * @param repoRef Repository reference
    * @param prNumber PR/MR number  
-   * @param executor Identity of executor from blockchain event
-   * @param token Access token for authentication
+   * @param params Provider-specific merge parameters
    * @returns Operation result with merge details
    */
-  mergePR(repoRef: RepoRef, prNumber: number, executor: string, token: string): Promise<VcsResult>
+  mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult>
   
   /**
    * Add user as repository administrator
    * @param repoRef Repository reference
    * @param username Username to add as admin
-   * @param executor Identity of executor from blockchain event  
-   * @param token Access token for authentication
+   * @param params Provider-specific grant parameters
    * @returns Operation result with admin assignment details
    */
-  addAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult>
+  grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult>
   
   /**
    * Remove user as repository administrator
    * @param repoRef Repository reference
    * @param username Username to remove as admin
-   * @param executor Identity of executor from blockchain event
-   * @param token Access token for authentication  
    * @returns Operation result with admin removal details
    */
-  removeAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult>
+  revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult>
 }
 
 /**

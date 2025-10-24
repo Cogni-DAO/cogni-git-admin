@@ -1,4 +1,4 @@
-import { Address, decodeEventLog, Hex, parseAbi } from 'viem';
+import { Address, decodeEventLog, Hex, parseAbi, decodeAbiParameters } from 'viem';
 
 import { Action, Signal, Target } from './signal';
 
@@ -27,10 +27,32 @@ export function parseCogniAction(log: { address: Address; topics: Hex[]; data: H
     const { args } = decodeEventLog({ abi, data: log.data, topics: log.topics as [Hex, ...Hex[]] });
     
     // Parse extra field which contains abi.encode(nonce, deadline, paramsJson)
-    // For V1: Use defaults, V2 will implement proper ABI decoding
-    const nonce = BigInt(0);
-    const deadline = 0;
-    const paramsJson = '';
+    let nonce = BigInt(0);
+    let deadline = 0;
+    let paramsJson = '';
+    
+    if (args.extra && args.extra !== '0x' && args.extra.length > 2) {
+      try {
+        const decoded = decodeAbiParameters(
+          [
+            { name: 'nonce', type: 'uint256' },
+            { name: 'deadline', type: 'uint64' },
+            { name: 'paramsJson', type: 'string' }
+          ],
+          args.extra as Hex
+        );
+        nonce = decoded[0];
+        deadline = Number(decoded[1]);
+        paramsJson = decoded[2];
+      } catch (error) {
+        console.warn('Failed to decode extra field, using defaults:', error);
+        // Fall back to defaults - this handles legacy events with empty extra
+      }
+    } else {
+      // Handle empty extra field: set a generous deadline for MVP
+      deadline = Math.floor(Date.now() / 1000) + 86400; // 24 hours from now
+      console.warn('Empty extra field detected, setting deadline to 24 hours from now');
+    }
     
     const action = args.action;
     const target = args.target;

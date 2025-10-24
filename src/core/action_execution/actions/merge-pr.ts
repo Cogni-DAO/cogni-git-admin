@@ -1,5 +1,4 @@
-import { mergePR } from '../../../services/github';
-import { Signal } from '../../signal/signal';
+import { Signal, fullName } from '../../signal/signal';
 import { ExecContext } from '../context';
 import { ActionHandler, ActionResult } from '../types';
 
@@ -9,36 +8,37 @@ export const mergePRAction: ActionHandler = {
   description: "Merge a change request (PR/MR/patch) via DAO vote",
 
   async run(signal: Signal, ctx: ExecContext): Promise<ActionResult> {
-    const changeNumber = parseInt(signal.resource, 10);
-    if (isNaN(changeNumber) || changeNumber <= 0) {
+    const pr = Number(signal.resource);
+    if (!Number.isInteger(pr) || pr <= 0) {
       return { 
         success: false, 
         action: 'validation_failed', 
-        error: 'Resource must be a valid change number greater than 0' 
+        error: 'resource must be a positive integer' 
       };
     }
     
-    ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, change=${changeNumber}, executor=${signal.executor}`);
+    ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, change=${pr}, executor=${signal.executor}`);
     
-    const result = await mergePR(ctx.octokit, ctx.repoRef.fullName, changeNumber, signal.executor);
+    const params = { ...(ctx.params as Record<string, unknown>), executor: signal.executor };
+    const result = await ctx.provider.mergeChange(ctx.repoRef, pr, params);
     
     if (result.success) {
-      ctx.logger.info(`Successfully merged change #${changeNumber} in ${ctx.repoRef.fullName}`, { sha: result.sha });
+      ctx.logger.info(`Successfully merged change #${pr} in ${fullName(ctx.repoRef)}`, { sha: result.sha });
       return { 
         success: true, 
         action: 'merge_completed', 
         sha: result.sha,
         repoUrl: signal.repoUrl,
-        changeNumber
+        changeNumber: pr
       };
     } else {
-      ctx.logger.error(`Failed to merge change #${changeNumber} in ${ctx.repoRef.fullName}`, { error: result.error, status: result.status });
+      ctx.logger.error(`Failed to merge change #${pr} in ${fullName(ctx.repoRef)}`, { error: result.error, status: result.status });
       return { 
         success: false, 
         action: 'merge_failed', 
         error: result.error,
         repoUrl: signal.repoUrl,
-        changeNumber
+        changeNumber: pr
       };
     }
   }

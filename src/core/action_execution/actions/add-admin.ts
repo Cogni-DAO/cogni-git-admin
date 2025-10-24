@@ -1,5 +1,4 @@
-import { addAdmin } from '../../../services/github';
-import { Signal } from '../../signal/signal';
+import { Signal, fullName } from '../../signal/signal';
 import { ExecContext } from '../context';
 import { ActionHandler, ActionResult } from '../types';
 
@@ -30,10 +29,11 @@ export const addAdminAction: ActionHandler = {
     
     ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, username=${username}, executor=${signal.executor}`);
     
-    const result = await addAdmin(ctx.octokit, ctx.repoRef.fullName, username, signal.executor);
+    const params = { ...(ctx.params as Record<string, unknown>), executor: signal.executor };
+    const result = await ctx.provider.grantCollaborator(ctx.repoRef, username, params);
     
     if (result.success) {
-      ctx.logger.info(`Successfully added ${username} as admin to ${ctx.repoRef.fullName}`, { username, status: result.status });
+      ctx.logger.info(`Successfully added ${username} as admin to ${fullName(ctx.repoRef)}`, { username, status: result.status });
       return { 
         success: true, 
         action: 'admin_added', 
@@ -42,7 +42,7 @@ export const addAdminAction: ActionHandler = {
         repoUrl: signal.repoUrl
       };
     } else {
-      ctx.logger.error(`Failed to add ${username} as admin to ${ctx.repoRef.fullName}`, { error: result.error, status: result.status });
+      ctx.logger.error(`Failed to add ${username} as admin to ${fullName(ctx.repoRef)}`, { error: result.error, status: result.status });
       return { 
         success: false, 
         action: 'admin_add_failed', 

@@ -17,6 +17,9 @@ Signal parsing and type definitions for CogniAction blockchain events.
   - `parseCogniAction()` converts blockchain logs to `Signal`
   - Validates action/target enums at parse time
   - Returns null for invalid or unmatched events
+- **`params.ts`**: Parameter validation and freshness checks
+  - `ensureFresh()` validates nonce and deadline
+  - `parseParams()` handles VCS-specific parameter parsing
 
 ## Signal Interface
 ```typescript
@@ -42,5 +45,12 @@ interface Signal {
 
 ## Usage Pattern
 1. `parseCogniAction(log)` → `Signal | null`
-2. Action handlers receive `run(signal: Signal, ctx: ExecContext)`
-3. Use `signalToLog(signal)` for safe JSON logging
+2. `ensureFresh(signal.nonce, signal.deadline)` validates signal freshness
+3. `parseParams(vcs, target, action, paramsJson)` extracts action parameters
+4. Action handlers receive `run(signal: Signal, ctx: ExecContext)`
+5. Use `signalToLog(signal)` for safe JSON logging
+
+## Parameter Handling
+- **Nonce**: Replay protection (MVP: accepts any nonce >= 0)
+- **Deadline**: Unix timestamp validation (rejects expired signals)
+- **ParamsJson**: VCS-specific parameter parsing and validation

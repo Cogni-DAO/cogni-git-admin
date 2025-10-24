@@ -1,22 +1,29 @@
-import { Octokit } from 'octokit';
 import { Application } from 'probot';
 
-import { RepoRef,Signal } from '../signal/signal';
-import { ExecContext, safeParseParams } from './context';
+import { parseRepoRef, Signal } from '../signal/signal';
+import { ExecContext } from './context';
 import { getAction, getAvailableActions } from './registry';
 import { ActionResult } from './types';
+import { createVcsProvider } from '../../factories/vcs';
+import { parseParams, ensureFresh, signalToLog } from '../signal/params';
 
-export async function executeAction(signal: Signal, octokit: Octokit, logger: Application['log']): Promise<ActionResult> {
-  const { action, target, repoUrl, executor } = signal;
+export async function executeAction(signal: Signal, app: Application, logger: Application['log']): Promise<ActionResult> {
+  const { action, target, repoUrl, executor, vcs } = signal;
   
   try {
-    // Build execution context
-    const repoRef = RepoRef.parse(repoUrl);
-    const params = safeParseParams(signal.paramsJson);
+    // Parse repository reference
+    const repoRef = parseRepoRef(repoUrl);
+    
+    // Create authenticated VCS provider
+    const provider = await createVcsProvider(vcs, app, repoRef, signal.dao);
+    
+    // Parse and validate parameters with context
+    const params = parseParams(vcs, target, action, signal.paramsJson);
+    
+    // Build execution context with authenticated provider
     const ctx: ExecContext = {
       repoRef,
-      provider: 'github', // V1: hardcode to github, V2: use signal.vcs
-      octokit,
+      provider,
       logger,
       executor,
       params
@@ -26,7 +33,7 @@ export async function executeAction(signal: Signal, octokit: Octokit, logger: Ap
     const handler = getAction(action, target);
     
     // Execute the action with signal and context
-    logger.info(`Executing ${action}:${target} for repoUrl=${repoUrl}, executor=${executor}`);
+    logger.info({ signal: signalToLog(signal) }, `exec ${action}:${target}`);
     return await handler.run(signal, ctx);
     
   } catch (error) {

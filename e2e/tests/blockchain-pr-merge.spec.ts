@@ -8,7 +8,7 @@
  * 4. Verify PR gets merged by cogni-git-admin
  */
 import { test, expect } from '@playwright/test';
-import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData, encodeAbiParameters } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
@@ -138,6 +138,19 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
       }
 
       // Create proposal to execute signal() function
+      const mergeExtra = encodeAbiParameters(
+        [
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint64' }, 
+          { name: 'paramsJson', type: 'string' }
+        ],
+        [
+          BigInt(0), // nonce (MVP: no replay protection yet)
+          BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+          '' // paramsJson (empty for now)
+        ]
+      );
+
       const actions = [{
         to: testConfig.SIGNAL_CONTRACT,
         value: BigInt(0),
@@ -149,7 +162,7 @@ test.describe('Complete E2E: DAO Vote → PR Merge', () => {
             'merge',                  // action (new canonical name)
             'change',                 // target (provider-agnostic)  
             prNumber.toString(),      // resource (PR number as string)
-            '0x'                      // extra data
+            mergeExtra                // extra (encoded nonce, deadline, paramsJson)
           ]
         })
       }];

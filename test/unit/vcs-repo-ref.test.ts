@@ -2,7 +2,8 @@
  * Repository Reference Parser Tests
  */
 
-import { parseRepoUrl,RepoRef } from '../../src/providers/vcs/repo-ref'
+import { parseRepoRef, fullName } from '../../src/core/signal/signal'
+import { parseRepoUrl, isSupportedHost } from '../../src/providers/vcs/repo-ref'
 
 describe('RepoRef', () => {
   describe('parseRepoUrl', () => {
@@ -61,17 +62,17 @@ describe('RepoRef', () => {
     })
   })
 
-  describe('RepoRef.parse', () => {
-    test('static parse method works identically', () => {
+  describe('parseRepoRef', () => {
+    test('signal domain parser works identically', () => {
       const url = 'https://github.com/owner/repo'
       const directResult = parseRepoUrl(url)
-      const staticResult = RepoRef.parse(url)
+      const signalResult = parseRepoRef(url)
       
-      expect(staticResult).toEqual(directResult)
+      expect(signalResult).toEqual(directResult)
     })
   })
 
-  describe('RepoRef.format', () => {
+  describe('fullName helper', () => {
     test('formats RepoRef as owner/repo string', () => {
       const repoRef = {
         host: 'github.com',
@@ -80,20 +81,20 @@ describe('RepoRef', () => {
         url: 'https://github.com/owner/repo'
       }
       
-      expect(RepoRef.format(repoRef)).toBe('owner/repo')
+      expect(fullName(repoRef)).toBe('owner/repo')
     })
   })
 
-  describe('RepoRef.isSupportedHost', () => {
+  describe('isSupportedHost', () => {
     test('returns true for supported hosts', () => {
-      expect(RepoRef.isSupportedHost('github.com')).toBe(true)
-      expect(RepoRef.isSupportedHost('GITHUB.COM')).toBe(true)
-      expect(RepoRef.isSupportedHost('gitlab.com')).toBe(true)
+      expect(isSupportedHost('github.com')).toBe(true)
+      expect(isSupportedHost('GITHUB.COM')).toBe(true)
+      expect(isSupportedHost('gitlab.com')).toBe(true)
     })
 
     test('returns false for unsupported hosts', () => {
-      expect(RepoRef.isSupportedHost('bitbucket.org')).toBe(false)
-      expect(RepoRef.isSupportedHost('example.com')).toBe(false)
+      expect(isSupportedHost('bitbucket.org')).toBe(false)
+      expect(isSupportedHost('example.com')).toBe(false)
     })
   })
 })

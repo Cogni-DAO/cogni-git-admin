@@ -47,60 +47,49 @@ export interface BaseContext {
     [key: string]: any;
   };
 
-  // Host-agnostic VCS interface (what gates actually use)
+  // Minimal admin-only VCS interface for cogni-git-admin
   vcs: {
-    config: {
-      get(params: { owner: string; repo: string; path: string }): Promise<{ config: any }>;
-    };
     pulls: {
-      get(params: { owner: string; repo: string; pull_number: number }): Promise<{ data: any }>;
-      listFiles(params: { owner: string; repo: string; pull_number: number }): Promise<{ data: any[] }>;
+      /**
+       * Merge a pull request/merge request
+       */
+      merge(params: {
+        owner: string;
+        repo: string;
+        pull_number: number;
+        merge_method?: 'merge' | 'squash' | 'rebase';
+        commit_title?: string;
+        commit_message?: string;
+      }): Promise<{
+        sha?: string;
+        merged: boolean;
+        message?: string;
+      }>
     };
-    repos: {
-      compareCommits(params: { owner: string; repo: string; base: string; head: string }): Promise<{ data: any }>;
-      getContent(params: { owner: string; repo: string; path: string; ref?: string }): Promise<{ data: any }>;
-      listPullRequestsAssociatedWithCommit?(params: { commit_sha: string }): Promise<{ data: any[] }>;
+    collaborators: {
+      /**
+       * Add user as repository collaborator
+       */
+      add(params: {
+        owner: string;
+        repo: string;
+        username: string;
+        permission?: 'admin' | 'maintain' | 'push' | 'triage' | 'pull';
+      }): Promise<{
+        status: number;
+      }>
+      
+      /**
+       * Remove user as repository collaborator
+       */
+      remove(params: {
+        owner: string;
+        repo: string;
+        username: string;
+      }): Promise<{
+        status: number;
+      }>
     };
-    checks?: {
-      create(params: any): Promise<{ data: any }>;
-    };
-    issues?: {
-      createComment(params: { owner: string; repo: string; issue_number: number; body: string }): Promise<{ data: any }>;
-      addLabels?(params: any): Promise<{ data: any }>;
-    };
-    git?: {
-      getRef?(params: any): Promise<{ data: any }>;
-      createRef?(params: any): Promise<{ data: any }>;
-    };
-    // Support both direct and rest namespaced access patterns
-    rest?: {
-      pulls: {
-        listFiles(params: { owner: string; repo: string; pull_number: number }): Promise<{ data: any[] }>;
-      };
-    };
-    // Allow other VCS operations for extensibility
-    [key: string]: any;
-  };
-
-  // Host-specific interfaces (adapter-internal only)
-  octokit?: any; // GitHub adapter uses this internally
-  [hostSpecific: string]: any;
-
-  // Runtime properties added by gate orchestrator
-  pr?: {
-    number: number;
-    title: string;
-    body?: string;
-    head: {
-      sha: string;
-      repo: { name: string };
-    };
-    base?: {
-      sha: string;
-    };
-    changed_files?: number;
-    additions?: number;
-    deletions?: number;
   };
 
   spec?: {
@@ -124,9 +113,6 @@ export interface BaseContext {
     debug(msg: string | object, ...args: any[]): void;
     child(bindings: Record<string, any>): any;
   };
-
-  // Allow additional properties for extensibility
-  [key: string]: any;
 }
 
 /**
@@ -145,9 +131,6 @@ export abstract class HostAdapter implements BaseContext {
   idempotency_key?: string;
   reviewLimitsConfig?: Record<string, any>;
   log?: BaseContext['log'];
-
-  // Allow additional properties
-  [key: string]: any;
 }
 
 // Type helper for JSDoc annotations

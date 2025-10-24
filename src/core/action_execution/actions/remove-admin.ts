@@ -1,5 +1,4 @@
-import { cancelInvitation,listInvitations, removeCollaborator } from '../../../services/github';
-import { Signal } from '../../signal/signal';
+import { Signal, fullName } from '../../signal/signal';
 import { ExecContext } from '../context';
 import { ActionHandler, ActionResult } from '../types';
 
@@ -30,79 +29,22 @@ export const removeAdminAction: ActionHandler = {
     
     ctx.logger.info(`Executing ${this.action} for repoUrl=${signal.repoUrl}, username=${username}, executor=${signal.executor}`);
     
-    let collaboratorRemoved = false;
-    let invitationCancelled = false;
+    const result = await ctx.provider.revokeCollaborator(ctx.repoRef, username);
     
-    // Step 1: Try to remove active collaborator
-    ctx.logger.info(`Attempting to remove active collaborator: ${username}`);
-    const collaboratorResult = await removeCollaborator(ctx.octokit, ctx.repoRef.fullName, username, signal.executor);
-    
-    if (collaboratorResult.success) {
-      collaboratorRemoved = true;
-      ctx.logger.info(`Successfully removed active collaborator: ${username}`);
-    } else {
-      // If 404, user is not an active collaborator - check for pending invitations
-      if (collaboratorResult.status === 404) {
-        ctx.logger.info(`No active collaborator found (404) - checking for pending invitations`);
-      } else {
-        ctx.logger.warn(`Failed to remove active collaborator: ${collaboratorResult.error}`);
-      }
-    }
-    
-    // Step 2: Always check for and cancel pending invitations
-    // (User could be both an active collaborator AND have a pending invitation)
-    ctx.logger.info(`Checking for pending invitations for: ${username}`);
-    const invitationsResult = await listInvitations(ctx.octokit, ctx.repoRef.fullName, signal.executor);
-    
-    if (invitationsResult.success && invitationsResult.invitations) {
-        // Find invitation for this user
-        const userInvitation = invitationsResult.invitations.find((invitation: { id: number; invitee?: { login: string } }) => 
-          invitation.invitee?.login === username
-        );
-        
-        if (userInvitation) {
-          ctx.logger.info(`Found pending invitation ID ${userInvitation.id} for ${username}`);
-          
-          // Cancel the invitation
-          const cancelResult = await cancelInvitation(ctx.octokit, ctx.repoRef.fullName, userInvitation.id, signal.executor);
-          
-          if (cancelResult.success) {
-            invitationCancelled = true;
-            ctx.logger.info(`Successfully cancelled pending invitation for: ${username}`);
-          } else {
-            ctx.logger.error(`Failed to cancel invitation: ${cancelResult.error}`);
-          }
-      } else {
-        ctx.logger.info(`No pending invitation found for: ${username}`);
-      }
-    } else {
-      ctx.logger.warn(`Failed to list invitations: ${invitationsResult.error}`);
-    }
-    
-    // Determine overall result
-    if (collaboratorRemoved || invitationCancelled) {
-      const actions = [];
-      if (collaboratorRemoved) actions.push('removed active collaborator');
-      if (invitationCancelled) actions.push('cancelled pending invitation');
-      
-      ctx.logger.info(`Successfully ${actions.join(' and ')} for ${username}`);
-      
+    if (result.success) {
+      ctx.logger.info(`Successfully removed ${username} as admin from ${fullName(ctx.repoRef)}`, { username });
       return { 
         success: true, 
         action: 'admin_removed', 
-        username, 
-        repoUrl: signal.repoUrl,
-        collaboratorRemoved,
-        invitationCancelled
+        username,
+        repoUrl: signal.repoUrl
       };
     } else {
-      const errorMessage = `User ${username} not found as active collaborator or pending invitation`;
-      ctx.logger.error(`Failed to remove admin access: ${errorMessage}`);
-      
+      ctx.logger.error(`Failed to remove ${username} as admin from ${fullName(ctx.repoRef)}`, { error: result.error, status: result.status });
       return { 
         success: false, 
         action: 'admin_remove_failed', 
-        error: errorMessage, 
+        error: result.error,
         username,
         repoUrl: signal.repoUrl
       };

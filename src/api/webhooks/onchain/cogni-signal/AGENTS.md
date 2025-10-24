@@ -32,8 +32,8 @@ Single endpoint for CogniSignal events from any onchain webhook provider using a
 - Validation errors return detailed messages in response body for debugging
 - Each valid CogniAction event triggers GitHub action execution via action registry system
 - Currently assumes GitHub App installation ID directly from DAO+repo lookup
-- Uses `parseCogniAction()` to get `Signal` objects
-- Calls `executeAction(signal, octokit, logger)` with Signal pattern
+- Uses `fetchCogniFromTx()` to get `Signal` objects from blockchain transactions
+- Calls `executeAction(signal, app, logger)` with Signal + VCS factory pattern
 
 ## Architecture
 route.ts → detectProvider() → getAdapter() → adapter.verifySignature() → adapter.parse() → RPC verify
@@ -44,10 +44,9 @@ route.ts → detectProvider() → getAdapter() → adapter.verifySignature() →
 3. `adapter.verifySignature()` validates HMAC → 401 if fails
 4. `adapter.parse()` extracts txHashes from webhook payload
 5. Return 204 if no transactions found
-6. For each txHash: RPC fetch → filter by contract address → parse CogniAction events with new schema
-7. Validate chainId and DAO address → collect validation errors if mismatches
-8. Parse repository path from `repoUrl` for GitHub App installation ID lookup (currently assumes GitHub)
-9. Execute GitHub action via action registry using `executeAction()` with new schema fields for each valid event
+6. For each txHash: `fetchCogniFromTx()` → filter by contract address → parse CogniAction events
+7. Validate chainId and DAO address → collect validation errors if mismatches  
+8. Execute action via `executeAction(signal, app, logger)` using VCS factory pattern for each valid event
 10. Response logic:
     - **200**: Valid events processed successfully
     - **422**: Validation failures with detailed error messages

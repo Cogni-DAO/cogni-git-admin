@@ -1,41 +1,22 @@
 /**
  * Action Execution Context
  * 
- * Resolved context for action execution.
- * Contains parsed repo info, provider resolution, and execution metadata.
+ * Resolved context for action execution with VCS provider.
  */
 
 import { Application } from 'probot';
 
-import { RepoRef, Vcs } from '../signal/signal';
+import { RepoRef } from '../signal/signal';
+import { VcsProvider } from '../../providers/vcs/types';
 
 /**
  * Execution context for action handlers
- * All schema-specific parsing and resolution happens before this point
+ * All parsing and validation happens before this point
  */
 export interface ExecContext {
   repoRef: RepoRef;           // Parsed repository reference
-  provider: Vcs;              // VCS provider (for future multi-VCS routing)
-  octokit: any;               // Authenticated VCS client (GitHub for now)
+  provider: VcsProvider;      // VCS provider with authenticated client
   logger: Application['log']; // Logger instance
   executor: string;           // Executor address from blockchain
-  params: any;                // Parsed JSON parameters from paramsJson
-}
-
-/**
- * Safely parse JSON parameters with fallback
- * @param paramsJson - JSON string from blockchain event
- * @returns Parsed object or empty object if invalid
- */
-export function safeParseParams(paramsJson: string): any {
-  if (!paramsJson || paramsJson.trim() === '') {
-    return {};
-  }
-  
-  try {
-    return JSON.parse(paramsJson);
-  } catch (error) {
-    console.warn(`Failed to parse params JSON: ${paramsJson}`, error);
-    return {};
-  }
+  params: any;                // Parsed and validated parameters
 }

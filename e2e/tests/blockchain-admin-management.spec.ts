@@ -10,7 +10,7 @@
  * 6. Verify pending invitation gets cancelled
  */
 import { test, expect } from '@playwright/test';
-import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, getContract, encodeFunctionData, encodeAbiParameters } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { execSync } from 'child_process';
@@ -120,6 +120,19 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     console.log(`📝 Username for admin operations: ${testConfig.TEST_USERNAME}`);
 
     // Create DAO proposal for grant admin action
+    const addAdminExtra = encodeAbiParameters(
+      [
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint64' }, 
+        { name: 'paramsJson', type: 'string' }
+      ],
+      [
+        BigInt(0), // nonce (MVP: no replay protection yet)
+        BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+        '' // paramsJson (empty for now)
+      ]
+    );
+
     const addAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
       functionName: 'signal',
@@ -128,7 +141,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
         'grant',                        // action (new canonical name)
         'collaborator',                 // target (provider-agnostic)
         testConfig.TEST_USERNAME,       // resource (username directly)
-        '0x'                           // extra (no longer needed)
+        addAdminExtra                   // extra (encoded nonce, deadline, paramsJson)
       ]
     });
 
@@ -170,6 +183,19 @@ test.describe('Complete E2E: DAO Admin Management', () => {
     console.log('🗳️  Executing REMOVE_ADMIN DAO vote on Sepolia...');
 
     // Create DAO proposal for revoke admin action  
+    const removeAdminExtra = encodeAbiParameters(
+      [
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint64' }, 
+        { name: 'paramsJson', type: 'string' }
+      ],
+      [
+        BigInt(0), // nonce (MVP: no replay protection yet)
+        BigInt(Math.floor(Date.now() / 1000) + 300), // deadline (5 min from now)
+        '' // paramsJson (empty for now)
+      ]
+    );
+
     const removeAdminCalldata = encodeFunctionData({
       abi: cogniSignalAbi,
       functionName: 'signal',
@@ -178,7 +204,7 @@ test.describe('Complete E2E: DAO Admin Management', () => {
         'revoke',                       // action (new canonical name)
         'collaborator',                 // target (provider-agnostic)
         testConfig.TEST_USERNAME,       // resource (username directly)
-        '0x'                           // extra (no longer needed)
+        removeAdminExtra               // extra (encoded nonce, deadline, paramsJson)
       ]
     });
 

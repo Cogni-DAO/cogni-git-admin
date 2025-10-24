@@ -1,9 +1,7 @@
 import { Response } from 'express';
-import { URL } from 'node:url';
 import { Application } from 'probot';
 
 import { executeAction } from '../../../../core/action_execution/executor';
-import { getInstallationId } from '../../../../core/auth/github';
 import { signalToLog } from '../../../../core/signal/signal';
 import { detectProvider } from '../../../../providers/onchain/detect';
 import { getAdapter } from '../../../../providers/onchain/registry';
@@ -94,20 +92,6 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
         ...signalToLog(out.parsed)
       });
 
-      // Parse repo from repoUrl for installation ID lookup
-      const repoUrl = new URL(out.parsed.repoUrl);
-      const repo = repoUrl.pathname.slice(1).replace(/\.git$/, '');
-
-      // Get GitHub App installation ID for this DAO+repo
-      logger.info('🔧 [WEBHOOK] Getting GitHub installation ID', { dao: out.parsed.dao, repo });
-      const installationId = getInstallationId(out.parsed.dao, repo);
-      logger.info('✅ [WEBHOOK] Installation ID retrieved', { installationId });
-
-      // Get authenticated GitHub client from Probot app
-      logger.info('🔧 [WEBHOOK] Authenticating GitHub client');
-      const github = await app.auth(installationId);
-      logger.info('✅ [WEBHOOK] GitHub client authenticated');
-
       // Execute the action
       logger.info('🚀 [WEBHOOK] Executing action', {
         action: out.parsed.action,
@@ -115,7 +99,7 @@ export async function handleCogniSignal(req: RequestWithRawBody, res: Response, 
         "repoUrl": out.parsed.repoUrl,
         resource: out.parsed.resource
       });
-      const actionResult = await executeAction(out.parsed, github, logger);
+      const actionResult = await executeAction(out.parsed, app, logger);
 
       logger.info('✅ [WEBHOOK] Action executed', { kind: 'ActionResult', txHash: out.txHash, ...actionResult });
     }

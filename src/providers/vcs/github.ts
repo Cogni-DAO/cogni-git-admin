@@ -7,32 +7,28 @@
 import { Octokit } from 'octokit'
 
 import * as githubService from '../../services/github'
-import { RepoRef, VcsProvider, VcsResult } from './types'
+import { RepoRef, VcsProvider, MergeResult, GrantCollaboratorResult, RevokeCollaboratorResult } from './types'
 
 /**
  * GitHub VCS Provider Implementation
  */
 export class GitHubVcsProvider implements VcsProvider {
-  readonly name = 'github'
-  readonly host = 'github.com'
+  constructor(private octokit: Octokit) {}
 
   /**
    * Merge pull request via GitHub API
    */
-  async mergePR(repoRef: RepoRef, prNumber: number, executor: string, token: string): Promise<VcsResult> {
+  async mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult> {
     try {
-      const octokit = new Octokit({ auth: token })
       const repo = `${repoRef.owner}/${repoRef.repo}`
       
-      const result = await githubService.mergePR(octokit, repo, prNumber, executor)
+      const result = await githubService.mergePR(this.octokit, repo, prNumber, params.executor)
       
       return {
         success: result.success,
-        data: result.success ? {
-          sha: result.sha,
-          merged: result.merged,
-          message: result.message
-        } : undefined,
+        sha: result.sha,
+        merged: result.merged,
+        message: result.message,
         error: result.success ? undefined : result.error,
         status: result.status
       }
@@ -48,20 +44,16 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Add user as repository administrator
    */
-  async addAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult> {
+  async grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult> {
     try {
-      const octokit = new Octokit({ auth: token })
       const repo = `${repoRef.owner}/${repoRef.repo}`
       
-      const result = await githubService.addAdmin(octokit, repo, username, executor)
+      const result = await githubService.addAdmin(this.octokit, repo, username, params.executor)
       
       return {
         success: result.success,
-        data: result.success ? {
-          username: result.username,
-          permission: result.permission,
-          status: result.status
-        } : undefined,
+        username: result.username,
+        permission: result.permission,
         error: result.success ? undefined : result.error,
         status: result.status
       }
@@ -77,30 +69,26 @@ export class GitHubVcsProvider implements VcsProvider {
   /**
    * Remove user as repository administrator
    */
-  async removeAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult> {
+  async revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult> {
     try {
-      const octokit = new Octokit({ auth: token })
       const repo = `${repoRef.owner}/${repoRef.repo}`
       
-      // First try to remove active collaborator
-      const removeResult = await githubService.removeCollaborator(octokit, repo, username, executor)
+      // Step 1: Always try to remove active collaborator (will succeed even if user wasn't a collaborator)
+      const removeResult = await githubService.removeCollaborator(this.octokit, repo, username)
       
-      if (removeResult.success) {
-        return {
-          success: true,
-          data: {
-            username: removeResult.username,
-            status: removeResult.status,
-            operation: 'collaborator_removed'
-          },
-          status: removeResult.status
-        }
-      }
-      
-      // If collaborator removal failed, try to cancel pending invitations
-      const listResult = await githubService.listInvitations(octokit, repo, executor)
+      // Step 2: Always check for and cancel pending invitations
+      const listResult = await githubService.listInvitations(this.octokit, repo)
       
       if (!listResult.success) {
+        // If we can't list invitations but collaborator removal succeeded, that's still success
+        if (removeResult.success) {
+          return {
+            success: true,
+            username: removeResult.username,
+            operation: 'collaborator_removed',
+            status: removeResult.status
+          }
+        }
         return {
           success: false,
           error: `Failed to remove collaborator and list invitations: ${removeResult.error}`,
@@ -113,27 +101,25 @@ export class GitHubVcsProvider implements VcsProvider {
         inv.invitee && inv.invitee.login === username
       )
       
-      if (!invitation) {
+      if (invitation) {
+        // Cancel the invitation
+        const cancelResult = await githubService.cancelInvitation(this.octokit, repo, invitation.id)
+        
         return {
-          success: false,
-          error: `User ${username} not found as collaborator or in pending invitations`,
-          status: 404
+          success: true, // Success if either collaborator removed or invitation cancelled
+          username,
+          invitationId: cancelResult.invitationId,
+          operation: cancelResult.success ? 'invitation_cancelled' : 'collaborator_removed',
+          status: cancelResult.status || removeResult.status
         }
       }
       
-      // Cancel the invitation
-      const cancelResult = await githubService.cancelInvitation(octokit, repo, invitation.id, executor)
-      
+      // No invitation found, return collaborator removal result
       return {
-        success: cancelResult.success,
-        data: cancelResult.success ? {
-          username,
-          invitationId: cancelResult.invitationId,
-          status: cancelResult.status,
-          operation: 'invitation_cancelled'
-        } : undefined,
-        error: cancelResult.success ? undefined : cancelResult.error,
-        status: cancelResult.status
+        success: true, // GitHub removeCollaborator succeeds even if user wasn't a collaborator
+        username: removeResult.username,
+        operation: 'collaborator_removed',
+        status: removeResult.status
       }
       
     } catch (error) {
@@ -146,7 +132,3 @@ export class GitHubVcsProvider implements VcsProvider {
   }
 }
 
-/**
- * Default GitHub VCS provider instance
- */
-export const gitHubVcsProvider = new GitHubVcsProvider()

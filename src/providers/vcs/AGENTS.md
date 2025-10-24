@@ -1,130 +1,89 @@
 # VCS Provider Adapters
 
 ## Purpose
-Normalize different VCS platform operations into consistent interface for blockchain-initiated repository administration.
+Provide authenticated VCS providers through factory pattern for blockchain-initiated repository operations.
 
 ## Scope
-- VCS provider registration by host (github.com, gitlab.com)
-- Repository URL parsing and provider resolution
-- Token management per host/owner
-- Atomic VCS operations (merge PR, add/remove admin)
+- VCS provider creation with per-execution authentication
+- Repository operations across different VCS platforms (GitHub, GitLab, etc.)
+- Authentication encapsulation within providers
 
 ## Architecture
 ```typescript
 interface VcsProvider {
-  readonly name: string              // "github" | "gitlab"
-  readonly host: string              // "github.com" | "gitlab.com"
-  
-  // Core admin operations
-  mergePR(repoRef: RepoRef, prNumber: number, executor: string, token: string): Promise<VcsResult>
-  addAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult>
-  removeAdmin(repoRef: RepoRef, username: string, executor: string, token: string): Promise<VcsResult>
-}
-
-interface RepoRef {
-  host: string        // "github.com" 
-  owner: string       // "derekg1729"
-  repo: string        // "test-repo"
-  url: string         // Full URL for reference
+  mergeChange(repoRef: RepoRef, prNumber: number, params: any): Promise<MergeResult>
+  grantCollaborator(repoRef: RepoRef, username: string, params: any): Promise<GrantCollaboratorResult>
+  revokeCollaborator(repoRef: RepoRef, username: string): Promise<RevokeCollaboratorResult>
 }
 ```
+
+## Key Principles
+- **Authentication Encapsulation**: Providers own authenticated clients, handlers never see tokens
+- **Per-Execution Auth**: Fresh authenticated provider created for each execution
+- **Clean Interfaces**: Business logic depends on interfaces, not concrete SDK clients
+- **Single Auth Boundary**: All VCS authentication confined to factory creation
 
 ## Data Flow
-1. **CogniSignal Event** → Contains `repo_url` field  
-2. **RepoRef.parse(repo_url)** → Extract `{host, owner, repo}`
-3. **ProviderRegistry.get(host)** → Get VCS provider for host
-4. **TokenSource.getToken(host, owner)** → Get access token 
-5. **Provider.adminOperation()** → Execute through provider
-6. **VcsResult** → Structured response with success/error
+1. **Signal Processing** → Extract `vcs`, `repoRef` from CogniSignal
+2. **VCS Factory** → `createVcsProvider(vcs, app, repoRef, dao)` creates authenticated provider
+3. **Provider Operation** → Execute through clean interface (no tokens, no executor params)
+4. **Result** → Structured response with success/error details
 
-## Current Implementation Plan
+## Current Implementation
 
-### Core Components
-- **registry.ts** - ProviderRegistry keyed by host (github.com, gitlab.com)
-- **repo-ref.ts** - RepoRef.parse() for URL → {host, owner, repo} 
-- **token-source.ts** - TokenSource.getToken(host, owner) for auth
-- **github.ts** - GitHub VCS provider implementation
-- **gitlab.ts** - GitLab VCS provider implementation (future)
+### Factory Pattern (`src/factories/vcs.ts`)
+- **Entry Point**: `createVcsProvider(vcs, app, repoRef, dao)`
+- **Authentication**: Handles all VCS authentication internally
+- **Supported VCS**: GitHub (GitLab and Radicle planned)
+- **Returns**: Authenticated VCS provider ready for operations
 
-### Provider Resolution Strategy
-```typescript
-// From CogniSignal event
-const repoUrl = "https://github.com/derekg1729/test-repo"
+### GitHub Provider (`github.ts`)
+- **Interface**: Implements `VcsProvider` interface
+- **Authentication**: Uses Probot app installation tokens
+- **Operations**: Wraps `src/services/github.ts` functions
+- **Behavior**: Encapsulates all GitHub-specific logic
 
-// Parse repo reference  
-const repoRef = RepoRef.parse(repoUrl) // {host: "github.com", owner: "derekg1729", repo: "test-repo"}
+### Result Types (`types.ts`)
+- **MergeResult**: merge operation outcomes
+- **GrantCollaboratorResult**: admin addition outcomes  
+- **RevokeCollaboratorResult**: admin removal outcomes (handles both active collaborators and pending invitations)
 
-// Get provider for host
-const provider = ProviderRegistry.get(repoRef.host) // GitHub provider
+## Integration Points
 
-// Get token for host/owner
-const token = await TokenSource.getToken(repoRef.host, repoRef.owner)
+### Action Handlers
+- Receive parsed signals with VCS type and repository reference
+- Call factory to get authenticated provider
+- Execute operations through clean provider interface
 
-// Execute operation
-const result = await provider.addAdmin(repoRef, "newuser", "executor", token)
-```
+### Authentication Flow
+- **GitHub**: Probot installation mapping via DAO address
+- **GitLab**: Future OAuth or PAT implementation
+- **Provider Encapsulation**: No token management in action handlers
 
-### Integration Points
-
-#### Action Handlers
-- Action handlers receive parsed CogniSignal with repo_url
-- Build RepoRef from repo_url
-- Get provider from registry by host
-- Execute operations through provider interface
-
-#### Token Management  
-- **No Global Tokens** - All tokens scoped to host/owner
-- **GitHub**: Use existing Probot installation mapping
-- **GitLab**: Future - OAuth tokens or PATs per project
-
-#### Error Handling
-- Provider-agnostic error codes and messages
-- Consistent VcsResult interface across providers
-- Fallback behavior for unsupported hosts
+### Error Handling
+- Provider-specific errors normalized to standard result interfaces
+- Authentication failures handled at factory level
+- Operation failures returned through result objects
 
 ## Directory Structure
 ```
 src/providers/vcs/
-├── AGENTS.md           # This file - architecture overview  
-├── registry.ts         # ProviderRegistry - host → provider mapping
-├── repo-ref.ts         # RepoRef.parse() - URL parsing utilities
-├── token-source.ts     # TokenSource.getToken() - auth management
+├── types.ts            # VcsProvider interface and result types
 ├── github.ts           # GitHub VCS provider implementation
-├── gitlab.ts           # GitLab VCS provider (future)
-├── types.ts           # VcsProvider, VcsResult, RepoRef interfaces
-└── detect.ts          # Provider detection fallback (future)
+└── CONTEXT_INTERFACE_SPEC.md  # Factory pattern specification
+
+src/factories/
+└── vcs.ts             # VCS provider factory with authentication
 ```
 
-## Provider Implementations
+## Current Limitations
+- GitHub only (GitLab, Radicle planned)
+- Single installation per DAO
+- GitHub App installation required
+- No self-hosted VCS support
 
-### GitHub Provider (`github.ts`)
-- **Host**: `github.com`
-- **Token Source**: Probot installation auth
-- **Operations**: Wraps existing `src/services/github.ts` functions
-- **Authentication**: Uses installation-scoped tokens via Probot
-
-### GitLab Provider (`gitlab.ts`) - Future
-- **Host**: `gitlab.com` 
-- **Token Source**: OAuth tokens or project access tokens
-- **Operations**: GitLab API equivalents (merge MR, add maintainer)
-- **Authentication**: OAuth flow or PAT management
-
-## MVP Limitations
-- **Public Hosts Only**: github.com, gitlab.com (no self-hosted instances)
-- **Single Token per Host**: No multi-token management
-- **Basic Provider Detection**: Host-based only, no advanced detection
-
-## Guidelines  
-- Each provider implements identical VcsProvider interface
-- Providers wrap existing service functions where possible
-- Token management abstracted from providers
-- RepoRef parsing handles various URL formats
-- Registry enables easy provider addition
-- All operations return consistent VcsResult format
-
-## Future Considerations
-- Self-hosted instance support (github.enterprise.com, custom GitLab)
-- Advanced provider detection (API probing, .well-known endpoints)
-- Multi-token management per repository
-- Rate limiting per provider
-- Provider health checks and fallbacks
+## Guidelines
+- Providers encapsulate all authentication details
+- Factory handles provider creation and auth setup
+- Action handlers use clean provider interfaces
+- Results follow consistent format across providers

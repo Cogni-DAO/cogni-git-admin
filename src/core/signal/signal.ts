@@ -52,37 +52,52 @@ export function signalToLog(signal: Signal) {
  * Repository reference parsed from repoUrl
  */
 export interface RepoRef {
-  host: string;     // e.g., "github.com", "gitlab.com"
-  owner: string;    // e.g., "owner"
-  name: string;     // e.g., "repo"
-  fullName: string; // e.g., "owner/repo"
+  host: string;      // e.g., "github.com", "gitlab.com"
+  owner: string;     // e.g., "owner" or "acme/platform" (GitLab subgroups)
+  repo: string;      // e.g., "repo"
+  url: string;       // e.g., "https://github.com/owner/repo"
 }
 
-export namespace RepoRef {
-  /**
-   * Parse repository reference from VCS URL
-   * @param repoUrl - Full VCS URL (e.g., "https://github.com/owner/repo")
-   * @returns Parsed repository reference
-   */
-  export function parse(repoUrl: string): RepoRef {
-    try {
-      const url = new URL(repoUrl);
-      const pathname = url.pathname.slice(1).replace(/\.git$/, '');
-      const [owner, name] = pathname.split('/');
-      
-      if (!owner || !name) {
-        throw new Error(`Invalid repository path: ${pathname}`);
-      }
-      
-      return {
-        host: url.hostname,
-        owner,
-        name,
-        fullName: `${owner}/${name}`
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to parse repository URL "${repoUrl}": ${message}`);
+// Helper functions (replace name/fullName usage)
+export const fullName = (r: RepoRef) => `${r.owner}/${r.repo}`;
+export const name = (r: RepoRef) => r.repo;
+
+/**
+ * Parse repository reference from VCS URL with GitLab subgroup support
+ * @param repoUrl - Full VCS URL (e.g., "https://github.com/owner/repo")
+ * @returns Parsed repository reference
+ */
+export function parseRepoRef(repoUrl: string): RepoRef {
+  try {
+    const url = new URL(repoUrl);
+    
+    // Strip query/fragment and .git suffix
+    const cleanUrl = `${url.protocol}//${url.host}${url.pathname}`.replace(/\.git$/, '');
+    
+    // Parse pathname: remove leading /, split by /
+    const pathname = url.pathname.slice(1).replace(/\.git$/, '');
+    const pathSegments = pathname.split('/').filter(segment => segment.length > 0);
+    
+    if (pathSegments.length < 2) {
+      throw new Error(`Repository URL must contain owner and repo: ${repoUrl}`);
     }
+    
+    // repo = last segment, owner = all preceding segments joined
+    const repo = pathSegments[pathSegments.length - 1];
+    const owner = pathSegments.slice(0, -1).join('/');
+    
+    if (!owner || !repo) {
+      throw new Error(`Invalid repository path: ${pathname}`);
+    }
+    
+    return {
+      host: url.hostname.toLowerCase(),
+      owner,
+      repo,
+      url: cleanUrl
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to parse repository URL "${repoUrl}": ${message}`);
   }
 }

@@ -1,79 +1,76 @@
 # Action Handlers
 
 ## Purpose
-Individual action handler implementations for the extensible action registry system. Each handler provides validation and execution logic for specific blockchain-initiated GitHub operations.
+Signal + Context action handlers for blockchain-initiated VCS operations. Each handler implements business logic for specific repository operations.
 
 ## Scope
 - Individual action handler implementations
-- Action-specific validation logic
-- GitHub API operation execution
+- Signal validation and parameter extraction
+- VCS provider operations through clean interfaces
 - Structured result handling
 
 ## Current Implementations
 
 ### merge-pr.ts
 - **Action**: `merge:change`
-- **Purpose**: Merge pull requests via DAO vote with bypass capabilities
-- **Signature**: `run(signal: Signal, ctx: ExecContext)`
-- **Logic**: Validates PR number from `signal.resource`, calls GitHub merge API
+- **Purpose**: Merge pull request with DAO authorization
+- **Interface**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Validates PR number from `signal.resource`, calls VCS provider merge operation
 - **Returns**: Success with SHA or validation/execution failure
 
 ### add-admin.ts
-- **Action**: `grant:collaborator`
-- **Purpose**: Grant admin access via DAO vote
-- **Signature**: `run(signal: Signal, ctx: ExecContext)`
-- **Logic**: Validates username from `signal.resource`, invites as admin
+- **Action**: `grant:collaborator`  
+- **Purpose**: Grant repository admin access
+- **Interface**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Validates username from `signal.resource`, calls VCS provider grant operation
 - **Returns**: Success with user details or failure
 
 ### remove-admin.ts
 - **Action**: `revoke:collaborator`
-- **Purpose**: Remove admin access via DAO vote
-- **Signature**: `run(signal: Signal, ctx: ExecContext)`
-- **Logic**: Removes collaborator AND cancels pending invitations
-- **Returns**: Success with operation flags or failure
+- **Purpose**: Remove repository admin access
+- **Interface**: `run(signal: Signal, ctx: ExecContext)`
+- **Logic**: Validates username, calls VCS provider revoke operation (handles both active collaborators and pending invitations)
+- **Returns**: Success with operation details or failure
 
 ## Handler Interface
-All handlers implement the `ActionHandler` interface:
 ```typescript
 interface ActionHandler {
-  readonly action: string;        // Action name (e.g., "merge")
-  readonly target: string;        // Target type (e.g., "change")
-  readonly description: string;   // Human readable description
-  
-  validate(parsed: CogniActionParsed): Promise<ValidationResult>;
-  execute(parsed: CogniActionParsed, octokit: Octokit, logger: Application['log']): Promise<ActionResult>;
+  action: string;             // Action name (merge, grant, revoke)
+  target: string;             // Target type (change, collaborator)  
+  description: string;        // Human readable description
+  run(signal: Signal, ctx: ExecContext): Promise<ActionResult>
 }
 ```
 
-## Updated Schema Support
-All handlers use the new CogniSignal schema with:
-- `repoUrl` field (full GitHub URL) instead of `repo` field
-- `resource` field for action-specific data (PR number, username) instead of `pr`/`commit`/hex-encoded `extra`
-- `action` and `target` canonical names for provider-agnostic operations
-
 ## Implementation Pattern
-1. **Metadata**: Define action, target, and description constants
-2. **Validation**: Implement parameter validation without external calls
-3. **Execution**: Perform GitHub API operations with proper error handling
-4. **Logging**: Log execution attempts and results with executor identity
-5. **Results**: Return structured ActionResult objects
+1. **Parameter Validation**: Extract and validate parameters from signal.resource
+2. **Business Logic**: Implement action-specific logic
+3. **VCS Operation**: Call VCS provider through clean interface (ctx.provider.*)
+4. **Result Handling**: Return structured ActionResult
+5. **Logging**: Log operations with signal metadata
 
-## GitHub Permissions Required
-- **merge-pr.ts**: `pull_requests: write`, `contents: write` (with bypass capabilities)
-- **add-admin.ts**: `administration: write`
-- **remove-admin.ts**: `administration: read` (list invitations), `administration: write` (remove collaborator, cancel invitation)
+## VCS Provider Integration
+- **Clean Interface**: Handlers use `ctx.provider` for VCS operations
+- **Authentication**: Handled by VCS provider (no token management)
+- **Multi-VCS Support**: Same handler works across GitHub, GitLab, etc.
+- **Provider Abstraction**: Handlers don't know implementation details
 
-## Adding New Actions
-1. Create new handler file implementing `ActionHandler` interface
-2. Add validation logic for action-specific parameters
-3. Implement execution logic using appropriate GitHub API calls
-4. Export handler for registration in `../registry.ts`
-5. Add comprehensive unit tests in `../../../../test/unit/`
+## Signal Schema Usage
+- **repoUrl**: Full repository URL for VCS provider resolution
+- **resource**: Action-specific data (PR number, username)
+- **action/target**: Provider-agnostic operation identifiers
+- **executor**: Blockchain transaction executor address
+- **params**: Additional parameters from signal.paramsJson
+
+## Error Handling
+- **Validation Errors**: Return `validation_failed` action with descriptive message
+- **VCS Errors**: Propagate provider results with operation details  
+- **Logging**: All operations logged with executor identity for auditing
+- **Structured Results**: Consistent ActionResult format
 
 ## Guidelines
-- All handlers must implement the ActionHandler interface
-- Validate parameters before execution without making external calls
-- Handle GitHub API errors gracefully with descriptive error messages
-- Log all execution attempts with executor identity for audit trail
-- Return structured ActionResult objects for consistent API responses
-- Keep handlers focused on single responsibility (one action type per file)
+- Extract parameters from Signal fields, validate before VCS calls
+- Use VCS provider interface, avoid direct GitHub/GitLab API calls
+- Focus on business logic, let VCS provider handle platform specifics
+- Return structured results with success flag and operation details
+- Log with signal metadata for audit trails
