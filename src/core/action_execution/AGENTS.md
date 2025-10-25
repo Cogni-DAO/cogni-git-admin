@@ -27,7 +27,7 @@ Signal + Context pattern for blockchain-initiated VCS operations. Provides authe
 ## Execution Flow
 1. **Signal Processing** → `executeAction(signal, app, logger)`
 2. **Repository Parsing** → Extract `repoRef` from signal
-3. **VCS Provider Creation** → Factory creates authenticated provider
+3. **VCS Provider Creation** → Factory validates authorization and creates authenticated provider
 4. **Parameter Parsing** → VCS-aware parameter validation
 5. **Context Building** → Assemble `ExecContext` with provider
 6. **Handler Execution** → `handler.run(signal, ctx)`
@@ -58,8 +58,9 @@ interface ExecContext {
 - **revoke:collaborator** → Remove administrator or cancel invitation
 
 ## VCS Integration
-- **Factory Pattern**: `createVcsProvider(vcs, app, repoRef, dao)` 
-- **Authentication**: Handled at VCS provider level
+- **Factory Pattern**: `createVcsProvider(vcs, app, repoRef, dao, chainId)` 
+- **Authorization**: DAO authorization validated before authentication
+- **Authentication**: Handled at VCS provider level with installation tokens
 - **Provider Interface**: Clean operations without token management
 - **Multi-VCS Support**: GitHub implemented, GitLab/Radicle planned
 
