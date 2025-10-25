@@ -7,7 +7,8 @@
 
 import { Application } from 'probot';
 
-import { getInstallationId } from '../core/auth/github';
+import { getOctokit } from '../core/auth/github';
+import { authorize } from '../core/auth/policy';
 import { RepoRef, Vcs } from '../core/signal/signal';
 import { GitHubVcsProvider } from '../providers/vcs/github';
 import { VcsProvider } from '../providers/vcs/types';
@@ -17,20 +18,17 @@ import { VcsProvider } from '../providers/vcs/types';
  * @param vcs - VCS type (github, gitlab, etc.)
  * @param app - Probot application instance for GitHub authentication
  * @param repoRef - Repository reference for scoped authentication
- * @param dao - DAO address for GitHub App installation lookup
+ * @param dao - DAO address for future auth validation
+ * @param chainId - Chain ID for future auth validation
  * @returns Configured VCS provider with authenticated client
  */
-export async function createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string): Promise<VcsProvider> {
+export async function createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string, chainId: bigint): Promise<VcsProvider> {
+  // VCS-agnostic authorization check
+  await authorize(dao, chainId, vcs, repoRef);
+  
   switch (vcs) {
     case 'github': {
-      // Get GitHub App installation ID for this repository
-      const repo = `${repoRef.owner}/${repoRef.repo}`;
-      const installationId = getInstallationId(dao, repo);
-      
-      // Get authenticated Octokit client from Probot
-      const octokit = await app.auth(Number(installationId));
-      
-      // Create GitHub provider with authenticated client
+      const octokit = await getOctokit(app, repoRef);
       return new GitHubVcsProvider(octokit);
     }
     

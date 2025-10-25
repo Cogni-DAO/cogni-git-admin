@@ -15,7 +15,7 @@ Pure business logic with no external dependencies. Testable, predictable functio
   - Registry pattern for mapping action:target pairs to specific handlers
   - Type-safe action execution with validation and structured results
   - Supports `PR_APPROVE:pull_request`, `ADD_ADMIN:repository`, and `REMOVE_ADMIN:repository`
-- **auth/**: Installation ID mapping in `github.ts`
+- **auth/**: GitHub authentication (`github.ts`) and VCS-agnostic authorization policy (`policy.ts`)
 
 ## Structure
 - `signal/` - CogniAction event domain logic and parsing
@@ -24,7 +24,7 @@ Pure business logic with no external dependencies. Testable, predictable functio
   - `registry.ts` - Action registration and lookup
   - `executor.ts` - Central execution orchestrator
   - `actions/` - Individual action handler implementations
-- `auth/` - Authentication and authorization helpers
+- `auth/` - GitHub authentication (`github.ts`) and authorization policy (`policy.ts`)
 
 ## Guidelines
 - No IO operations (no RPC calls, no file system, no HTTP)

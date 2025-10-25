@@ -1,21 +1,33 @@
-import { environment } from '../../utils/env';
+import { Application } from 'probot';
 
-export function getInstallationId(dao: string, repo: string): number {
-  // TODO: Replace with database lookup mapping DAO+repo to GitHub App installation ID
-  // TODO: Validate that DAO has permission for this repo
-  // TODO: Support multiple installations per DAO
-  
-  // MVP: Hardcoded mapping
-  if (dao.toLowerCase() === environment.DAO_ADDRESS?.toLowerCase() && repo === 'derekg1729/test-repo') {
+import { RepoRef } from '../signal/signal';
 
-    // Still SUPER temporary glue code for testing purposes
-    if (environment.NODE_ENV === 'production') {
-      // Preview app's installation ID on test-repo
-      return 89353955;
-    } else {
-      // Dev app's installation ID on test-repo
-      return 89056469;
+/**
+ * Get authenticated Octokit client for a specific repository
+ * @param app - Probot application instance
+ * @param repo - Repository reference  
+ * @returns Authenticated Octokit client with installation token
+ */
+export async function getOctokit(app: Application, repo: RepoRef) {
+  try {
+    // GitHub App (JWT) authentication
+    const appOctokit = await app.auth();
+    
+    // Check if app is installed on this repository
+    // TODO: Use appOctokit.rest.apps.getRepoInstallation when we upgrade to Probot 13+
+    const { data } = await appOctokit.request({
+      method: "GET",
+      url: `/repos/${repo.owner}/${repo.repo}/installation`,
+      headers: {},
+    });
+    const installationId = data.id;
+    
+    // Return authenticated Octokit client with installation token
+    return app.auth(installationId);
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+      throw new Error(`GitHub App not installed on ${repo.owner}/${repo.repo}`);
     }
+    throw error;
   }
-  throw new Error(`No GitHub App installation found for DAO ${dao} and repo ${repo}`);
 }

@@ -15,7 +15,7 @@ export async function executeAction(signal: Signal, app: Application, logger: Ap
     const repoRef = parseRepoRef(repoUrl);
     
     // Create authenticated VCS provider
-    const provider = await createVcsProvider(vcs, app, repoRef, signal.dao);
+    const provider = await createVcsProvider(vcs, app, repoRef, signal.dao, signal.chainId);
     
     // Parse and validate parameters with context
     const params = parseParams(action, target, signal.paramsJson);
