@@ -16,7 +16,7 @@ Single authentication boundary for creating authenticated VCS provider instances
 
 ## Factory Interface
 ```typescript
-createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string): Promise<VcsProvider>
+createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string, chainId: bigint): Promise<VcsProvider>
 ```
 
 ## Authentication Model
@@ -25,17 +25,18 @@ createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string): Pr
 - **Self-hosted**: Configurable authentication per host (future)
 
 ## Provider Creation Flow
-1. **VCS Detection**: Extract VCS type from signal
-2. **Repository Scoping**: Use repoRef for installation/token lookup
-3. **Authentication**: Get platform-specific authenticated client
+1. **Authorization Check**: Validate DAO access via policy system
+2. **VCS Detection**: Route to platform-specific authentication
+3. **Authentication**: Get platform-specific authenticated client  
 4. **Provider Instantiation**: Create provider with encapsulated client
 5. **Interface Return**: Return clean VcsProvider interface
 
 ## Implementation Details
-- **GitHub Provider**: Uses `app.auth(installationId)` with DAO-based installation mapping
-- **Error Handling**: Throws for unsupported VCS types or authentication failures  
+- **Authorization Integration**: Uses VCS-agnostic policy system before authentication
+- **GitHub Provider**: Uses `getOctokit()` for scoped installation authentication
+- **Error Handling**: Throws for unauthorized access, unsupported VCS, or auth failures
 - **Type Safety**: Returns strongly-typed VcsProvider interface
-- **Clean Separation**: Action handlers never see underlying SDK clients
+- **Clean Separation**: Action handlers never see underlying SDK clients or authorization logic
 
 ## Current Support
 - **GitHub**: Full implementation with Probot App authentication
@@ -43,8 +44,8 @@ createVcsProvider(vcs: Vcs, app: Application, repoRef: RepoRef, dao: string): Pr
 - **Radicle**: Placeholder (throws error)
 
 ## Guidelines
-- Factory handles all authentication concerns
-- Providers encapsulate authenticated clients
-- No token/client passing to action handlers
-- Each execution gets fresh provider instance
-- Clean interfaces hide VCS implementation details
+- Factory handles authorization and authentication as single boundary
+- Authorization checked before any VCS-specific authentication
+- Providers encapsulate authenticated clients and hide authorization logic
+- Each execution gets fresh provider with validated access
+- Clean interfaces hide VCS implementation and policy details
